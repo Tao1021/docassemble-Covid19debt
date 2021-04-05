@@ -1,0 +1,28 @@
+metadata:
+  title: Choose a interview you want to engage 
+  short title: Multi-interview
+  documentation: "https://docassemble.org/docs/logic.html#multiple interviews umbrella"
+  example start: 1
+  example end: 3
+---
+include:
+  - interview-demo.yml
+  - interview-basicQuestion.yml
+  - interview-eviction.yml
+---
+question: |
+  What interview would you like to do?
+field: interview_choice
+choices:
+  - Generate Perosnal Report
+  - Debt info 
+  - Eviction 
+---
+mandatory: true
+code: |
+  if interview_choice == 'Generate Perosnal Report':
+    interview_demo_done
+  elif interview_choice == 'Debt info':
+    interview_basicQuestion_done
+  elif interview_choice == 'Eviction':
+    interview_eviction_done

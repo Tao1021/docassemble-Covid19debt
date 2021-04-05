@@ -1,0 +1,137 @@
+---
+metadata:
+  title: |
+    Debt Questionnaire and Checklist 
+  short title: |
+    Pages to understand the basic procudure 
+  description: |
+    This interview helps us to understand basic structure of starting a interview with regards to debts issue. 
+  authors:
+    - name: Tao Li
+      organization: Swansea University
+    
+  revision_date: 2021-03-01
+---
+objects: 
+  - user: Individual 
+  - debt:  DAList.using(there_are_any=True, object_type=DAObject, complete_attribute='name')
+---
+mandatory: True 
+question:  |
+  Please provide your personal information?
+fields:  
+  - First: user.name.first
+  - Last: user.name.last
+  - Middle Name: user.name.middle
+    required: False
+  - Birth Date: user.birthday
+    datatype: date
+  - Gender: user.gender
+    input type: dropdown
+    choices:
+      - Male
+      - Female 
+      - other 
+  - UK Resident: user.uk
+    datatype: yesnoradio
+---
+mandatory: True
+question:  |
+  Financial Details 
+fields:
+  - Are you in Debts?: user.debts
+    datatype: yesnoradio
+  - How much do you own?: user.debt_amount
+    default: £
+    show if: 
+      variable: user.debts
+      is: True 
+---
+
+question:  |
+  Please identify type of ${ ordinal(i) } debts you own:
+fields: 
+  - debt type: debt[i].name
+    datatype: dropdown
+    code:  |
+      debt_type_list
+  - Amount: debt[i].amount
+    datatype: currency 
+    min: 0
+    currency symbol: £
+  - Please Specify: new_name
+    show if:
+      variable: debt[i].name
+      is: other
+    #code: |
+    #  debt[i].name = new_name
+
+---
+mandatory: True 
+question:  |
+  Are you liable for the debts?
+
+fields:  
+  - Date of debt, is it over 6 years?: debt_over_6_years
+    datatype: noyesmaybe
+  - Have payments been made wowards the debt within past 6 years?: debt_made_past_6_years
+    datatype: noyesmaybe
+  - Was any pressure applied to the individual to sign/borrow?: debt_pressure
+    datatype: noyesmaybe
+  - Was the individual under the age of 18 years whne signed/borrowed?: debt_age
+    datatype: noyesmaybe
+  - Was the debt/extent of the debt agreed/committed to by contract or otherwise: debt_consent
+    datatype: noyesmaybe
+  - Is the debt disputed?: debt_dispute
+    datatype: noyesmaybe
+  - Is the debt owed with any other person?: debt_shared
+    datatype: noyesmaybe
+  - What are the details?: debt_shared_detail
+    show if:
+      variable: debt_shared
+      is: False 
+    
+---
+code:  |
+  debt_type_list = ['Credit Card', 'Bank overdraft', 'Rent arrears','Catalogue spending', 'Morgage arrears','Council Tax', 'Energy bill arrears','other']
+---
+question:  Are there any other debts you want to add?
+yesno:  debt.there_is_another
+---
+mandatory: True
+question: |
+  Description of all your debts
+subquestion: |
+  Debt Name     |Amout
+  ---------------|----------------
+  % for item in debt:
+  ${ item.name } | £${ item.amount }
+  % endfor
+Fields:
+  Can you confirm above summary of your bebts is correct?: summary_conformation
+  datatype: yesno
+  
+  
+---
+mandatory: True
+question:  |
+  What is urgency of the debt position in respect of each of the debts owed?
+fields:
+  - What type of answers are we looking for here: answer_form
+  - Has leagal action or other enforcement type action been commenced?: debt_enforc
+    datatype: yesnomaybe
+  - What are the details?: debt_shared_detail
+    show if:
+      variable: debt_shared
+      is: True 
+
+comments:  |
+  is there any documentation that is needed? 
+   
+
+
+
+
+  
+  
+  

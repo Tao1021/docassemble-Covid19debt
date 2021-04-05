@@ -1,0 +1,66 @@
+template: disclaimer
+content: |
+  If you are unable to pay your debts, you should contact your creditor to let them know and see if they are willing to write off the debt.
+  
+  To help you with this, we've created a set of letter templates which you can use to write to your non-priority creditors. 
+  
+  Debts owed to non-priority creditors are things like credit card debts, overdrafts and other unsecured loans. 
+  
+  The letter templates help you to write to creditors in different situations. You can't change the main text of the letters but you can add your own details like your name, address and the reasons why you can't pay the money.
+---
+mandatory: True
+field: intro_screen
+question: Welcome to the interview!
+subquestion: |
+  Greetings, we hope we can help to sort out your debt problems. 
+
+  ${ disclaimer }
+
+  To get started, press **Continue**.
+---
+mandatory: True
+question:  |
+  Are you jointly liable for the debt?
+yesno: user_libility
+
+---
+mandatory: True
+question: Your personal information
+
+fields:  
+  - Full Name: user_name
+  - Address: user_address
+  - City: user_city
+  - Post Code: user_postcode
+---
+mandatory: True
+question: Your Creditor personal information
+
+fields:  
+  - Full Name: creditor_name
+  - Address: creditor_address
+  - City: creditor_city
+  - Post Code: creditor_postcode
+---
+mandatory: True
+question: Provide your information on the relevent account 
+fields:
+  - Account Name: account_name
+  - Account Number: account_number 
+---
+mandatory: True
+question: The reason why you can not keep up payments
+fields: 
+  - Your reason: user_reason
+---
+mandatory: True
+question: Your file is ready, please check
+
+attachment: 
+  name: Wirte off debt letter 
+  filenmae: Write off debt letter 
+  docx template file: Request_to_write_off_debt_letter.docx
+  valid fromats:
+    - pdf 
+    - docx 
+
