@@ -102,23 +102,23 @@ def expense_type_list() :
     type_list.auto_gather = False
     type_list.gathered = True
     type_list.elements.update([
-        ('rent', 'Rent'),
-        ('mortgage', 'Mortgage'),
-        ('food', 'Food'),
-        ('utilities', 'Utilities'),
+        ('Rent', 'Rent'),
+        ('Mortgage', 'Mortgage'),
+        ('Food', 'Food'),
+        ('Utilities', 'Utilities'),
         ('fuel', 'Other Heating/Cooking Fuel'),
-        ('clothing', 'Clothing'),
-        ('credit cards', 'Credit Card Payments'),
-        ('property tax', 'Property Tax (State and Local)'),
-        ('other taxes', 'Other taxes and fees related to your home'),
-        ('insurance', 'Insurance'),
-        ('medical', 'Medical-Dental (after amount paid by insurance)'),
-        ('auto', 'Car operation and maintenance'),
-        ('transportation', 'Other transportation'),
-        ('charity', 'Church or charitable donations'),
-        ('loan payments', 'Loan, credit, or lay-away payments'),
-        ('support', 'Support to someone not in household'),
-        ('other', 'Other')
+        ('Clothing', 'Clothing'),
+        ('Credit Cards', 'Credit Card Payments'),
+        ('Property Tax', 'Property Tax (State and Local)'),
+        ('Other Taxes', 'Other taxes and fees related to your home'),
+        ('Insurance', 'Insurance'),
+        ('Medical', 'Medical-Dental (after amount paid by insurance)'),
+        ('Auto', 'Car operation and maintenance'),
+        ('Transportation', 'Other transportation'),
+        ('Charity', 'Church or charitable donations'),
+        ('Loan payments', 'Loan, credit, or lay-away payments'),
+        ('Support', 'Support to someone not in household'),
+        ('Other', 'Other')
     ])
     return type_list
 

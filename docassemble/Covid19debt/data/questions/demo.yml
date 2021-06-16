@@ -271,8 +271,8 @@ fields:
       is: False
   - '': jobs[i].period
     datatype: number
-    code:  |
-     period_list() + [[4,"Per quarter"]]
+    code: |
+      period_list() + [[4,"Per quarter"]]
 
 
 ---
