@@ -214,6 +214,7 @@ choices:
     {'unpaid parking tickets - these are called Penalty Charge Notices or Parking Charge Notices':'Unpaid parking tickets - these are called Penalty Charge Notices or Parking Charge Notices'}]
 section: Unsecured Debts
 ---
+
 question:  |
   Debt Information
 subquestion:  |
@@ -277,7 +278,7 @@ fields:
     show if: 
       variable: debt[i].urgency_court
       is: Enforcement
-  
+  - Addtional Information: debt[i].add_info  
       
     
     
@@ -597,21 +598,37 @@ subquestion: |
 
 field: expenses_summary
 ---
-mandatory: True
 
+mandatory: True 
+event: review_answers
 question:  |
- Here are the Monthly summary: 
+ Here are the summary, you can review and edit 
 subquestion:  |
-  Your total debts is: ${currency(debt_total, symbol=u'£')}
+  You said your name was **${user.name}**, with family size of **${user.house_num}**, your current house status is: **${user.house_status}**
   
-  Your monthly income is: ${ currency(jobs.total(period_to_use=12),symbol=u'£') }
+  Your total debts is: **${currency(debt_total, symbol=u'£')}**
   
-  Your monthly expense is: ${ currency(expenses.total(period_to_use=12),symbol=u'£')}
+  Your monthly income is: **${ currency(jobs.total(period_to_use=12),symbol=u'£') }**
   
-  Your monthly disposable income is:  ${ currency(month_disposble_income,symbol=u'£')}
-buttons:
-  - Continue: continue  
+  Your monthly expense is: **${ currency(expenses.total(period_to_use=12),symbol=u'£')}**
+  
+  Your monthly disposable income is:  **${ currency(month_disposble_income,symbol=u'£')}**
+review:
+  - Revisit debt information: debt[0].amount
+    button:  |
+       Your total debts is: **${currency(debt_total, symbol=u'£')}**
+  - Click to edit your monthly income: jobs.table
+  - Revisit personal information: user.name.first
+    button:  |
+       ${user.name.first}, your like this style better?
+   
+field: review_answer
 ---
+mandatory: True
+code: |
+  menu_items = [ action_menu_item('Review Answers', 'review_answers') ]
+---
+
 code:  |
   month_disposble_income = jobs.total(period_to_use=12) - expenses.total(period_to_use=12)
 ---
@@ -650,15 +667,50 @@ subquestion: |
    ## **${item["name"]}** ,                            
   % endfor
   
+  
+  
   The follwoing solutions are not ready for you:
   % for item in not_available_solution:
   
     ${item["name"]}   due to  
     ${item['reason']}
   % endfor
+  
+  To know more about BankRuptcy, [Detail](${ url_action('Check_bankruptcy') })
+  To know more about 
+---
+event: Check_bankruptcy
+question:  |
+  What is Bankruptcy and if it is for you 
+subquestion:  |
+ Advantages of going bankrupt:
+ 
+   1. When the bankruptcy order is over you can make a fresh start - in most cases this will be after a year.
 
+   2. the pressure is taken off you because you don’t have to deal with your creditors
+  you're allowed to keep certain things known as 'exempt goods', for example everyday household items, tools you need to do your job, a car if you need it to get to work or you're a carer and it's not worth more than £2,000
+  
+   3. you're allowed to keep some of your income - but you'll probably have to live on less money than usual
+   
+   4. if you have to make payments from your income, this can only be for 3 years - you won’t have to make payments if your only income is from welfare benefits
+   
+   5. creditors have to stop most types of court action to get their money back following a bankruptcy order
 
+   6. you won't have to pay back the debts that bankruptcy covers
+ 
+ Things you need to watch out when apply:
+  
+  1.	You may lose your home if you have any equity available (by title or beneficial interest).
+  2.	You may be asked to sell your car or trade down for a less expensive model.
+  3.	Until your bankruptcy is discharged you may find it difficult to obtain, or change, a mortgage.
+  4.	Some professional bodies, such as chartered accountants or solicitors, may have rules prohibiting membership and you cannot enlist in the armed forces as an undischarged Bankrupt.
+  5.	The court may enforce an ‘income payments order’ for three years if it deems it necessary.
+  6.	Your credit rating will be affected
+  7.  The cost of bankruptcy is high (800 pounds)
+  
+  Why it is not for you :
 
+    
 ---
 code:  |
   
@@ -717,28 +769,25 @@ code:  |
   for item in formal_solutions:
     if item['amount']< debt_total:
       not_available_solution.append(item)
-      formal_solutions.remove(item)
-      item["reason"]= "Your debt amount " +"£"+str(debt_total) + " exceeded maximum allowance "+ "£"+str(item['amount'] )
-      for item in formal_solutions:
-        if item["homeowner"]=="No" and (user.house_status =="Mortgaged" or user.house_status =="Owns property outright"):
-          not_available_solution.append(item)
-          formal_solutions.remove(item)
-          item["reason"]= "You are a homeowner can not apply "+item["name"]
-          if  month_disposble_income >= item['income']:
-            not_available_solution.append(item)
-            formal_solutions.remove(item)
-            item["reason"]="Your net monthly income " +"£"+str(month_disposble_income) + " exceeded maximum allowance "+ "£"+str(item['income'] )
       
       
+      item["reason"] = "Your debt amount " +"£"+str(debt_total) + " exceeded maximum allowance "+ "£"+str(item['amount'] )
+    
+    
+    elif item["homeowner"]=="No" and (user.house_status =="Mortgaged" or user.house_status =="Owns property outright"):
+      not_available_solution.append(item)
       
+      item["reason"]= "You are a homeowner can not apply "+item["name"]
       
-    Available_solutions = formal_solutions
+    elif month_disposble_income >= item['income']:
+      not_available_solution.append(item)
       
+      item["reason"]="Your net monthly income " +"£"+str(month_disposble_income) + " exceeded maximum allowance "+ "£"+str(item['income'] )
+   
 
-
-
-
-
+ 
+  Available_solutions = [x for x in formal_solutions if x not in not_available_solution]
+  
 ---
 code: |
   uploaded_file.make_ocr_pdf() 
