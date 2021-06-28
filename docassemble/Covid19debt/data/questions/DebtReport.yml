@@ -606,22 +606,23 @@ question:  |
 subquestion:  |
   You said your name was **${user.name}**, with family size of **${user.house_num}**, your current house status is: **${user.house_status}**
   
-  Your total debts is: **${currency(debt_total, symbol=u'£')}**
+ 
   
-  Your monthly income is: **${ currency(jobs.total(period_to_use=12),symbol=u'£') }**
+
   
-  Your monthly expense is: **${ currency(expenses.total(period_to_use=12),symbol=u'£')}**
-  
-  Your monthly disposable income is:  **${ currency(month_disposble_income,symbol=u'£')}**
 review:
+  - Revisit personal information: user.name.first
+    button:  |
+       ${user.name.first }
   - Revisit debt information: debt[0].amount
     button:  |
        Your total debts is: **${currency(debt_total, symbol=u'£')}**
-  - Click to edit your monthly income: jobs.table
-  - Revisit personal information: user.name.first
+  - Revisit Your monthly income: jobs.table
     button:  |
-       ${user.name.first}, your like this style better?
-   
+      Your monthly net income is: **${ currency(jobs.total(period_to_use=12),symbol=u'£') }**
+  - Revisit your monthly expense:  expenses.table
+    button:  |
+       Your monthly expense is: **${ currency(expenses.total(period_to_use=12),symbol=u'£')}** 
 field: review_answer
 ---
 mandatory: True
@@ -655,7 +656,21 @@ fields:
     datatype: range
     min: 0
     max: 10
-
+  
+---
+code:  |
+  if home_owner_pri<5:
+    home_will=" Dont mind to sell house"
+  else:
+    home_will=" Prefer to keep house"
+  
+  if cost_debt>5:
+    cost_will= "You wish spend less on debt solution"
+  else:
+    cost_will= " The cost of debt solution is not a issue for you"
+  
+  
+  
 ---
 mandatory: True 
 question: | 
@@ -664,22 +679,21 @@ subquestion: |
   You can consider the following solutions:
   % for item in Available_solutions:
   
-   ## **${item["name"]}** ,                            
+    **${item["name"]}** [detail](${ url_action(item["name"]) }),                            
   % endfor
+
   
   
-  
-  The follwoing solutions are not ready for you:
+  The follwoing solutions are **not ready** for you:
   % for item in not_available_solution:
   
-    ${item["name"]}   due to  
+    **${item["name"]}**   due to  
     ${item['reason']}
+    [detail](${ url_action("not "+item["name"]) }),
   % endfor
   
-  To know more about BankRuptcy, [Detail](${ url_action('Check_bankruptcy') })
-  To know more about 
 ---
-event: Check_bankruptcy
+event: Bankruptcy
 question:  |
   What is Bankruptcy and if it is for you 
 subquestion:  |
@@ -706,11 +720,49 @@ subquestion:  |
   4.	Some professional bodies, such as chartered accountants or solicitors, may have rules prohibiting membership and you cannot enlist in the armed forces as an undischarged Bankrupt.
   5.	The court may enforce an ‘income payments order’ for three years if it deems it necessary.
   6.	Your credit rating will be affected
-  7.  The cost of bankruptcy is high (800 pounds)
+  7.  The cost of bankruptcy is high (680 pounds)
   
-  Why it is not for you :
-
+  Check if it is for you?
     
+    1. For bankruptcy, you might need to sell you house, you said **${home_will}**
+    
+    2. For banruptcy, the cost is relatively high(£680), you said **${cost_will}**
+    
+    3. Banruptcy will affect your credit rating, you said 
+---
+event: Debt Relief Order
+question:  |
+  Something else 
+subquestion:  |
+  Something else as a place holder 
+---
+event: Administration Order 
+question:  |
+  something here 
+subquestion:  |
+  something else as a place holder 
+---
+event: Individual Voluntary Arrangement 
+question:  |
+  something here 
+subquestion:  |
+  something else as a place holder 
+---
+event: not Debt Relief Order
+question:  |
+  You cant yet apply for Debt relief Order  
+subquestion:  |
+  A debt relief order (DRO) is one way to deal with your debts if you:
+
+  owe £20,000 or less    (your debts is ${currency(debt_total, symbol=u'£')})
+  
+  don’t own your own home
+  
+  don’t have other assets or things of value, less than £1000
+  
+  don’t have much spare income (you’ve got no more than £50 left over each month after you’ve paid your usual household expenses)
+  
+  it's been at least 6 years since your last DRO was made and you aren’t going through another formal insolvency procedure, such as bankruptcy or an individual voluntary arrangement (IVA)
 ---
 code:  |
   
@@ -743,7 +795,7 @@ code:  |
   "reason":"none"},
   
     { 
-  'name': "Administration Order ",
+  'name': "Administration Order",
   "cost": 0.1,
   "credit rating": "affected",
   "durtion" :"36 months",
@@ -755,7 +807,7 @@ code:  |
   "reason":"none"},
   
     {
-  'name': "Individual Voluntary Arrangement ",
+  'name': "Individual Voluntary Arrangement",
   "cost": 4000,
   "credit rating": "affected",
   "durtion" :"5 years",
