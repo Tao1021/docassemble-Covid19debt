@@ -45,7 +45,7 @@ def find_package_data(where='.', package='', exclude=standard_exclude, exclude_d
 setup(name='docassemble.Covid19debt',
       version='0.0.1',
       description=('A docassemble extension.'),
-      long_description='basic version',
+      long_description='# docassemble.Covid19debt\n\nA docassemble extension.\n\n## Author\n\nTao Li, Taoli@admin.com\n\n',
       long_description_content_type='text/markdown',
       author='Tao Li',
       author_email='Taoli@admin.com',

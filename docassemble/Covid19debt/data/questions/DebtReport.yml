@@ -312,7 +312,7 @@ subquestion: |
      None  |None |None
      % endif
    % endfor
- 
+   ${debt_total1}
 buttons:
   - Continue: continue  
 ---
@@ -321,7 +321,12 @@ code:  |
   for item in debt:
     debt_list.append(item.amount)
   debt_total= sum(debt_list)
-
+  debt_total1=0
+ 
+  for i in range(0,len(debt)):
+    debt_total1= debt_total1+debt[i].amount
+  debt_num=len(debt) 
+  
 ---
 
 question:  |
@@ -604,25 +609,33 @@ event: review_answers
 question:  |
  Here are the summary, you can review and edit 
 subquestion:  |
-  You said your name was **${user.name}**, with family size of **${user.house_num}**, your current house status is: **${user.house_status}**
+  Your name is **${user.name}**, with family size of **${user.house_num}**, your current house status is: **${user.house_status}** with monthly disposible income **£${month_disposble_income}**
   
+  you own **${currency(debt_total1, symbol=u'£')}** in total, details show as follow:
  
+  % for item in debt:
+      ${ item.name }  £${ item.amount }
+    
+  % endfor 
   
-
+  
+  #####You can revisit your data below:
   
 review:
   - Revisit personal information: user.name.first
     button:  |
        ${user.name.first }
+  
   - Revisit debt information: debt[0].amount
     button:  |
-       Your total debts is: **${currency(debt_total, symbol=u'£')}**
+      your total debt: **${currency(debt_total1, symbol=u'£')}**
   - Revisit Your monthly income: jobs.table
     button:  |
       Your monthly net income is: **${ currency(jobs.total(period_to_use=12),symbol=u'£') }**
   - Revisit your monthly expense:  expenses.table
     button:  |
-       Your monthly expense is: **${ currency(expenses.total(period_to_use=12),symbol=u'£')}** 
+      your montly expense**${ currency(expenses.total(period_to_use=12),symbol=u'£')}** 
+  
 field: review_answer
 ---
 mandatory: True
@@ -633,29 +646,39 @@ code: |
 code:  |
   month_disposble_income = jobs.total(period_to_use=12) - expenses.total(period_to_use=12)
 ---
-mandatory: True
+
 question:  |
   Perferences and choices
 subquestion: |
   Some of debt solutions will affect your credit rating, prohibt you from undertaking certain jobs and may have impacts on your home. Please answer the following question carefully. 
+  
+  **0 means you dont mind this effects at all, 10 means you want it to be the highest priority when seek for a solution.**
   
 fields:
   - likehood of change of financial situations in the near future? : financial_change
     datatype: range
     min: 0
     max: 10
-  - job will be affected by credit rating: credit_rating_job
+    help:  |
+      for instance, inheritance, promotion with job, move to new house etc  
+  - your credit will be affected: credit_rating1
     datatype: range
     min: 0
     max: 10
-  - low cost of debt solution?: cost_debt 
+    help:  |
+      When you apply for a loan or other type of credit, the credit provider will search your credit reference file to see how much of a risk it is to lend to you. The level of risk is known as your credit rating. It can be affected by your personal financial 
+  - Cost of debt solution?: cost_debt 
     datatype: range
     min: 0
     max: 10
-  - priority to keep home if you are homeowner: home_owner_pri
+    help:  |
+      Some debt solution are significantly more expensive than others, from 90 pounds to 700 to few thousands 
+  - Keep your home: home_owner_pri
     datatype: range
     min: 0
     max: 10
+    
+      
   
 ---
 code:  |
@@ -665,9 +688,19 @@ code:  |
     home_will=" Prefer to keep house"
   
   if cost_debt>5:
-    cost_will= "You wish spend less on debt solution"
+    cost_will= "You wish to spend less on debt solution"
   else:
     cost_will= " The cost of debt solution is not a issue for you"
+  
+  if credit_rating1>5:
+    credit_will="You wish to find a solution with less credit rating punishment"
+  else:
+    credit_will="You dont mind much about credit rating"
+    
+  if financial_change>5:
+    change_will ="You are likely to have a change of financial/personal situation."
+  else:
+    change_will ="You are less likely to change you financial/personal situation"
   
   
   
@@ -676,7 +709,9 @@ mandatory: True
 question: | 
   The following debt solutions are available for you
 subquestion: |
-  You can consider the following solutions:
+  #####You can consider the following solutions:
+  
+  
   % for item in Available_solutions:
   
     **${item["name"]}** [detail](${ url_action(item["name"]) }),                            
@@ -684,14 +719,17 @@ subquestion: |
 
   
   
-  The follwoing solutions are **not ready** for you:
+  #####The follwoing solutions are not ready for you:
+  
+  
   % for item in not_available_solution:
   
     **${item["name"]}**   due to  
     ${item['reason']}
     [detail](${ url_action("not "+item["name"]) }),
   % endfor
-  
+
+continue button field: user_saw_intro
 ---
 event: Bankruptcy
 question:  |
@@ -728,39 +766,119 @@ subquestion:  |
     
     2. For banruptcy, the cost is relatively high(£680), you said **${cost_will}**
     
-    3. Banruptcy will affect your credit rating, you said 
+    3. Banruptcy will affect your credit rating, you said **${credit_will}**
+    
+    
+continue button field: user_saw_intro
 ---
 event: Debt Relief Order
 question:  |
-  Something else 
+  What is Debt relief order and is it for you  
 subquestion:  |
-  Something else as a place holder 
+ 
+  A debt relief order (DRO) is one way to deal with your debts if you:
+
+    -owe £30,000 or less
+    
+    -don’t own your own home
+    
+    -don’t have other assets or things of value
+    
+    -don’t have much spare income 
+    
+     You don't have to make payments towards most types of debt included in your DRO and your creditors can’t force you to pay off the debts. A DRO usually lasts **a year** unless your situation improves. When the DRO ends, most of your debts will be **written off**.
+     
+     **Debts covered by a DRO:**
+      
+     Debts that can go into a DRO are called ’qualifying debts'. During the DRO period creditors can’t ask you for payments, if they do, you don't have to pay them. They include:
+
+  credit cards, overdrafts and loans, arrears with rent, utility bills, telephone bills, council tax and income tax, benefits overpayments, hire purchase or conditional sale agreements, buy now - pay later agreements, bills for services like vets or solicitors, debts you owe to friends and family, business debts
+     
+     **Debts not covered by a DRO:**
+     
+     Not all debts are covered by a DRO. You'll still need to pay:
+
+  -magistrates court fines and confiscation orders relating to criminal activity
+  
+  -child support and maintenance
+  
+  -student loans
+  
+  -social fund loans
+  
+  -compensation for death and injury
+  
+  **Is DRO right for you:**
+  
+    
+    1. For DRO, the cost is relatively low(£90), you said **${cost_will}**
+    
+    2. DRO will affect your credit rating for 6 years, you said  **${credit_will}**
+  
+    3. it might affect applications you make for British citizenship - if you are unsure then you should get advice from an immigration specialist
+    
+    4. you can't borrow £500 or more without telling the creditor about the DRO, you can’t get involved in promoting, managing or setting up a limited company, or be a company director, without getting permission from the court
+    
+    **How to get a DRO?**
+    
+    You can only apply for a DRO through a specialist DRO adviser, also called an 'approved intermediary'. This is usually a skilled debt adviser who has been given permission to complete the forms and give advice on DROs. They will check that you're eligible to apply and that a DRO is right for you. 
+    
+    For more information, please visit www.placeholder.com 
+continue button field: user_saw_intro
 ---
 event: Administration Order 
 question:  |
-  something here 
+  What is an administration order and is it for you?
 subquestion:  |
-  something else as a place holder 
+  **What is an administration order?**
+  
+  An administration order is a formal, legal debt solution which means it's approved by the court and your creditors have to stick to it. It requires two or more debts, yout debts no more than 5000 pounds in total, and a court judgement, if you don’t have a county court judgment or high court judgment, you need to wait for one of your creditors to take court action against you. As soon as judgment is entered you can apply for an administration order.
+  
+  **What debts administration order include?**
+  
+  The law does not specifically exclude any particular debt from an AO and when you apply for an AO, you must list all your debts in the application. However, any creditor can object to being included. It is up to the district judge to decide if any debts are left out.
+
+  If a debt is left out, it still counts towards the £5,000 total.
+  
+  **Is it right for you?**
+  
+  1. There is no up front fee for AO, The court keeps 10% of your monthly payment to cover their costs, you said your you said **${cost_will}**
+  2. Administration orders are entered on the Register of Judgments, Orders and Fines and stay on the register for six years. This information also appears on your credit file. When the administration order ends, the court will change the record on the register to say the administration order has been paid off. Your perference **${credit_will}**
+continue button field: user_saw_intro  
 ---
 event: Individual Voluntary Arrangement 
 question:  |
-  something here 
+  What is Individual Voluntary Arrangement(IVA) and is it for you?
 subquestion:  |
-  something else as a place holder 
+  **What is IVA?**
+  
+    An individual voluntary arrangement (IVA) is a formal and legally binding agreement between you and your creditors to pay back your debts over a period of time. This means it’s approved by the court and your creditors have to stick to it.
+    
+    An IVA can be flexible to suit your needs but it can be expensive. An IVA must be set up by a qualified person, called an insolvency practitioner. This will be a lawyer or an accountant.The insolvency practitioner will charge fees for the IVA. These can often be high and are based on the amount you pay back through the IVA. If you decide to get an IVA, you will work out a repayment plan with the insolvency practitioner. This could be monthly payments, a lump sum or a combination of both.
+    
+    **Is this right for you?**
+    
+    1. your debts should be to more than £10000 or more, as the cost of IVA usually high, you said **${cost_will}**
+    
+    2. If you own a home, most IVA agreements include a requirement for you to get a valuation of your home in the final year. If there is equity in the property, you'll usually need to raise a lump sum to put into the IVA by re-mortgaging your home. Equity is the money you'd make from the sale of a property, after any mortgage or secured loans are paid off. You shouldn't have to sell your home to raise the lump sum. If you think you are being asked to sell your home, get specialist advice straight away. you preference on house is **${home_will}**
+    
+    3. Having an IVA may affect any future income or assets that you receive. For example, if you decide to move house while you have an IVA, any money you make from the sale may have to be paid into the IVA. yous said: **${change_will}**
+    
+continue button field: user_saw_intro    
 ---
 event: not Debt Relief Order
 question:  |
-  You cant yet apply for Debt relief Order  
+  You cant  apply for Debt relief Order  
 subquestion:  |
   A debt relief order (DRO) is one way to deal with your debts if you:
 
-  owe £20,000 or less    (your debts is ${currency(debt_total, symbol=u'£')})
+  owe £30,000 or less    (your debts is ${currency(debt_total, symbol=u'£')})
   
   don’t own your own home
   
-  don’t have other assets or things of value, less than £1000
+  don’t have other assets or things of value, less than £2000
   
-  don’t have much spare income (you’ve got no more than £50 left over each month after you’ve paid your usual household expenses)
+  don’t have much spare income (you’ve got no more than £75 left over each month after you’ve paid your usual household expenses)
   
   it's been at least 6 years since your last DRO was made and you aren’t going through another formal insolvency procedure, such as bankruptcy or an individual voluntary arrangement (IVA)
 ---
@@ -772,7 +890,8 @@ code:  |
   formal_solutions = [
     {
   "name": "Bankruptcy",
-  "cost": 750,
+  "cost": 680,
+   "number":0,
   "credit rating": "Strongly Affected",
   "duration": "12 months",
   "amount": 1000000000,
@@ -780,23 +899,27 @@ code:  |
   "assets": 0,
   "home": "risk",
   "homeowner": "Yes",
-  "reason":"none"},
+  "reason":"none",
+  "court_case": "no"},
   
    {
   'name': "Debt Relief Order",
+   "number":0,
   "cost": 90 ,
   "credit rating": "affected",
   "durtion" :"12 months",
-  "amount":20000,
-  "income":50,
+  "amount":30000,
+  "income":75,
   "aseets": 1000,
   "home": "None",
    "homeowner": "No",
+   "court_case": "no",
   "reason":"none"},
   
     { 
   'name': "Administration Order",
   "cost": 0.1,
+  "number":2,
   "credit rating": "affected",
   "durtion" :"36 months",
   "amount":5000,
@@ -804,26 +927,29 @@ code:  |
   "aseets": 100000,
   "home": "risk",
    "homeowner": "Yes",
-  "reason":"none"},
+  "reason":"none",
+  "court_case": "yes"},
   
     {
   'name': "Individual Voluntary Arrangement",
   "cost": 4000,
+  "number":0,
   "credit rating": "affected",
   "durtion" :"5 years",
-  "amount":500000,
+  "amount":1000000,
   "income":100000,
   "aseets": 100000,
   "home": "safe",
    "homeowner": "Yes",
+   "court_case": "no",
   "reason":"none"}]
   
   for item in formal_solutions:
-    if item['amount']< debt_total:
+    if item['amount']< debt_total1:
       not_available_solution.append(item)
       
       
-      item["reason"] = "Your debt amount " +"£"+str(debt_total) + " exceeded maximum allowance "+ "£"+str(item['amount'] )
+      item["reason"] = "Your debt amount " +"£"+str(debt_total1) + " exceeded maximum allowance "+ "£"+str(item['amount'] )
     
     
     elif item["homeowner"]=="No" and (user.house_status =="Mortgaged" or user.house_status =="Owns property outright"):
@@ -836,7 +962,11 @@ code:  |
       
       item["reason"]="Your net monthly income " +"£"+str(month_disposble_income) + " exceeded maximum allowance "+ "£"+str(item['income'] )
    
-
+    elif debt_num <=item["number"]:
+      not_available_solution.append(item)
+      item["reason"]= "you need to have more than 1 debts, you currently have: "+ str(debt_num)+" debts"
+    
+      
  
   Available_solutions = [x for x in formal_solutions if x not in not_available_solution]
   
@@ -864,18 +994,4 @@ subquestion: |
   our terms and conditions.
 section: Signatures
 signature: your_signature
----
-
-mandatory: True
-question: |
-  Your documents are ready. Please print and file!
-section: conclusion  
-attachment:
-    name: Personal Debt Advisor
-    filename: Personal_Debt_Report
-    docx template file: Personal_Debt_Report2.docx
-    valid formats:
-      - docx
-      - pdf
-
 ---
