@@ -319,29 +319,6 @@ def set_nth_field(step, ordinal, label, value):
     elem.send_keys(value)
     elem.send_keys("\t")
 
-@step(r'I select option "([^"]+)" from "([^"]+)"')
-def set_dropdown(step, value, label):
-    try:
-        try:
-            elem = world.browser.find_element_by_id(world.browser.find_element_by_xpath('//label[text()="' + label + '"]').get_attribute("for"))
-        except:
-            elem = world.browser.find_element_by_id(world.browser.find_element_by_xpath('(//label//a[text()="' + label + '"])/parent::label').get_attribute("for"))
-    except:
-        label += " "
-        try:
-            elem = world.browser.find_element_by_id(world.browser.find_element_by_xpath('//label[text()="' + label + '"]').get_attribute("for"))
-        except:
-            elem = world.browser.find_element_by_id(world.browser.find_element_by_xpath('(//label//a[text()="' + label + '"])/parent::label').get_attribute("for"))
-    
-    for option in elem.find_elements_by_xpath(".//*"):
-        found = False
-        if option.text == value:
-            found = True
-            option.click()
-            break
-    assert found
-
-
 @step(r'I select "([^"]+)" in the combobox')
 def set_combobox(step, value):
     togglers = world.browser.find_elements_by_xpath("//button[contains(@class, 'dacomboboxtoggle')]")
@@ -399,6 +376,21 @@ def select_nth_option(step, value, ordinal, label):
         elem = world.browser.find_element_by_id(world.browser.find_element_by_xpath('(//label[text()="' + label + '"])[' + str(1+2*(number_from_ordinal[ordinal] - 1)) + ']').get_attribute("for"))
     found = False
     for option in elem.find_elements_by_tag_name('option'):
+        if option.text == value:
+            found = True
+            option.click()
+            break
+    assert found
+
+@step(r'I answer "([^"]+)" to "([^"]+)"')
+def select_radio_option(step, value, label):
+    try:
+        label_elem = world.browser.find_element_by_xpath('//label[text()="' + label + '"]')
+    except:
+        label += " "
+        label_elem = world.browser.find_element_by_xpath('//label[text()="' + label + '"]')
+    found = False
+    for option in label_elem.find_elements_by_xpath('//following-sibling::label'):
         if option.text == value:
             found = True
             option.click()
