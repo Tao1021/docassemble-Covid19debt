@@ -382,21 +382,6 @@ def select_nth_option(step, value, ordinal, label):
             break
     assert found
 
-@step(r'I answer "([^"]+)" to "([^"]+)"')
-def select_radio_option(step, value, label):
-    try:
-        label_elem = world.browser.find_element_by_xpath('//label[text()="' + label + '"]')
-    except:
-        label += " "
-        label_elem = world.browser.find_element_by_xpath('//label[text()="' + label + '"]')
-    found = False
-    for option in label_elem.find_elements_by_xpath('//following-sibling::label'):
-        if option.text == value:
-            found = True
-            option.click()
-            break
-    assert found
-
 @step(r'I choose "([^"]+)"')
 def select_option_from_only_select(step, value):
     elem = world.browser.find_element_by_xpath('//select')
