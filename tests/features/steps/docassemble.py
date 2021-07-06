@@ -319,6 +319,29 @@ def set_nth_field(step, ordinal, label, value):
     elem.send_keys(value)
     elem.send_keys("\t")
 
+@step(r'I select option "([^"]+)" from "([^"]+)"')
+def set_dropdown(step, value, label):
+    try:
+        try:
+            elem = world.browser.find_element_by_id(world.browser.find_element_by_xpath('//label[text()="' + label + '"]').get_attribute("for"))
+        except:
+            elem = world.browser.find_element_by_id(world.browser.find_element_by_xpath('(//label//a[text()="' + label + '"])/parent::label').get_attribute("for"))
+    except:
+        label += " "
+        try:
+            elem = world.browser.find_element_by_id(world.browser.find_element_by_xpath('//label[text()="' + label + '"]').get_attribute("for"))
+        except:
+            elem = world.browser.find_element_by_id(world.browser.find_element_by_xpath('(//label//a[text()="' + label + '"])/parent::label').get_attribute("for"))
+    
+    for option in elem.find_elements_by_xpath(".//*"):
+        found = False
+        if option.text == value:
+            found = True
+            option.click()
+            break
+    assert found
+
+
 @step(r'I select "([^"]+)" in the combobox')
 def set_combobox(step, value):
     togglers = world.browser.find_elements_by_xpath("//button[contains(@class, 'dacomboboxtoggle')]")

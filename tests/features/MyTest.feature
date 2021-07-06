@@ -11,5 +11,6 @@ Feature: Interview that works with actions
     And I set "Last" to "Smith"
     And I set "Middle Name" to "Person"
     And I set "Birth Date" to "01/01/2000"
+    And I select option "Other" from "Gender"
 
     
