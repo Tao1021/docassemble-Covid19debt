@@ -130,8 +130,12 @@ Feature: Interview that works with actions
     And I click the button "Continue"
 
     Then I should see the phrase "Please Upload supporting files if any."
+    And I upload the file "/Users/garethandrews/Documents/image001.png"
+    And I wait 3 seconds
 
     And I click the button "Continue"
+
+    Then I wait 1 second
 
     Then I should see the phrase "Sign your name"
     And I click inside the signature area
