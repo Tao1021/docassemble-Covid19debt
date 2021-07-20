@@ -33,24 +33,43 @@ objects:
   
 ---
 sections:
-  - Introduction
-  - Personal Info
-  - Household Info
-  - Debts Type:
-    - Priority Debts
-    - Unsecured Debts 
-  - Debt Info
-  - Finance: 
-    - Income
-    - Expenditure
-  - Signatures
-  - Conclusion
+  - introduction: Introduction
+  - personal_info: Personal Info
+  - house_hold: Household Info
+  - debt_types: Debt Type
+    subsections:
+    - priority_debts: Priority Debts
+    - non_priority: Non-priority Debts 
+  - debt_info: Debt Information
+  - finance_info: Finance
+    subsections: 
+    - income: Income
+    - expenditure: Expenditure
+  - debt_solutionss: Debt Solutions
+  - signatures: Signatures
+  - conclusions: Conclusion
 ---
 features:
   navigation: True
+  small screen navigation: dropdown
   progress bar: True
-
 ---
+event: welcome_back
+question: |
+  Welcome back!
+subquestion: |
+  You are currently in the
+  **${ nav.get_section(display=True) }**
+  section.
+
+  ${ nav }
+
+  Press "Continue" to pick up
+  where you left off.
+buttons:
+  Continue: continue
+---
+
 mandatory: True
 code: |
   menu_items = [ action_menu_item('Roadmap', 'road_map') ]
@@ -61,7 +80,6 @@ code: |
     welcome_back
 ---
 
-id: FirstQuestion
 mandatory: True
 question: |
   Welcome To Personal Debt Advisor 
@@ -86,11 +104,93 @@ buttons:
     
 field: sees_nav_bar 
 ---
-id: SecondQuestion
+section: personal_info
+event: personal_info
+question:  |
+  Please Review your information?
+review:
+  - Edit name: user.name.first
+    button:  |
+      Name: ${user.name.first} ${user.name.last}
+  - Edit Birth date: user.birthday
+    button:  |
+      Birthday: ${user.birthday}
+  - Edit gender: user.gender
+    button:  |
+      Gender: ${user.gender}
+  - Edit Work: user.work
+    button:  |
+      Working Status: ${user.work}
+---
+section: priority_debts
+event: priority_debts
+question:  |
+  Priority Debts
+review:  
+  - Edit Priority Debts: t_variable
+    button: |
+      Which Priority Debts is your main issues: ${t_variable}
+---
+section: non_priority
+event: non_priority
+question:  |
+  Priority Debts
+review:  
+  - Edit Non Priority Debts: non_pd
+    button: |
+      Which Non Priority Debts is your main issues: ${non_pd}
+  
+---
+section:  house_hold
+event:  house_hold
+question:  |
+  Please review your household information?
+review:
+  - Edit housing status: user.house_status
+    button :  |
+      Housing Status: ${user.house_status}
+  - Edit Marriage Status: user.marriage
+    button:  |
+      Marriage Status: ${user.marriage}
+  - Edit Children Number: user.childrenNum
+    button:  |
+      Children Number: ${user.childrenNum}
+  - Edit Total Household Number: user.house_num
+    button:  |
+      Household Number: ${user.house_num}
+---
+event: debt_info
+section: debt_info
+question:  | 
+  Review your debt here 
+subquestion:  |
+   ${debt.table}
+   
+   ${debt.add_action()}
+review:  
+ - note: |
+---
+table: debt.table
+rows: debt
+columns: 
+  - Debt Type: |
+      row_item.name
+  - Debt Amount: |
+      row_item.amount
+  - Debt Creditor: |
+      row_item.creditor
+  - Debt Urgency: |
+      row_item.urgency
+  - Debt Liability: |
+      row_item.libility
+edit:
+  - name
+minimum_number: 1
+---
 mandatory: True 
 question:  |
   Please provide your information?
-section: Personal Info
+section: personal_infoo
 fields:
   - First: user.name.first
   - Last: user.name.last
@@ -98,7 +198,9 @@ fields:
     required: False
   - Birth Date: user.birthday
     datatype: date
+    required: False
   - Gender: user.gender
+    required: False
     input type: dropdown
     choices:
       - Male
@@ -106,11 +208,13 @@ fields:
       - Other
   - Do you have mental health condition: user.ifhealth
     datatype: yesnoradio
+    required: False
   - What is your condition: user.mentalcondition
     show if:
       variable: user.ifhealth
       is: True   
   - Are you working at the moment?: user.work
+    required: False
     input type: dropdown
     choices:
       - Full time 
@@ -119,6 +223,7 @@ fields:
       - Retired
       - Student
   - What is your occupation? : user.occup1
+    required: False
     show if:
       variable: user.work
       is: Full time 
@@ -128,6 +233,7 @@ fields:
       is: Part time
   
   - UK Resident: user.uk
+    required: False
     datatype: yesnoradio
   - Nationality: user.nation
     show if:
@@ -141,9 +247,10 @@ field: sees_nav_bar
 mandatory: True 
 question:  |
   Please provide your household information?
-section: Household Info
+section:  house_hold
 fields:
-  - What is your housing statu? : user.house_status
+  - What is your housing status? : user.house_status
+    required: False
     input type: dropdown
     choices: 
       - Renting
@@ -152,6 +259,7 @@ fields:
       - Living with family
       - other
   - Marriage Status: user.marriage
+    required: False
     input type: dropdown
     choices:
       - Married
@@ -160,10 +268,13 @@ fields:
       - Separated 
       - Widowed
   - How many children do you have: user.childrenNum
+    required: False
     datatype: integer
   - How many people in your household in total?(including yourself): user.house_num
+    required: False
     datatype: integer
   - Are the people in the household aware of your debt situation?: user.house_aware
+    required: False
     datatype: yesnoradio
     
  
@@ -172,7 +283,6 @@ fields:
 #  address.geolocate()
 
 field: sees_nav_bar    
-
 ---
 mandatory: True
 question:  |
@@ -180,9 +290,9 @@ question:  |
 subquestion:  |
   Some debts are called priority debts because if you do not pay them you could face serious consequences. Priority debts should always be dealt with BEFORE your non-priority debts. 
   
-  Please Select a Priority debts that is colse to your debt issue:
+  Please Select a Priority debts that is closer to your debt issue:
 field: t_variable
-choices:
+choices: 
   code: |
     [{'Rent/Mortgage': "Rent/Mortgage",
       'help': "might lose your home through mortgage or rent arrears."},
@@ -194,7 +304,7 @@ choices:
      {'Unpaid child maintenance':'Unpaid child maintenance', 'help':"Child Maintenance Service can take the money from your wages or bank accounts if you don’t pay"},
      {'Other':'other', 'help':"Such as Unpaid income tax, National Insurance or VAT, TV licence payments, Phone or internet bills"}]
 
-section: Priority Debts
+section: priority_debts
 ---
 mandatory: True
 question:  |
@@ -212,21 +322,22 @@ choices:
     {'unpaid water bills - your supplier can’t cut off your water supply':'unpaid water bills - your supplier can’t cut off your water supply'},
     {'overpayments of benefits - apart from tax credits':'overpayments of benefits - apart from tax credits'},
     {'unpaid parking tickets - these are called Penalty Charge Notices or Parking Charge Notices':'Unpaid parking tickets - these are called Penalty Charge Notices or Parking Charge Notices'}]
-section: Unsecured Debts
+section: non_priority
 ---
-
 question:  |
   Debt Information
 subquestion:  |
   Please provide you debts information correctly here.  
   Identify type and amount of ${ ordinal(i) } debts you own:
-section: Debt Info
+section: debt_info
 fields: 
   - debt type: debt[i].name
+    required: False
     datatype: dropdown
     code:  |
       debt_type_list
   - Amount: debt[i].amount
+    required: False
     datatype: currency 
     min: 0
     currency symbol: £
@@ -255,6 +366,7 @@ fields:
       - None
        
   - What action has been taken by the creditor?: debt[i].urgency
+    required: False
     input type: dropdown
     choices: 
       - Will be evcited from home 
@@ -262,6 +374,7 @@ fields:
       - Cut off electricity/gas
       - No Action
   - What type of court action?: debt[i].urgency_court
+    required: False
     input type: dropdown
     choices:
       - Liability Order
@@ -270,6 +383,7 @@ fields:
       variable: debt[i].urgency
       is: Court Action
   - What type of enforcement?: debt[i].urgency_court_enforce
+    required: False
     input type: dropdown
     choices:
       - Bailiff
@@ -278,21 +392,12 @@ fields:
     show if: 
       variable: debt[i].urgency_court
       is: Enforcement
-  - Addtional Information: debt[i].add_info  
+  - Addtional Information: debt[i].add_info 
+    required: False
       
-    
-    
-
----
-code:  |
-  debt_type_list = ['Credit Card', 'Bank overdraft', 'Rent arrears','Catalogue spending', 'Morgage arrears','Council Tax', 'Energy bill arrears','Personal loan','TV license','Fine/ Penalty charge','other']
-
----
-question:  Are there any other debts you want to add?
-yesno:  debt.there_is_another
-
----
+---   
 mandatory: True
+
 question: |
   Description of all your debts
   
@@ -315,6 +420,32 @@ subquestion: |
    ${debt_total1}
 buttons:
   - Continue: continue  
+---   
+
+code:  |
+  debt_type_list = ['Credit Card', 'Bank overdraft', 'Rent arrears','Catalogue spending', 'Morgage arrears','Council Tax', 'Energy bill arrears','Personal loan','TV license','Fine/ Penalty charge','other']
+
+---
+question:  Are there any other debts you want to add?
+yesno:  debt.there_is_another
+
+---
+table: debt.table
+rows: debt
+columns: 
+  - Debt Type:  |
+      row_item.name
+  - Debt Amount:  |
+      row_item.amount
+  - Debt Creditor:  |
+      row_item.creditor
+  - Debt Urgency:  |
+      row_item.urgency
+  - Debt Liability:  |
+      row_item.libility
+edit:
+  - amount
+minimum_number: 1
 ---
 code:  |
   debt_list = []
@@ -350,8 +481,9 @@ question:  |
 subquestion:   | 
 
   In this section, you need to enter how much money you take home (after tax) from each income type listed in the table below and wheather it's paid weekly, monthly or annually.  
-section: Income
+section: income
 fields:
+
   - Employment income: jobs.there_are_any
     datatype: yesno
   - Other income: other_income.there_are_any
@@ -433,7 +565,7 @@ minimum_number: 1
 ---
 question: |
   Describe your ${ordinal(i)} job.
-section: Income
+section: income
 fields:
   - Who is the employer?: jobs[i].employer
   - Is it an hourly job?: jobs[i].is_hourly
@@ -462,7 +594,7 @@ fields:
 ---
 question: |
   What income do you have that is not from a job?
-section: Income
+section: income
 fields:
   - What type of income is it?: other_income[i].type
     code: |
@@ -479,7 +611,7 @@ fields:
 ---
 question: |
   What non-income generating assets do you have?
-section: Income
+section: income
 fields:
   - What type of asset is it?: assets[i].type
     code: |
@@ -496,7 +628,7 @@ fields:
 ---
 question: |
   What income generating assets do you have?
-section: Income
+section: income
 fields:
   - What type of asset is it?: income_assets[i].type
     code: |
@@ -521,7 +653,7 @@ fields:
 ---
 question: |
   What expenses do you have?
-section: Expenditure
+section: expenditure
 fields:
   - What type of expense is it?: expenses[i].type
     code: |
@@ -599,9 +731,49 @@ subquestion: |
   Your total annual expenses is ${ currency(expenses.total(),symbol=u'£') }
   
   ${ expenses.add_action() }
+field: expenses_summary
+---
+mandatory: True
+question:  |
+  Advices on your expenditure:
+subquestion:  |
+
+  
+  % for item in expense_advices:
+    ${item} 
+    
+  % endfor
   
 
-field: expenses_summary
+field: expenditure_summary
+---
+code:  |
+  expense_advices =[]
+  averge_cost_living ={
+          "Food & Non-Alcoholic Drinks": 254.8,
+          "Alcoholic drink, tobacco &carcotics":51.6,
+          "Clothing & Footwear": 93.6,
+          "Fuel & Power":100,
+          "Rent": 210, 
+          "Utilities": 146,
+          "Health": 32.8,
+          "Transport": 326.4,
+          "Communication": 85.6,
+          "Hotels & Restaurants": 211.6,
+          "Total Expenditure": 2351.6
+          }
+  averge_cost_list= ["Food & Non-Alcoholic Drinks","Alcoholic drink, tobacco &carcotics","Clothing & Footwear","Fuel & Power","Rent","Utilities", "Health","Transport","Communication","Hotels & Restaurants","Total Expenditure"]
+  
+  for item in expenses:
+    if item.type in averge_cost_list:
+       spend_diff = item.value - averge_cost_living[item.type] 
+       
+       if spend_diff <0 and abs(spend_diff) >40:
+         expense_advices.append("You spend £"+str(item.value)+" on "+ item.type+ "  which is £"+str(abs(spend_diff))+" less than average expenditure £" + str(averge_cost_living[item.type])+" per month.")
+       elif spend_diff >0 and abs(spend_diff) >40:
+         expense_advices.append("You spend £"+str(item.value)+" on "+ item.type+ "  which is £"+str(abs(spend_diff))+" more than average expenditure £" + str(averge_cost_living[item.type])+" per month.")
+  
+
 ---
 
 mandatory: True 
@@ -626,15 +798,16 @@ review:
     button:  |
        ${user.name.first }
   
-  - Revisit debt information: debt[0].amount
+  - Revisit debt information: debt_total1
     button:  |
       your total debt: **${currency(debt_total1, symbol=u'£')}**
-  - Revisit Your monthly income: jobs.table
+  - Revisit Your monthly income: debt_total1
     button:  |
       Your monthly net income is: **${ currency(jobs.total(period_to_use=12),symbol=u'£') }**
-  - Revisit your monthly expense:  expenses.table
+  - Revisit your monthly expense: expenses[i].value 
     button:  |
       your montly expense**${ currency(expenses.total(period_to_use=12),symbol=u'£')}** 
+ 
   
 field: review_answer
 ---
