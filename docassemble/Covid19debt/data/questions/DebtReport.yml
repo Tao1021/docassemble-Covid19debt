@@ -45,6 +45,7 @@ sections:
     subsections: 
     - income: Income
     - expenditure: Expenditure
+  - summary: Summary 
   - debt_solutionss: Debt Solutions
   - signatures: Signatures
   - conclusions: Conclusion
@@ -187,6 +188,28 @@ edit:
   - name
 minimum_number: 1
 ---
+event: income
+section: income
+question:  |
+  Review your income here
+subquestion:  |
+  ${jobs.table}
+  
+  ${jobs.add_action()}
+review:
+  - note:  |
+---
+event: expenditure
+section: expenditure
+question:  |
+  Review your expenditure here 
+subquestion:  |
+  ${expenses.table}
+  
+  ${expenses.add_action()}
+review:
+  - note:  |
+---
 mandatory: True 
 question:  |
   Please provide your information?
@@ -283,6 +306,16 @@ fields:
 #  address.geolocate()
 
 field: sees_nav_bar    
+
+---
+code:  |
+  is_homeowner = "Not Home Owner"
+  is_court_debt = "Dont have a Court Action"
+  if user.house_status == "Mortgaged" or  user.house_status == "Owns property outright":
+    is_homeowner = "Is a Homeowner"
+  for item in debt:
+    if item.urgency =="Court Action":
+      is_court_debt ="Have a Court Action"
 ---
 mandatory: True
 question:  |
@@ -394,6 +427,16 @@ fields:
       is: Enforcement
   - Addtional Information: debt[i].add_info 
     required: False
+  - Going through a formal insolvency procedure currently?: another_debt_solution
+    required: False
+    input type: dropdown
+    choices: 
+      - Debt relief Order 
+      - Bankruptcy 
+      - Individual Voluntary arrangement 
+      - Administration Order 
+      - None 
+      
       
 ---   
 mandatory: True
@@ -423,7 +466,7 @@ buttons:
 ---   
 
 code:  |
-  debt_type_list = ['Credit Card', 'Bank overdraft', 'Rent arrears','Catalogue spending', 'Morgage arrears','Council Tax', 'Energy bill arrears','Personal loan','TV license','Fine/ Penalty charge','other']
+  debt_type_list = ['Credit Card', 'Bank overdraft', 'Rent arrears','Catalogue spending', 'Morgage arrears','Council Tax', 'Energy bill arrears','Personal loan','TV license','Court Fine/ Penalty charge','Student Loans','Child maintenance/child support agency debts','Claims against you for damage or personal injury','Criminal fines','other']
 
 ---
 question:  Are there any other debts you want to add?
@@ -775,39 +818,36 @@ code:  |
   
 
 ---
-
+section: summary
 mandatory: True 
-event: review_answers
+event: summary
 question:  |
  Here are the summary, you can review and edit 
 subquestion:  |
-  Your name is **${user.name}**, with family size of **${user.house_num}**, your current house status is: **${user.house_status}** with monthly disposible income **£${month_disposble_income}**
+  Your name is **${user.name}**, with family size of **${user.house_num}**
   
-  you own **${currency(debt_total1, symbol=u'£')}** in total, details show as follow:
+  Your current house status is: **${user.house_status}**  
+  
+  you own **${currency(debt_total1, symbol=u'£')}** debts in total, you have **${len(debt)}**  debts
+  
+  Your debts  **${is_court_debt}**.
  
-  % for item in debt:
-      ${ item.name }  £${ item.amount }
-    
-  % endfor 
+  Your monthly income is  **${ currency(jobs.total(period_to_use=12),symbol=u'£') }**
+ 
+  Your total expenditure is **${ currency(expenses.total(period_to_use=12),symbol=u'£') }** per month
   
-  
-  #####You can revisit your data below:
+  Your monthly disposible income **${currency(month_disposble_income, symbol=u'£')}**
+
+  ####### Revisit and edit your data by clicking on the menu at sections accordingly.
   
 review:
-  - Revisit personal information: user.name.first
+  - Update:
+     - debt_total
+     - month_disposble_income
+     - is_court_debt
+     - is_homeowner
     button:  |
-       ${user.name.first }
-  
-  - Revisit debt information: debt_total1
-    button:  |
-      your total debt: **${currency(debt_total1, symbol=u'£')}**
-  - Revisit Your monthly income: debt_total1
-    button:  |
-      Your monthly net income is: **${ currency(jobs.total(period_to_use=12),symbol=u'£') }**
-  - Revisit your monthly expense: expenses[i].value 
-    button:  |
-      your montly expense**${ currency(expenses.total(period_to_use=12),symbol=u'£')}** 
- 
+        Update to see most recent data by clicking on:
   
 field: review_answer
 ---
@@ -825,7 +865,7 @@ question:  |
 subquestion: |
   Some of debt solutions will affect your credit rating, prohibt you from undertaking certain jobs and may have impacts on your home. Please answer the following question carefully. 
   
-  **0 means you dont mind this effects at all, 10 means you want it to be the highest priority when seek for a solution.**
+  **click on question mark to see what each scale stands for.**
   
 fields:
   - likehood of change of financial situations in the near future? : financial_change
@@ -833,24 +873,32 @@ fields:
     min: 0
     max: 10
     help:  |
-      for instance, inheritance, promotion with job, move to new house etc  
+      for instance, inheritance, promotion with job, move to new house etc. 0 means very unlikely, 10 means very possible change of situation.  
   - your credit will be affected: credit_rating1
     datatype: range
     min: 0
     max: 10
     help:  |
-      When you apply for a loan or other type of credit, the credit provider will search your credit reference file to see how much of a risk it is to lend to you. The level of risk is known as your credit rating. It can be affected by your personal financial 
+      When you apply for a loan or other type of credit, the credit provider will search your credit reference file to see how much of a risk it is to lend to you. The level of risk is known as your credit rating. It can be affected by your personal financial. O means you dont mind credit rating impact, 10 means you want to avoid low recredit punishment. 
   - Cost of debt solution?: cost_debt 
     datatype: range
     min: 0
     max: 10
     help:  |
-      Some debt solution are significantly more expensive than others, from 90 pounds to 700 to few thousands 
+      Some debt solution are significantly more expensive than others, from 90 pounds to 700 to few thousands. 0 menas you dont mind cost, 10 means you are very sensitive to the cost. 
   - Keep your home: home_owner_pri
     datatype: range
     min: 0
     max: 10
-    
+    help:  |
+      some debt solution need you to sell your house. 0 means you dont mind sell your house to pay back debt, 10 means you want to keep the house as much as possible. 
+  
+  - Deal with creditor directly: deal_creditor
+    datatype: range
+    min: 0
+    max: 10
+    help:  |
+      Some debt solution will hdeal with your creditors for you. 0 means you dont want to have deal with creditor, 10 means you dont mind to deal with them yourself. 
       
   
 ---
@@ -875,9 +923,14 @@ code:  |
   else:
     change_will ="You are less likely to change you financial/personal situation"
   
+  if deal_creditor<5:
+    change_creditor="You dont want to deal with creditors"
+  else:  
+    change_creditor="You dont mind to deal with creditors"
   
   
 ---
+section:  debt_solutionss
 mandatory: True 
 question: | 
   The following debt solutions are available for you
@@ -901,9 +954,16 @@ subquestion: |
     ${item['reason']}
     [detail](${ url_action("not "+item["name"]) }),
   % endfor
-
+review:
+  - Re-evaluate:
+     - debt_total
+     - month_disposble_income
+     - is_court_debt
+     - is_homeowner
+    button:  |
 continue button field: user_saw_intro
 ---
+section: debt_solutionss
 event: Bankruptcy
 question:  |
   What is Bankruptcy and if it is for you 
@@ -944,6 +1004,7 @@ subquestion:  |
     
 continue button field: user_saw_intro
 ---
+section:  debt_solutionss
 event: Debt Relief Order
 question:  |
   What is Debt relief order and is it for you  
@@ -999,6 +1060,7 @@ subquestion:  |
     For more information, please visit www.placeholder.com 
 continue button field: user_saw_intro
 ---
+section:  debt_solutionss
 event: Administration Order 
 question:  |
   What is an administration order and is it for you?
@@ -1014,11 +1076,27 @@ subquestion:  |
   If a debt is left out, it still counts towards the £5,000 total.
   
   **Is it right for you?**
+  Here are the quick comparision:
+  
+   |Requirment | Your situation|
+   |-----------|----------|
+   |at least 2 debts | ${len(debt)} debt     |
+   | max £5,000 debt       |£${debt_total}       |
+   | one of your debts is a county court or high court judgment       |${is_court_debt}      |
+   |you have a regular income with some spare income each month| £${month_disposble_income } disposable income|
+   | you don't want to have to deal with your creditors directly| ${change_creditor} |
+  
+ 
   
   1. There is no up front fee for AO, The court keeps 10% of your monthly payment to cover their costs, you said your you said **${cost_will}**
-  2. Administration orders are entered on the Register of Judgments, Orders and Fines and stay on the register for six years. This information also appears on your credit file. When the administration order ends, the court will change the record on the register to say the administration order has been paid off. Your perference **${credit_will}**
+   2. Administration orders are entered on the Register of Judgments, Orders and Fines and stay on the register for six years. This information also appears on your credit file. When the administration order ends, the court will change the record on the register to say the administration order has been paid off. Your perference **${credit_will}**
+   3. If you are a home owner, you wont be expected to sell it or remortgage it to pay into your administration order. It will be safe. However some courts will not grant an administration order to home owners or people with a mortgage – you will need to check the practice of your local court.
+  
+  for more information, please visit: https://www.placeholder.com
+  
 continue button field: user_saw_intro  
 ---
+section:  debt_solutionss
 event: Individual Voluntary Arrangement 
 question:  |
   What is Individual Voluntary Arrangement(IVA) and is it for you?
@@ -1039,26 +1117,59 @@ subquestion:  |
     
 continue button field: user_saw_intro    
 ---
+section:  debt_solutionss
 event: not Debt Relief Order
 question:  |
   You cant  apply for Debt relief Order  
 subquestion:  |
-  A debt relief order (DRO) is one way to deal with your debts if you:
-
-  owe £30,000 or less    (your debts is ${currency(debt_total, symbol=u'£')})
+  The following table shows comparison of DRO requirments and your personal situation, ther is one or more Criteria you dont meet. 
   
-  don’t own your own home
+   |Requirment | Your situation|
+   |-----------|----------|
+   |less than £75 monthly disposible income | £${month_disposble_income}
+   | max £30,000 debt       |£${debt_total}       |
+   | Not a homeowner       |${is_homeowner}      |
+   | Assets no more than £2000| not know|
+   | it's been at least 6 years since your last DRO | not know |
+   | Currently going through nother formal insolvency procedure| ${another_debt_solution} |
+   
+   It is also important to give your information truthfully when apply for DRO. 
   
-  don’t have other assets or things of value, less than £2000
+    
+    The following debts of yours is **included** in DRO:
+      % for item in Dro_debt:
+        **${item}**
+      % endfor
+      
+      
+      
+  The following debts of yours is **not** included in your debt:
+      % for item in Dro_debt_not:
+        **${item}**
+      % endfor
+ 
+---
+section:  debt_solutionss
+event: not Administration Order
+question:  |
+  You cant apply for Administration Order
+subquestion:  |
+   The following table shows comparison of Administration Order requirments and your personal situation, ther is one or more Criteria you dont meet. 
+   
+   |Requirment | Your situation|
+   |-----------|----------|
+   |at least 2 debts | ${len(debt)} debt     |
+   | max £5,000 debt       |£${debt_total}       |
+   | one of your debts is a county court or high court judgment       |${is_court_debt}      |
+   |you have a regular income with some spare income each month| £${month_disposble_income } disposable income|
+   | you don't want to have to deal with your creditors directly| ${change_creditor} |
   
-  don’t have much spare income (you’ve got no more than £75 left over each month after you’ve paid your usual household expenses)
-  
-  it's been at least 6 years since your last DRO was made and you aren’t going through another formal insolvency procedure, such as bankruptcy or an individual voluntary arrangement (IVA)
 ---
 code:  |
   
   Available_solutions=[]
   not_available_solution=[]
+ 
  
   formal_solutions = [
     {
@@ -1092,7 +1203,7 @@ code:  |
     { 
   'name': "Administration Order",
   "cost": 0.1,
-  "number":2,
+  "number":1,
   "credit rating": "affected",
   "durtion" :"36 months",
   "amount":5000,
@@ -1135,14 +1246,27 @@ code:  |
       
       item["reason"]="Your net monthly income " +"£"+str(month_disposble_income) + " exceeded maximum allowance "+ "£"+str(item['income'] )
    
-    elif debt_num <=item["number"]:
+    elif len(debt) <=item["number"]:
       not_available_solution.append(item)
       item["reason"]= "you need to have more than 1 debts, you currently have: "+ str(debt_num)+" debts"
     
       
  
   Available_solutions = [x for x in formal_solutions if x not in not_available_solution]
+---
+code:  |
+  Dro_notcover_list=['TV license','Court Fine/ Penalty charge','Student Loans','Child maintenance/child support agency debts','Claims against you for damage or personal injury','Criminal fines']
+  Dro_debt_not=["None"]
+  Dro_debt=[]
+   
+  for item in debt:
+    if item.name in Dro_notcover_list:
+      Dro_debt_not.remove("None")
+      Dro_debt_not.append(item.name)
+    else:
+      Dro_debt.append(item.name)
   
+ 
 ---
 code: |
   uploaded_file.make_ocr_pdf() 
@@ -1168,3 +1292,20 @@ subquestion: |
 section: Signatures
 signature: your_signature
 ---
+mandatory: True
+question: |
+  Your documents are ready. Please print and file!
+section: conclusion  
+attachment:
+  - name: Personal Debt Advisor
+    filename: Example_Doc
+    valid formats:
+      - docx
+      - pdf
+    content:  |
+      This is just a place holder for the final document
+      
+      Dear ${ user }, 
+      Your total annual income is ${ currency(jobs.total(),symbol=u'£')}
+      Your priority debts is ${ t_variable}
+      ${your_signature}
