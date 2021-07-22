@@ -930,7 +930,8 @@ code:  |
   
   
 ---
-section:  debt_solutionss
+section:  debt_solutions
+event: debt_solutionss
 mandatory: True 
 question: | 
   The following debt solutions are available for you
@@ -1147,7 +1148,7 @@ subquestion:  |
       % for item in Dro_debt_not:
         **${item}**
       % endfor
- 
+continue button field: user_saw_intro
 ---
 section:  debt_solutionss
 event: not Administration Order
@@ -1163,7 +1164,8 @@ subquestion:  |
    | one of your debts is a county court or high court judgment       |${is_court_debt}      |
    |you have a regular income with some spare income each month| £${month_disposble_income } disposable income|
    | you don't want to have to deal with your creditors directly| ${change_creditor} |
-  
+
+continue button field: user_saw_intro
 ---
 code:  |
   
@@ -1295,6 +1297,9 @@ signature: your_signature
 mandatory: True
 question: |
   Your documents are ready. Please print and file!
+buttons:
+  - Exit: exit
+  - Restart: restart
 section: conclusion  
 attachment:
   - name: Personal Debt Advisor
