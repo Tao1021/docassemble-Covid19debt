@@ -34,6 +34,7 @@ objects:
 ---
 sections:
   - introduction: Introduction
+  - preparation: Preparation
   - personal_info: Personal Info
   - house_hold: Household Info
   - debt_types: Debt Type
@@ -41,6 +42,10 @@ sections:
     - priority_debts: Priority Debts
     - non_priority: Non-priority Debts 
   - debt_info: Debt Information
+  - breathing_space: Breathing Space
+    subsections:
+     - standard_bs: Standard Breathing Space
+     - mentalh_bs: Mental Health Breathing Space
   - finance_info: Finance
     subsections: 
     - income: Income
@@ -83,48 +88,93 @@ code: |
 
 mandatory: True
 question: |
-  Welcome To Personal Debt Advisor 
+  Welcome To Personal Debt Help 
 subquestion: |
-  Based on the information you provide, Personal Debt advisor will tell you:
-   
-    -- how much you realistically have available to pay to your creditors each month after living costs and priority debts 
-    
-    -- how long it will take you to pay back you unsecured debts in full
-    
-    -- how to negotiate with your unsecured creditors to reduce you payments
-  Best of all, the calculations and letter writing are done for you. 
 
+  Having debt issues is stressful. We are here to help. Our goals are:
+  
+   
+    -- Help users to understand thier debt situation
+    
+    -- Encourage users to take actions to address their debts.
+    
+    -- Provide options and solutions according to your personal siutation. 
+    
+    -- We will not ask or store reference to an identifier such as a name, an identification number, specific location data of an individual. 
+    
+    -- Our service is not an alternative to seeking for professional help. Our goal is to help you prepare necessary information as well as knowledge before you look for help. You will also need professional to set up certain debt solutions. 
   ######Would like to proceed to application page?
-  note: You must agree with our terms and conditions to continue. All you personal data is **confidential**.  
+  note: You must agree with our terms and conditions to continue. All you  data is **confidential** and wil not be stored or used elsewhere.  
 
 buttons: 
+  
   - I Agree: continue
-  - Exit:
-      code:  |
-        final_screen
+  
+      
     
 field: sees_nav_bar 
+---
+mandatory: True
+section: preparation
+question:  |
+  Preparation 
+subquestion:  |
+ In this page, you can find what infomration and documents you need to get the relenvant information. 
+ 
+ ######1. The details of you debt will be asked, it is best if you can find debt contracts, emails, letters or any written documents might give you the following details:
+  
+  - Amount of your debts
+  
+  - First missed payment date
+  
+  - The person or organization that you own debt to (Creditor) 
+  
+  - Any actions taken by the creditor 
+  
+  - Dispute (if any) regard to any particular debts.
+  
+ ######2. To help you/us understand your financial situation, your income, expenses and assests will be asked. You might need to find some documents such as purchurse invoice, shopping/house hold bills etc. for the following information:
+  
+  - The breakdown of your expenses, such as how much you spend on food per month etc
+  
+  - After tax income per month\week. 
+  
+  - Your aseets such as cars, houses, bank saving and anything of value. 
+  
+ #####3. There are different types of debts, which requires different debt solutions to address them. You can try to figure out the following things:
+   
+   - What type of debts are yours: {Secured debts} or {Unsecured debts} 
+   
+   - If you a house owner, some debt solutions will have impact on your ownership of the property
+   
+   - Some debt solutions have impact on your crediet scores
+   
+   - Details of your past debt solutions if you have any.
+continue button field: user_saw_intro  
+---
+section: personal_info
+event: final_screen
+question:  |
+  We can not provide right infromation for you
+subquestion:  
+  You need to agree with our term to proceed, you need to be a Welsh resident and you need to be at least 18 years old.
 ---
 section: personal_info
 event: personal_info
 question:  |
   Please Review your information?
 review:
-  - Edit name: user.name.first
-    button:  |
-      Name: ${user.name.first} ${user.name.last}
+  
   - Edit Birth date: user.birthday
     button:  |
       Birthday: ${user.birthday}
-  - Edit gender: user.gender
-    button:  |
-      Gender: ${user.gender}
+  
   - Edit Work: user.work
     button:  |
       Working Status: ${user.work}
 ---
 section: priority_debts
-event: priority_debts
+
 question:  |
   Priority Debts
 review:  
@@ -133,13 +183,13 @@ review:
       Which Priority Debts is your main issues: ${t_variable}
 ---
 section: non_priority
-event: non_priority
+
 question:  |
   Priority Debts
 review:  
-  - Edit Non Priority Debts: non_pd
+  - Edit Non Priority Debts: no_pd
     button: |
-      Which Non Priority Debts is your main issues: ${non_pd}
+      Which Non Priority Debts is your main issues: ${no_pd}
   
 ---
 section:  house_hold
@@ -215,27 +265,18 @@ question:  |
   Please provide your information?
 section: personal_infoo
 fields:
-  - First: user.name.first
-  - Last: user.name.last
-  - Middle Name: user.name.middle
-    required: False
-  - Birth Date: user.birthday
-    datatype: date
-    required: False
-  - Gender: user.gender
-    required: False
-    input type: dropdown
-    choices:
-      - Male
-      - Female 
-      - Other
-  - Do you have mental health condition: user.ifhealth
+ 
+  - Proceed only if you are over 18 years old: user.birthday
     datatype: yesnoradio
     required: False
-  - What is your condition: user.mentalcondition
-    show if:
-      variable: user.ifhealth
-      is: True   
+    help:  |
+      If you are under 18 and have debt yourself, please contact a professonal for help. It is most likely that your debt is not valid and you dont have to pay for it. 
+    
+
+##  - What is your condition: user.mentalcondition
+##    show if:
+##      variable: user.ifhealth
+##      is: True   
   - Are you working at the moment?: user.work
     required: False
     input type: dropdown
@@ -255,17 +296,18 @@ fields:
       variable: user.work
       is: Part time
   
-  - UK Resident: user.uk
+  - Welsh Resident: user.uk
     required: False
     datatype: yesnoradio
-  - Nationality: user.nation
-    show if:
-      variable: user.uk
-      is: False      
+    help:  |
+      Different regions within UK have different rules for debts. If you are holding a visa to work and live in Wales, please make sure it is known when you look for perfessonal help, as some of the the debt solutions might affect your visa application. 
+  - UK based debt: user.uk_debt
+    required: False
+    datatype: yesnoradio
+    
+     
 
 field: sees_nav_bar    
-  
-
 ---
 mandatory: True 
 question:  |
@@ -277,10 +319,30 @@ fields:
     input type: dropdown
     choices: 
       - Renting
+      - Renting (social house)
       - Mortgaged
       - Owns property outright
+      - Joint tenants
+      - Joint Mortgage 
       - Living with family
       - other
+  - Who do you share with for renting? : user.house_status_rentshare
+    required: False
+    show if:
+      variable: user.house_status
+      is: Joint tenants 
+    help:  |
+      If you have a joint tenancy, you are liable for the rent both jointly and individually. This means that one or all of you can be held responsible for the whole rent
+    hint: |
+      etc., sharing with family, friends 
+  - Who do you share mortgage with?: user.house_status_mortshare
+    show if:
+      variable: user.house_status
+      is: Joint Mortgage 
+    hint: |
+      etc., sharing with partner, family
+    help:  |
+      Specific name is not required, just to clarify the general situation. 
   - Marriage Status: user.marriage
     required: False
     input type: dropdown
@@ -290,7 +352,7 @@ fields:
       - Divorced 
       - Separated 
       - Widowed
-  - How many children do you have: user.childrenNum
+  - Number of dependents : user.childrenNum
     required: False
     datatype: integer
   - How many people in your household in total?(including yourself): user.house_num
@@ -299,6 +361,8 @@ fields:
   - Are the people in the household aware of your debt situation?: user.house_aware
     required: False
     datatype: yesnoradio
+    help: |
+      Some of the debt solutions will need you to declare publicly, and will also affect your housing situation. 
     
  
 #mandatory: True
@@ -322,21 +386,40 @@ question:  |
   Priority Debts
 subquestion:  |
   Some debts are called priority debts because if you do not pay them you could face serious consequences. Priority debts should always be dealt with BEFORE your non-priority debts. 
-  
-  Please Select a Priority debts that is closer to your debt issue:
-field: t_variable
-choices: 
-  code: |
-    [{'Rent/Mortgage': "Rent/Mortgage",
-      'help': "might lose your home through mortgage or rent arrears."},
-     {' gas and electricity debts': " gas and electricity debts",
-      'help': " they might cut off your gas or electricity if you don’t pay"},
-     {' Council Tax': " Council Tax",
-      'help': "This is a priority debt because your local council might take you to the magistrate’s court if you don’t pay.If you have the money but choose not to pay when the magistrate’s court tells you to, you could go to prison. You won’t go to prison if you can show you can’t pay."},
-     {'certain payments ordered by the courts': "certain payments ordered by the courts",'help': " you could be sent to prison if you have the money but choose not to pay. You won’t go to prison if you can show you can’t pay."},
-     {'Unpaid child maintenance':'Unpaid child maintenance', 'help':"Child Maintenance Service can take the money from your wages or bank accounts if you don’t pay"},
-     {'Other':'other', 'help':"Such as Unpaid income tax, National Insurance or VAT, TV licence payments, Phone or internet bills"}]
-
+ 
+  Please Select one or more Priority debts that is closer to your debt issue:
+ 
+fields:  
+  - Rent/Mortgage: placehold_1
+    datatype: noyes
+    help: might lose your home through mortgage or rent arrears 
+  - Gas and electricity debts: placehold_2
+    datatype: noyes
+    help: they might cut off your gas or electricity if you don’t pay
+  - Council Tax: placehold_3
+    datatype: noyes
+    help: This is a priority debt because your local council might take you to the magistrate’s court if you don’t pay.If you have the money but choose not to pay when the magistrate’s court tells you to, you could go to prison. You won’t go to prison if you can show you can’t pay
+  - certain payments ordered by the courts: placeholder4
+    datatype: noyes
+    help: you could be sent to prison if you have the money but choose not to pay. You won’t go to prison if you can show you can’t pay
+  - Unpaid child maintenance: placeholder5
+    datatype: noyes
+    help: Child Maintenance Service can take the money from your wages or bank accounts if you don’t pay
+  - Phone and internet Bills: placeholder6
+    datatype: noyes
+    help: These might be priority debts because your supplier can cut off your phone or internet if you don’t pay.
+  - TV licence payments: placeholder7
+    datatype: noyes
+    help: This is a priority debt because you could be fined by the magistrate’s court if you watch TV without a licence. If you have the money but choose not to pay a court fine, you could be sent to prison. You won’t go to prison if you can show you can’t pay.
+  - Payments for goods bought on hire purchase or conditional sale: placeholder8
+    datatype: noyes
+    help: This might be a priority debt because the creditor could take back the goods you bought. If you keep the goods in your home or you’ve paid back more than a third of the cost, the creditor has to go to court to do this.
+  - Unpaid income tax, National Insurance or VAT: placeholder9
+    datatype: noyes
+    help: These are priority debts because if you don’t pay, HM Revenue and Customs (HMRC) can take the money from your wages, can use bailiffs to take your property
+  - Overpaid tax credits: placeholder10
+    datatype: noyes
+    help: This is a priority debt because if you don’t pay, HMRC can, take the money from your wages, take the money from your benefits or tax credits and use bailiffs to take your property
 section: priority_debts
 ---
 mandatory: True
@@ -346,15 +429,20 @@ subquestion:  |
   Once you’ve got your priority debts under control, you should look at all your other debts. They’re ‘non-priority debts’ because the problems they cause are less serious.
   
   Your non-priority debts might include:
-field: non_pd
-choices:
-  code:  |
-    [{'credit card or store card debts':'Credit card or store card debts'},
-    {'catalogue debts':'Catalogue debts'},
-    {'unsecured loans including payday loans':'Unsecured loans including payday loans'},
-    {'unpaid water bills - your supplier can’t cut off your water supply':'unpaid water bills - your supplier can’t cut off your water supply'},
-    {'overpayments of benefits - apart from tax credits':'overpayments of benefits - apart from tax credits'},
-    {'unpaid parking tickets - these are called Penalty Charge Notices or Parking Charge Notices':'Unpaid parking tickets - these are called Penalty Charge Notices or Parking Charge Notices'}]
+fields: 
+  - Select one or more: no_pd
+    datatype: checkboxes
+    code:  |
+      [
+        {'credit card or store card debts':'Credit card or store card debts'},
+        {'catalogue debts':'Catalogue debts'},
+        {'unsecured loans including payday loans':'Unsecured loans including payday loans'},
+        {'unpaid water bills - your supplier can’t cut off your water supply':'unpaid water bills'},
+        {'overpayments of benefits - apart from tax credits':'overpayments of benefits - apart from tax credits'},
+        {'unpaid parking tickets - these are called Penalty Charge Notices or Parking Charge Notices':'Unpaid parking tickets - these are called Penalty Charge Notices or Parking Charge Notices'},
+        {'money you own to friends or family': 'Money you owe to family and friends'}
+      ]
+    
 section: non_priority
 ---
 question:  |
@@ -364,7 +452,7 @@ subquestion:  |
   Identify type and amount of ${ ordinal(i) } debts you own:
 section: debt_info
 fields: 
-  - debt type: debt[i].name
+  - Debt type: debt[i].name
     required: False
     datatype: dropdown
     code:  |
@@ -382,8 +470,12 @@ fields:
     #  debt[i].name = new_name
   - Creditor for the debt: debt[i].creditor 
     required: False
+    help:  |
+      People or organisation you own debt to
   - Relevant account or reference number: debt[i].reference
     required: False
+    help:  |
+      If you own debt from an organisation, for instance Bank, you might have such a number.
   - Date of first missed payment : debt[i].first_miss_date
     datatype: date
     required: False
@@ -397,7 +489,8 @@ fields:
       - The debt/extent of the debt was not agreed/committed to by contract 
       - The debt shared with other person
       - None
-       
+    help:  |
+      You might not have to pay a debt if one of these is true for you. Please bring this up when you consult with a professonal debt help.
   - What action has been taken by the creditor?: debt[i].urgency
     required: False
     input type: dropdown
@@ -425,8 +518,6 @@ fields:
     show if: 
       variable: debt[i].urgency_court
       is: Enforcement
-  - Addtional Information: debt[i].add_info 
-    required: False
   - Going through a formal insolvency procedure currently?: another_debt_solution
     required: False
     input type: dropdown
@@ -436,6 +527,8 @@ fields:
       - Individual Voluntary arrangement 
       - Administration Order 
       - None 
+    help:  |
+       It is important to know this as some of the debt solutions might not be available to you if you are going through one of these. Please bring this up with your debt specialist when you consulte them. 
       
       
 ---   
@@ -466,7 +559,7 @@ buttons:
 ---   
 
 code:  |
-  debt_type_list = ['Credit Card', 'Bank overdraft', 'Rent arrears','Catalogue spending', 'Morgage arrears','Council Tax', 'Energy bill arrears','Personal loan','TV license','Court Fine/ Penalty charge','Student Loans','Child maintenance/child support agency debts','Claims against you for damage or personal injury','Criminal fines','other']
+  debt_type_list = ['Credit Card', 'Bank overdraft', 'Rent arrears','Catalogue spending', 'Morgage arrears','Council Tax', 'Energy bill arrears','Water arrears','Mobile phone arrears','Home Phone or broadband arrears','Personal loan','TV license','Court Fine/ Penalty charge','Student Loans','Loan from family member or friend','Child maintenance/child support agency debts','Claims against you for damage or personal injury','Fine','Social fund loan','HMRC tax debt','Universal credit advance','other']
 
 ---
 question:  Are there any other debts you want to add?
@@ -502,6 +595,102 @@ code:  |
   debt_num=len(debt) 
   
 ---
+section: standard_bs
+mandatory: True
+question:  |
+  Breathing space for Debt
+subquestion:  |
+ ##### What is breathing space:
+ 
+  Government’s new breathing space period will freeze interest, fees and enforcement for people in problem debt, with further protections for those in mental health crisis treatment
+ 
+ ###### The Debt Respite Scheme (Breathing Space) will give someone in problem debt the right to legal protections from their creditors.
+ 
+ A standard breathing space is available to anyone with problem debt. It gives them legal protections from creditor action for up to 60 days. The protections include pausing most enforcement action and contact from creditors and freezing most interest and charges on their debts.
+ 
+ ##### How to Apply for a standard breathing space:
+ 
+ Debtors can only access a breathing space by seeking debt advice from a **debt adviser**.
+
+  Anyone who cannot or is unlikely to be able to repay their debts can apply to a debt adviser for a standard breathing space.
+
+  Although all applications must be considered, the debt adviser might decide a breathing space is not appropriate for a debtor.
+
+  For example, if a person can access funds or income, they might be able to pay their debts with some budgeting help. Another example would be if they already have assets that could easily be sold to clear the debt. In these cases, a breathing space would not be the right solution. A breathing space might also not be appropriate for a someone who can enter a more suitable debt solution straight away, without needing the protections.
+  
+ ##### Debtor eligibility for a standard breathing space:
+  
+  Before a debt adviser can start the breathing space, they must confirm their client is eligible and meets all the conditions. 
+    
+    - be an individual
+    - owe a qualifying debt to a creditor
+    - live or usually reside in England or Wales
+    - not have a debt relief order (DRO), an individual voluntary arrangement (IVA), an interim order, or be an undischarged bankrupt at the time they apply
+    - not already have a breathing space or have had a standard breathing space in the last 12 months at the time they apply
+    
+ ##### What are Qualifying debts:
+ 
+ Debts included in a breathing space must be qualifying debts. Debts are any sum of money owed by the debtor to you, while liabilities are any obligation on the debtor to pay money to you. Most debts are likely to be qualifying debts. These will include:
+ - credit cards
+ - store cards
+ - personal loans
+ - pay day loans
+ - overdrafts
+ - utility bill arrears
+ - mortgage or rent arrears
+ 
+ The following debts are **excluded**:
+   
+   - secured debts (like mortgages, hire purchase or conditional sale agreements). 
+   - debts incurred from fraud or fraudulent breach of trust. 
+   - liabilities to pay fines imposed by a court for an offence. This includes any interest on the fine and any penalties connected to it. This does not include penalty charge notices, like a parking ticket
+   - obligations from a confiscation order
+   - a crisis or budgeting loan from the social fund
+   - student loans
+   - damages they need to pay for death or personal injury caused to someone else
+   - advance payments of Universal Credit
+   - council tax liabilities have not yet fallen due. If all instalments for that financial year have fallen due and have not been paid, these are considered to be a qualifying debt.
+   
+ #####When a breathing space starts
+ 
+ A breathing space will start the day after the debtor’s details are put onto the breathing space register.
+
+  If you receive electronic notifications about the start of a breathing space, you should receive a notification the same day that details are put on the register. It’s likely this will be the day before the breathing space starts. If you receive notifications by post, it’s likely you’ll receive it after the breathing space has started.
+  
+ For more information, Please [click here](${ url_of('https://www.gov.uk/government/publications/debt-respite-scheme-breathing-space-guidance/debt-respite-scheme-breathing-space-guidance-for-creditors') }).
+
+buttons:  
+ - Continue: continue
+---
+section: mentalh_bs
+mandatory: True
+question:  |
+  Mental health Breathing space 
+subquestion:  |
+  A mental health crisis breathing space is only available to someone who is receiving mental health crisis treatment and it has some stronger protections. It lasts as long as the person's mental health crisis treatment, plus 30 days (no matter how long the crisis treatment lasts).
+  
+  The government committed to develop an alternative route to access the protections for people receiving mental health crisis treatment, so that they do not have to access debt advice first. If an Approved Mental Health Professional (AMHP) certifies that a person is receiving mental health crisis treatment, the AMHP’s evidence can be used by a debt adviser to start a mental health crisis breathing space.
+
+  In addition to the debtor, the following people can apply to a debt adviser on behalf of a debtor for a mental health crisis breathing space:
+   
+   - any debtor receiving mental health
+    - the debtor’s carer
+    - Approved Mental Health Professionals
+    - care co-ordinators appointed for the debtor
+    - mental health nurses
+    - social workers
+    - independent mental health advocates or mental capacity advocates appointed for the debtor
+    - a debtor’s representative
+    
+  #####Debtor eligibility for a mental health crisis breathing space
+  
+   The debtor must still meet the same criteria and conditions for a standard breathing space, but they must also be receiving mental health crisis treatment at the time that an application is made. A debtor who has had a standard or mental health crisis breathing space in the last 12 months may be eligible for a mental health crisis breathing space.
+
+   there is no limit to how many times a debtor can enter a mental health crisis breathing space.
+   
+buttons:  
+ - Continue: continue
+---
 
 question:  |
   Hello, ${user}!
@@ -529,11 +718,7 @@ fields:
 
   - Employment income: jobs.there_are_any
     datatype: yesno
-  - Other income: other_income.there_are_any
-    datatype: yesno
-  - Assets that generate income (i.e., savings accounts): income_assets.there_are_any
-    datatype: yesno
-  - Assets that don't generate income (such as cars, boats, etc.): assets.there_are_any
+  - Assets (such as cars, boats, etc.): assets.there_are_any
     datatype: yesno
   - Expenses: expenses.there_are_any
     datatype: yesno
@@ -545,7 +730,7 @@ yesno: jobs.there_is_another
 table: jobs.table
 rows: jobs
 columns:
-  - Employer: |
+  - Source of Income: |
       row_item.employer
   - Amount: |
       currency(row_item.amount(),symbol=u'£')
@@ -574,7 +759,7 @@ rows: assets
 columns:
   - Type: |
       row_item.type if defined('row_item.type') else ''
-  - Amount: |
+  - Value: |
       currency(row_item.amount(), symbol=u'£')
       
 edit:
@@ -610,7 +795,9 @@ question: |
   Describe your ${ordinal(i)} job.
 section: income
 fields:
-  - Who is the employer?: jobs[i].employer
+  - Source of this income?: jobs[i].employer
+    help:  |
+      It can be your job earnings, benifits, pensions, student loans or any other form of income
   - Is it an hourly job?: jobs[i].is_hourly
     datatype: yesno
   - Hourly rate: jobs[i].hourly_rate
@@ -621,7 +808,7 @@ fields:
   - Average hours worked per period: jobs[i].hours_per_period
     datatype: integer
     show if: jobs[i].is_hourly
-  - Amount earned: jobs[i].value 
+  - Amount: jobs[i].value 
     datatype: currency
     min: 0
     currency symbol: £
@@ -635,21 +822,21 @@ fields:
 
 
 ---
-question: |
-  What income do you have that is not from a job?
-section: income
-fields:
-  - What type of income is it?: other_income[i].type
-    code: |
-      income_type_list()
-  - Amount earned: other_income[i].value 
-    datatype: currency
-    min: 0
-    currency symbol: £
-  - Over what time period: other_income[i].period
-    datatype: number
-    code: |
-      period_list()
+##question: |
+##  What income do you have that is not from a job?
+#section: income
+#fields:
+#  - What type of income is it?: other_income[i].type
+#    code: |
+#      income_type_list()
+#  - Amount earned: other_income[i].value 
+#    datatype: currency
+#    min: 0
+#    currency symbol: £
+#  - Over what time period: other_income[i].period
+#    datatype: number
+#    code: |
+#      period_list()
 
 ---
 question: |
@@ -659,11 +846,14 @@ fields:
   - What type of asset is it?: assets[i].type
     code: |
       asset_type_list()
-  - Loan amount (if any): assets[i].amount_owed
-    datatype: currency   
-    min: 0
-    currency symbol: £
-  - Present Value: assets[i].value 
+  - Asset name?:  assets[i].type
+    show if:
+      variable: assets[i].type
+      is: other
+    help:  |
+      Write down anything you think of as valuable, A new TV, laptop etc.
+    
+  - Estimated Value: assets[i].value 
     datatype: currency
     min: 0
     currency symbol: £
@@ -713,7 +903,7 @@ fields:
 ---
 mandatory: True
 question: |
-  Annual Income from Jobs
+  Summary of your Income
 subquestion: |
   ${ jobs.table }
 
@@ -726,22 +916,23 @@ subquestion: |
   
 field: income_summary
 ---
-mandatory: True
-question: |
-  Annual Other Income
-subquestion: |
-  ${ other_income.table }
+#mandatory: True
+#question: |
 
-  Your total annual non-wage income is ${ currency(other_income.total(),symbol=u'£') }
+#Annual Other Income
+#subquestion: |
+#  ${ other_income.table }
+#
+#  Your total annual non-wage income is ${ currency(other_income.total(),symbol=u'£') }
   
-  Your total monthly non-wage income is ${ currency(other_income.total(period_to_use=12),symbol=u'£') }  
+#  Your total monthly non-wage income is ${ #currency(other_income.total(period_to_use=12),symbol=u'£') }  
 
-  The types of income include ${ comma_and_list(other_income.types(),symbol=u'£') }
+#  The types of income include ${ comma_and_list(other_income.types(),symbol=u'£') }
 
-  ${ other_income.add_action() }
+#  ${ other_income.add_action() }
   
   
-field: other_income_summary
+#field: other_income_summary
 ---
 mandatory: True
 question: |
@@ -749,14 +940,9 @@ question: |
 subquestion: |
   ${ assets.table }
   
+  Your total assets value is:  ${ currency(assets.total(),symbol=u'£') }
+  
   ${ assets.add_action() }
-  
-  ${ income_assets.table }
-  
-  ${ income_assets.add_action() }
-  
-  The types of income-generating assets include ${ comma_and_list(income_assets.types()) }
-  and the types of non-income assets include ${ comma_and_list(assets.types()) }.
 
  
 field: assets_summary
@@ -776,7 +962,7 @@ subquestion: |
   ${ expenses.add_action() }
 field: expenses_summary
 ---
-mandatory: True
+
 question:  |
   Advices on your expenditure:
 subquestion:  |
@@ -824,7 +1010,7 @@ event: summary
 question:  |
  Here are the summary, you can review and edit 
 subquestion:  |
-  Your name is **${user.name}**, with family size of **${user.house_num}**
+  Your family size is **${user.house_num}**
   
   Your current house status is: **${user.house_status}**  
   
@@ -834,6 +1020,8 @@ subquestion:  |
  
   Your monthly income is  **${ currency(jobs.total(period_to_use=12),symbol=u'£') }**
  
+  Your total assets value is:  **${ currency(assets.total(),symbol=u'£') }**
+  
   Your total expenditure is **${ currency(expenses.total(period_to_use=12),symbol=u'£') }** per month
   
   Your monthly disposible income **${currency(month_disposble_income, symbol=u'£')}**
@@ -934,12 +1122,14 @@ section:  debt_solutions
 event: debt_solutionss
 mandatory: True 
 question: | 
-  The following debt solutions are available for you
+   Debt Solutions
 subquestion: |
   #####You can consider the following solutions:
   
-  
+  **Debt Management Plan** [detail](${ url_action("Debt Management Plan") })
   % for item in Available_solutions:
+  
+    
   
     **${item["name"]}** [detail](${ url_action(item["name"]) }),                            
   % endfor
@@ -969,7 +1159,9 @@ event: Bankruptcy
 question:  |
   What is Bankruptcy and if it is for you 
 subquestion:  |
- Advantages of going bankrupt:
+ Bankruptcy is a form of insolvency and is normally only suitable if you can’t pay back your debts in a reasonable time. When you go bankrupt almost all of your debts are written off. Deciding to go bankrupt is a big step that involves fees and can impact different areas of your life, such as your job or home.
+    
+ **Advantages of going bankrupt:**
  
    1. When the bankruptcy order is over you can make a fresh start - in most cases this will be after a year.
 
@@ -984,7 +1176,7 @@ subquestion:  |
 
    6. you won't have to pay back the debts that bankruptcy covers
  
- Things you need to watch out when apply:
+ **Things you need to watch out when apply:**
   
   1.	You may lose your home if you have any equity available (by title or beneficial interest).
   2.	You may be asked to sell your car or trade down for a less expensive model.
@@ -994,14 +1186,29 @@ subquestion:  |
   6.	Your credit rating will be affected
   7.  The cost of bankruptcy is high (680 pounds)
   
-  Check if it is for you?
+  **Is it for you?**
     
     1. For bankruptcy, you might need to sell you house, you said **${home_will}**
     
     2. For banruptcy, the cost is relatively high(£680), you said **${cost_will}**
     
     3. Banruptcy will affect your credit rating, you said **${credit_will}**
+  
+ **Which debts are excluded in a bankruptcy?**
     
+ The following debts will not be cleared by a bankruptcy. You’ll need to keep paying these.
+ 
+  - Child maintenance arrears, if the arrangement was set by the CSA or Child Maintenance Service
+ - Criminal fines, compensation orders and victim surcharges from a magistrates’ court   or crown court
+ - Debts you take out after the date of your bankruptcy order
+ - Debts taken out fraudulently, for example benefit fraud
+ - Mortgages and other debts secured against your home, if you want to keep the house
+ - Social Fund loans
+ - Student loans
+ - TV Licence arrears
+ - Court orders telling you to pay compensation to someone for personal injury
+ - Payments ordered by a court as part of family proceedings, for example in divorce cases
+  
     
 continue button field: user_saw_intro
 ---
@@ -1013,13 +1220,13 @@ subquestion:  |
  
   A debt relief order (DRO) is one way to deal with your debts if you:
 
-    -owe £30,000 or less
+    - owe £30,000 or less
     
-    -don’t own your own home
+    - don’t own your own home
     
-    -don’t have other assets or things of value
+    - don’t have other assets or things of value
     
-    -don’t have much spare income 
+    - on’t have much spare income 
     
      You don't have to make payments towards most types of debt included in your DRO and your creditors can’t force you to pay off the debts. A DRO usually lasts **a year** unless your situation improves. When the DRO ends, most of your debts will be **written off**.
      
@@ -1058,7 +1265,8 @@ subquestion:  |
     
     You can only apply for a DRO through a specialist DRO adviser, also called an 'approved intermediary'. This is usually a skilled debt adviser who has been given permission to complete the forms and give advice on DROs. They will check that you're eligible to apply and that a DRO is right for you. 
     
-    For more information, please visit www.placeholder.com 
+    For more information, please visit [GOV.UK](${url_of('https://www.gov.uk/guidance/technical-guidance-for-official-receivers/60-debt-relief-orders') })
+    
 continue button field: user_saw_intro
 ---
 section:  debt_solutionss
@@ -1093,7 +1301,20 @@ subquestion:  |
    2. Administration orders are entered on the Register of Judgments, Orders and Fines and stay on the register for six years. This information also appears on your credit file. When the administration order ends, the court will change the record on the register to say the administration order has been paid off. Your perference **${credit_will}**
    3. If you are a home owner, you wont be expected to sell it or remortgage it to pay into your administration order. It will be safe. However some courts will not grant an administration order to home owners or people with a mortgage – you will need to check the practice of your local court.
   
-  for more information, please visit: https://www.placeholder.com
+  **How do the repayments work?**
+  
+  The court will look at your financial situation and tell you how much you should pay each month. You have to pay the monthly amount to the court who will then distribute the money to your creditors.
+
+  If you can't afford to repay all your debt over a reasonable time (usually 3 years), you can ask for a composition order. This means you only pay part of the debt. As long as you stick to the repayments, the rest of the debt is written off at the end of the time limit. 
+  
+  
+  **What happens at the end of an administration order?**
+ 
+  An administration order lasts until the debts are cleared and the court fees paid. If there is a composition order, there will be a time limit on how long you pay for, usually 3 years. At the end of that time, you no longer owe the debts in the administration order.At the end of the AO, you can ask the court for a certificate of satisfaction which costs £15.
+  
+   for more information, please visit [Citizens Advice](${url_of('https://www.citizensadvice.org.uk/debt-and-money/debt-solutions/administration-orders/administration-orders-explained/what-is-an-administration-order/') })
+  
+ 
   
 continue button field: user_saw_intro  
 ---
@@ -1106,7 +1327,7 @@ subquestion:  |
   
     An individual voluntary arrangement (IVA) is a formal and legally binding agreement between you and your creditors to pay back your debts over a period of time. This means it’s approved by the court and your creditors have to stick to it.
     
-    An IVA can be flexible to suit your needs but it can be expensive. An IVA must be set up by a qualified person, called an insolvency practitioner. This will be a lawyer or an accountant.The insolvency practitioner will charge fees for the IVA. These can often be high and are based on the amount you pay back through the IVA. If you decide to get an IVA, you will work out a repayment plan with the insolvency practitioner. This could be monthly payments, a lump sum or a combination of both.
+    An IVA can be flexible to suit your needs but it can be expensive. An IVA must be set up by a qualified person, called an insolvency practitioner. This will be a lawyer or an accountant.The insolvency practitioner will charge fees for the IVA. These can often be high and are based on the amount you pay back through the IVA. 
     
     **Is this right for you?**
     
@@ -1116,7 +1337,93 @@ subquestion:  |
     
     3. Having an IVA may affect any future income or assets that you receive. For example, if you decide to move house while you have an IVA, any money you make from the sale may have to be paid into the IVA. yous said: **${change_will}**
     
+  ** Debts you can include:**
+  
+  - catalogues
+  - personal loans
+  - overdrafts
+  - credit cards
+  - gas and electric arrears
+  - Council Tax arrears
+  - water arrears
+  - payday loans
+  - store cards
+  - income tax and national insurance arrears
+  - tax credit or benefit overpayments
+  - debts to family and friends
+  - other outstanding bills, for example solicitor's costs, invoices for building work and vets bills
+  
+  **Debts you can’t include:**
+
+   - maintenance arrears that have been ordered by a court
+   - child support arrears
+   - student loans
+   - magistrates' court fines
+   - Social Fund loans
+   - TV licence arrears
+  
+  **How the repayments work**
+  
+  If you decide to get an IVA, you will work out a repayment plan with the insolvency practitioner. This could be monthly payments, a lump sum or a combination of both.
+
+  The repayment plan should be based on an amount you can reasonably afford and the creditors will need to agree it. If you're making monthly payments the IVA will usually last for 5 or 6 years.
+
+  Any repayments will be paid directly to the insolvency practitioner. They will then distribute the money to your creditors. Some of this will be kept by the insolvency practitioner to pay their fees.
+
+  If the payments you make aren’t enough to pay your debts in full by the end of your IVA, you won’t have to pay the rest. The insolvency practitioner should advise you about this.
+    
 continue button field: user_saw_intro    
+---
+section: debt_solutionss
+event: Debt Management Plan
+question:  |
+  You can apply for Debt Management Plan
+subquestion:  |
+ ##### A debt management plan (DMP) helps you to manage your debts and pay them off at a more affordable rate by making reduced monthly payments. 
+ 
+ ** Is it right for you?**
+ 
+ A DMP may be a suitable debt solution if you have some surplus money available each month once you’ve paid your priority costs such as rent or mortgage, food, accommodation and utility bills.
+ 
+ **You can set up a Debt management plan with a debt agent who is qualified to do it**. Some company charge you for it, some are free. 
+ 
+ **Benefits of a DMP**:
+
+ - You’ll only pay what you can afford to your creditors after your agent put together a monthly household budget
+ - If you’ve fallen behind with your household bills you can add the arrears to your DMP to help get your accounts back up to date. You'll still need to make your regular ongoing monthly payments.
+ - You'll make one monthly payment to us and your agent the payments to your creditors for you
+ - Your agent can and should review your DMP regularly to make sure you’re paying what you can afford
+
+ **Risks of a DMP**:
+ 
+ - Some of your creditors may still contact you
+ - Most creditors will agree to reduce or stop interest and charges, but they don’t have to
+ - If creditors continue adding interest and charges, this could increase the total amount you currently owe
+ - Your creditors don’t have to agree to your reduced payments, but we’ll still send your payments anyway
+ - Your creditors may still take further court action against you, such as a County Court judgment (CCJ)
+ - Reduced payments may lead to a longer arrangement term and could have a negative impact on your credit file
+ 
+ ** Cost of a DMP**
+
+ Some companies will charge:
+
+ - a set up fee
+ - a handling fee each time you make a payment
+ 
+ **Eligibility **
+ 
+ Debt Management Plans can only be used to pay {unsecured debts}, for example debts that have not been guaranteed against your property.
+
+continue button field: user_saw_intro
+---
+terms:  
+  unsecured debts:  |
+    An unsecured debt is a debt for which the creditor does not have a security interest in collateral, and the creditor is therefore not entitled to take property from you to satisfy that debt without a judgment.
+    
+    Common types of unsecured debt are credit cards, medical bills, most personal loans, and student loans*. These debts help you do something (buy items, pay your doctor, get an education), but they are not backed by a specific asset.
+  secured debts:  |
+    A secured debt is a debt for which the creditor has a security interest in collateral, meaning the creditor has a right to take property to satisfy the debt.
+    
 ---
 section:  debt_solutionss
 event: not Debt Relief Order
@@ -1130,7 +1437,7 @@ subquestion:  |
    |less than £75 monthly disposible income | £${month_disposble_income}
    | max £30,000 debt       |£${debt_total}       |
    | Not a homeowner       |${is_homeowner}      |
-   | Assets no more than £2000| not know|
+   | Assets no more than £2000| £${assets.total()}|
    | it's been at least 6 years since your last DRO | not know |
    | Currently going through nother formal insolvency procedure| ${another_debt_solution} |
    
@@ -1171,18 +1478,19 @@ code:  |
   
   Available_solutions=[]
   not_available_solution=[]
- 
+  total_assets= assets.total()
  
   formal_solutions = [
     {
   "name": "Bankruptcy",
   "cost": 680,
+  "min_amount":750,
    "number":0,
   "credit rating": "Strongly Affected",
   "duration": "12 months",
   "amount": 1000000000,
   "income": 123000,
-  "assets": 0,
+  "assets": 1000000,
   "home": "risk",
   "homeowner": "Yes",
   "reason":"none",
@@ -1191,12 +1499,13 @@ code:  |
    {
   'name': "Debt Relief Order",
    "number":0,
+   "min_amount":0,
   "cost": 90 ,
   "credit rating": "affected",
   "durtion" :"12 months",
   "amount":30000,
   "income":75,
-  "aseets": 1000,
+  "assets": 2000,
   "home": "None",
    "homeowner": "No",
    "court_case": "no",
@@ -1205,12 +1514,13 @@ code:  |
     { 
   'name': "Administration Order",
   "cost": 0.1,
+  "min_amount":0,
   "number":1,
   "credit rating": "affected",
   "durtion" :"36 months",
   "amount":5000,
   "income":100000,
-  "aseets": 100000,
+  "assets": 100000,
   "home": "risk",
    "homeowner": "Yes",
   "reason":"none",
@@ -1219,12 +1529,13 @@ code:  |
     {
   'name': "Individual Voluntary Arrangement",
   "cost": 4000,
+  "min_amount":0,
   "number":0,
   "credit rating": "affected",
   "durtion" :"5 years",
   "amount":1000000,
   "income":100000,
-  "aseets": 100000,
+  "assets": 100000,
   "home": "safe",
    "homeowner": "Yes",
    "court_case": "no",
@@ -1236,7 +1547,11 @@ code:  |
       
       
       item["reason"] = "Your debt amount " +"£"+str(debt_total1) + " exceeded maximum allowance "+ "£"+str(item['amount'] )
-    
+    if debt_total1 < item['min_amount']:
+      not_available_solution.append(item)
+      
+      item["reason"] = "Your debt amount " +"£"+str(debt_total1) + " do not meet the minimum requirments "+ "£"+str(item['min_amount'] )
+      
     
     elif item["homeowner"]=="No" and (user.house_status =="Mortgaged" or user.house_status =="Owns property outright"):
       not_available_solution.append(item)
@@ -1251,6 +1566,11 @@ code:  |
     elif len(debt) <=item["number"]:
       not_available_solution.append(item)
       item["reason"]= "you need to have more than 1 debts, you currently have: "+ str(debt_num)+" debts"
+    
+    elif item['assets']<= total_assets:
+      not_available_solution.append(item)
+      item["reason"]= "You currently have assets worth £"+str(total_assets)+" which is more than what is required:  £"+ str(item['assets'])
+      
     
       
  
@@ -1310,7 +1630,7 @@ attachment:
     content:  |
       This is just a place holder for the final document
       
-      Dear ${ user }, 
+      Hey, 
       Your total annual income is ${ currency(jobs.total(),symbol=u'£')}
-      Your priority debts is ${ t_variable}
+      Your priority debts is
       ${your_signature}

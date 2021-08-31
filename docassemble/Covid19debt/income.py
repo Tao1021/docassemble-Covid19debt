@@ -51,13 +51,10 @@ def asset_type_list() :
     type_list.gathered = True
     type_list.elements.update([
         ('savings', 'Savings Account'),
-        ('cd', 'Certificate of Deposit'),
-        ('ira', 'Individual Retirement Account'),
-        ('mutual fund', 'Money or Mutual Fund'),
-        ('stocks', 'Stocks or Bonds'),
+        ('stocks', 'Stocks '),
         ('trust', 'Trust Fund'),
         ('checking', 'Checking Account'),
-        ('vehicle', 'Vehicle'),
+        ('vehicle', 'Cars'),
         ('real estate', 'Real Estate'),
         ('other', 'Other Asset')
     ])
