@@ -55,6 +55,33 @@ sections:
   - signatures: Signatures
   - conclusions: Conclusion
 ---
+template: introduction
+content file: introduction.md
+---
+template: preparation
+content file: preparation.md
+---
+template: standard_bs
+content file: standard_bs.md
+---
+template: mentalh_bs
+content file: mentalh_bs.md
+---
+template: bankruptcy
+content file: bankruptcy.md
+---
+template: debt_relief_order
+content file: debt_relief_order.md
+---
+template: administration_order
+content file: administration_order.md
+---
+template: debt_management_plan
+content file: debt_management_plan.md
+---
+template: individual_voluntary_agreement
+content file: individual_voluntary_agreement.md
+---
 features:
   navigation: True
   small screen navigation: dropdown
@@ -90,22 +117,7 @@ mandatory: True
 question: |
   Welcome To Personal Debt Help 
 subquestion: |
-
-  Having debt issues is stressful. We are here to help. Our goals are:
-  
-   
-    -- Help users to understand thier debt situation
-    
-    -- Encourage users to take actions to address their debts.
-    
-    -- Provide options and solutions according to your personal siutation. 
-    
-    -- We will not ask or store reference to an identifier such as a name, an identification number, specific location data of an individual. 
-    
-    -- Our service is not an alternative to seeking for professional help. Our goal is to help you prepare necessary information as well as knowledge before you look for help. You will also need professional to set up certain debt solutions. 
-  ######Would like to proceed to application page?
-  note: You must agree with our terms and conditions to continue. All you  data is **confidential** and wil not be stored or used elsewhere.  
-
+  ${ introduction }
 buttons: 
   
   - I Agree: continue
@@ -119,37 +131,7 @@ section: preparation
 question:  |
   Preparation 
 subquestion:  |
- In this page, you can find what infomration and documents you need to get the relenvant information. 
- 
- ######1. The details of you debt will be asked, it is best if you can find debt contracts, emails, letters or any written documents might give you the following details:
-  
-  - Amount of your debts
-  
-  - First missed payment date
-  
-  - The person or organization that you own debt to (Creditor) 
-  
-  - Any actions taken by the creditor 
-  
-  - Dispute (if any) regard to any particular debts.
-  
- ######2. To help you/us understand your financial situation, your income, expenses and assests will be asked. You might need to find some documents such as purchurse invoice, shopping/house hold bills etc. for the following information:
-  
-  - The breakdown of your expenses, such as how much you spend on food per month etc
-  
-  - After tax income per month\week. 
-  
-  - Your aseets such as cars, houses, bank saving and anything of value. 
-  
- #####3. There are different types of debts, which requires different debt solutions to address them. You can try to figure out the following things:
-   
-   - What type of debts are yours: {Secured debts} or {Unsecured debts} 
-   
-   - If you a house owner, some debt solutions will have impact on your ownership of the property
-   
-   - Some debt solutions have impact on your crediet scores
-   
-   - Details of your past debt solutions if you have any.
+  ${ preparation }
 continue button field: user_saw_intro  
 ---
 section: personal_info
@@ -600,65 +582,7 @@ mandatory: True
 question:  |
   Breathing space for Debt
 subquestion:  |
- ##### What is breathing space:
- 
-  Government’s new breathing space period will freeze interest, fees and enforcement for people in problem debt, with further protections for those in mental health crisis treatment
- 
- ###### The Debt Respite Scheme (Breathing Space) will give someone in problem debt the right to legal protections from their creditors.
- 
- A standard breathing space is available to anyone with problem debt. It gives them legal protections from creditor action for up to 60 days. The protections include pausing most enforcement action and contact from creditors and freezing most interest and charges on their debts.
- 
- ##### How to Apply for a standard breathing space:
- 
- Debtors can only access a breathing space by seeking debt advice from a **debt adviser**.
-
-  Anyone who cannot or is unlikely to be able to repay their debts can apply to a debt adviser for a standard breathing space.
-
-  Although all applications must be considered, the debt adviser might decide a breathing space is not appropriate for a debtor.
-
-  For example, if a person can access funds or income, they might be able to pay their debts with some budgeting help. Another example would be if they already have assets that could easily be sold to clear the debt. In these cases, a breathing space would not be the right solution. A breathing space might also not be appropriate for a someone who can enter a more suitable debt solution straight away, without needing the protections.
-  
- ##### Debtor eligibility for a standard breathing space:
-  
-  Before a debt adviser can start the breathing space, they must confirm their client is eligible and meets all the conditions. 
-    
-    - be an individual
-    - owe a qualifying debt to a creditor
-    - live or usually reside in England or Wales
-    - not have a debt relief order (DRO), an individual voluntary arrangement (IVA), an interim order, or be an undischarged bankrupt at the time they apply
-    - not already have a breathing space or have had a standard breathing space in the last 12 months at the time they apply
-    
- ##### What are Qualifying debts:
- 
- Debts included in a breathing space must be qualifying debts. Debts are any sum of money owed by the debtor to you, while liabilities are any obligation on the debtor to pay money to you. Most debts are likely to be qualifying debts. These will include:
- - credit cards
- - store cards
- - personal loans
- - pay day loans
- - overdrafts
- - utility bill arrears
- - mortgage or rent arrears
- 
- The following debts are **excluded**:
-   
-   - secured debts (like mortgages, hire purchase or conditional sale agreements). 
-   - debts incurred from fraud or fraudulent breach of trust. 
-   - liabilities to pay fines imposed by a court for an offence. This includes any interest on the fine and any penalties connected to it. This does not include penalty charge notices, like a parking ticket
-   - obligations from a confiscation order
-   - a crisis or budgeting loan from the social fund
-   - student loans
-   - damages they need to pay for death or personal injury caused to someone else
-   - advance payments of Universal Credit
-   - council tax liabilities have not yet fallen due. If all instalments for that financial year have fallen due and have not been paid, these are considered to be a qualifying debt.
-   
- #####When a breathing space starts
- 
- A breathing space will start the day after the debtor’s details are put onto the breathing space register.
-
-  If you receive electronic notifications about the start of a breathing space, you should receive a notification the same day that details are put on the register. It’s likely this will be the day before the breathing space starts. If you receive notifications by post, it’s likely you’ll receive it after the breathing space has started.
-  
- For more information, Please [click here](${ url_of('https://www.gov.uk/government/publications/debt-respite-scheme-breathing-space-guidance/debt-respite-scheme-breathing-space-guidance-for-creditors') }).
-
+  ${ standard_bs }
 buttons:  
  - Continue: continue
 ---
@@ -667,27 +591,7 @@ mandatory: True
 question:  |
   Mental health Breathing space 
 subquestion:  |
-  A mental health crisis breathing space is only available to someone who is receiving mental health crisis treatment and it has some stronger protections. It lasts as long as the person's mental health crisis treatment, plus 30 days (no matter how long the crisis treatment lasts).
-  
-  The government committed to develop an alternative route to access the protections for people receiving mental health crisis treatment, so that they do not have to access debt advice first. If an Approved Mental Health Professional (AMHP) certifies that a person is receiving mental health crisis treatment, the AMHP’s evidence can be used by a debt adviser to start a mental health crisis breathing space.
-
-  In addition to the debtor, the following people can apply to a debt adviser on behalf of a debtor for a mental health crisis breathing space:
-   
-   - any debtor receiving mental health
-    - the debtor’s carer
-    - Approved Mental Health Professionals
-    - care co-ordinators appointed for the debtor
-    - mental health nurses
-    - social workers
-    - independent mental health advocates or mental capacity advocates appointed for the debtor
-    - a debtor’s representative
-    
-  #####Debtor eligibility for a mental health crisis breathing space
-  
-   The debtor must still meet the same criteria and conditions for a standard breathing space, but they must also be receiving mental health crisis treatment at the time that an application is made. A debtor who has had a standard or mental health crisis breathing space in the last 12 months may be eligible for a mental health crisis breathing space.
-
-   there is no limit to how many times a debtor can enter a mental health crisis breathing space.
-   
+  ${ mentalh_bs }
 buttons:  
  - Continue: continue
 ---
@@ -1159,57 +1063,7 @@ event: Bankruptcy
 question:  |
   What is Bankruptcy and if it is for you 
 subquestion:  |
- Bankruptcy is a form of insolvency and is normally only suitable if you can’t pay back your debts in a reasonable time. When you go bankrupt almost all of your debts are written off. Deciding to go bankrupt is a big step that involves fees and can impact different areas of your life, such as your job or home.
-    
- **Advantages of going bankrupt:**
- 
-   1. When the bankruptcy order is over you can make a fresh start - in most cases this will be after a year.
-
-   2. the pressure is taken off you because you don’t have to deal with your creditors
-  you're allowed to keep certain things known as 'exempt goods', for example everyday household items, tools you need to do your job, a car if you need it to get to work or you're a carer and it's not worth more than £2,000
-  
-   3. you're allowed to keep some of your income - but you'll probably have to live on less money than usual
-   
-   4. if you have to make payments from your income, this can only be for 3 years - you won’t have to make payments if your only income is from welfare benefits
-   
-   5. creditors have to stop most types of court action to get their money back following a bankruptcy order
-
-   6. you won't have to pay back the debts that bankruptcy covers
- 
- **Things you need to watch out when apply:**
-  
-  1.	You may lose your home if you have any equity available (by title or beneficial interest).
-  2.	You may be asked to sell your car or trade down for a less expensive model.
-  3.	Until your bankruptcy is discharged you may find it difficult to obtain, or change, a mortgage.
-  4.	Some professional bodies, such as chartered accountants or solicitors, may have rules prohibiting membership and you cannot enlist in the armed forces as an undischarged Bankrupt.
-  5.	The court may enforce an ‘income payments order’ for three years if it deems it necessary.
-  6.	Your credit rating will be affected
-  7.  The cost of bankruptcy is high (680 pounds)
-  
-  **Is it for you?**
-    
-    1. For bankruptcy, you might need to sell you house, you said **${home_will}**
-    
-    2. For banruptcy, the cost is relatively high(£680), you said **${cost_will}**
-    
-    3. Banruptcy will affect your credit rating, you said **${credit_will}**
-  
- **Which debts are excluded in a bankruptcy?**
-    
- The following debts will not be cleared by a bankruptcy. You’ll need to keep paying these.
- 
-  - Child maintenance arrears, if the arrangement was set by the CSA or Child Maintenance Service
- - Criminal fines, compensation orders and victim surcharges from a magistrates’ court   or crown court
- - Debts you take out after the date of your bankruptcy order
- - Debts taken out fraudulently, for example benefit fraud
- - Mortgages and other debts secured against your home, if you want to keep the house
- - Social Fund loans
- - Student loans
- - TV Licence arrears
- - Court orders telling you to pay compensation to someone for personal injury
- - Payments ordered by a court as part of family proceedings, for example in divorce cases
-  
-    
+  ${ bankruptcy }
 continue button field: user_saw_intro
 ---
 section:  debt_solutionss
@@ -1217,56 +1071,7 @@ event: Debt Relief Order
 question:  |
   What is Debt relief order and is it for you  
 subquestion:  |
- 
-  A debt relief order (DRO) is one way to deal with your debts if you:
-
-    - owe £30,000 or less
-    
-    - don’t own your own home
-    
-    - don’t have other assets or things of value
-    
-    - on’t have much spare income 
-    
-     You don't have to make payments towards most types of debt included in your DRO and your creditors can’t force you to pay off the debts. A DRO usually lasts **a year** unless your situation improves. When the DRO ends, most of your debts will be **written off**.
-     
-     **Debts covered by a DRO:**
-      
-     Debts that can go into a DRO are called ’qualifying debts'. During the DRO period creditors can’t ask you for payments, if they do, you don't have to pay them. They include:
-
-  credit cards, overdrafts and loans, arrears with rent, utility bills, telephone bills, council tax and income tax, benefits overpayments, hire purchase or conditional sale agreements, buy now - pay later agreements, bills for services like vets or solicitors, debts you owe to friends and family, business debts
-     
-     **Debts not covered by a DRO:**
-     
-     Not all debts are covered by a DRO. You'll still need to pay:
-
-  -magistrates court fines and confiscation orders relating to criminal activity
-  
-  -child support and maintenance
-  
-  -student loans
-  
-  -social fund loans
-  
-  -compensation for death and injury
-  
-  **Is DRO right for you:**
-  
-    
-    1. For DRO, the cost is relatively low(£90), you said **${cost_will}**
-    
-    2. DRO will affect your credit rating for 6 years, you said  **${credit_will}**
-  
-    3. it might affect applications you make for British citizenship - if you are unsure then you should get advice from an immigration specialist
-    
-    4. you can't borrow £500 or more without telling the creditor about the DRO, you can’t get involved in promoting, managing or setting up a limited company, or be a company director, without getting permission from the court
-    
-    **How to get a DRO?**
-    
-    You can only apply for a DRO through a specialist DRO adviser, also called an 'approved intermediary'. This is usually a skilled debt adviser who has been given permission to complete the forms and give advice on DROs. They will check that you're eligible to apply and that a DRO is right for you. 
-    
-    For more information, please visit [GOV.UK](${url_of('https://www.gov.uk/guidance/technical-guidance-for-official-receivers/60-debt-relief-orders') })
-    
+  ${ debt_relief_order }
 continue button field: user_saw_intro
 ---
 section:  debt_solutionss
@@ -1274,48 +1079,7 @@ event: Administration Order
 question:  |
   What is an administration order and is it for you?
 subquestion:  |
-  **What is an administration order?**
-  
-  An administration order is a formal, legal debt solution which means it's approved by the court and your creditors have to stick to it. It requires two or more debts, yout debts no more than 5000 pounds in total, and a court judgement, if you don’t have a county court judgment or high court judgment, you need to wait for one of your creditors to take court action against you. As soon as judgment is entered you can apply for an administration order.
-  
-  **What debts administration order include?**
-  
-  The law does not specifically exclude any particular debt from an AO and when you apply for an AO, you must list all your debts in the application. However, any creditor can object to being included. It is up to the district judge to decide if any debts are left out.
-
-  If a debt is left out, it still counts towards the £5,000 total.
-  
-  **Is it right for you?**
-  Here are the quick comparision:
-  
-   |Requirment | Your situation|
-   |-----------|----------|
-   |at least 2 debts | ${len(debt)} debt     |
-   | max £5,000 debt       |£${debt_total}       |
-   | one of your debts is a county court or high court judgment       |${is_court_debt}      |
-   |you have a regular income with some spare income each month| £${month_disposble_income } disposable income|
-   | you don't want to have to deal with your creditors directly| ${change_creditor} |
-  
- 
-  
-  1. There is no up front fee for AO, The court keeps 10% of your monthly payment to cover their costs, you said your you said **${cost_will}**
-   2. Administration orders are entered on the Register of Judgments, Orders and Fines and stay on the register for six years. This information also appears on your credit file. When the administration order ends, the court will change the record on the register to say the administration order has been paid off. Your perference **${credit_will}**
-   3. If you are a home owner, you wont be expected to sell it or remortgage it to pay into your administration order. It will be safe. However some courts will not grant an administration order to home owners or people with a mortgage – you will need to check the practice of your local court.
-  
-  **How do the repayments work?**
-  
-  The court will look at your financial situation and tell you how much you should pay each month. You have to pay the monthly amount to the court who will then distribute the money to your creditors.
-
-  If you can't afford to repay all your debt over a reasonable time (usually 3 years), you can ask for a composition order. This means you only pay part of the debt. As long as you stick to the repayments, the rest of the debt is written off at the end of the time limit. 
-  
-  
-  **What happens at the end of an administration order?**
- 
-  An administration order lasts until the debts are cleared and the court fees paid. If there is a composition order, there will be a time limit on how long you pay for, usually 3 years. At the end of that time, you no longer owe the debts in the administration order.At the end of the AO, you can ask the court for a certificate of satisfaction which costs £15.
-  
-   for more information, please visit [Citizens Advice](${url_of('https://www.citizensadvice.org.uk/debt-and-money/debt-solutions/administration-orders/administration-orders-explained/what-is-an-administration-order/') })
-  
- 
-  
+  ${ administration_order }
 continue button field: user_saw_intro  
 ---
 section:  debt_solutionss
@@ -1323,55 +1087,7 @@ event: Individual Voluntary Arrangement
 question:  |
   What is Individual Voluntary Arrangement(IVA) and is it for you?
 subquestion:  |
-  **What is IVA?**
-  
-    An individual voluntary arrangement (IVA) is a formal and legally binding agreement between you and your creditors to pay back your debts over a period of time. This means it’s approved by the court and your creditors have to stick to it.
-    
-    An IVA can be flexible to suit your needs but it can be expensive. An IVA must be set up by a qualified person, called an insolvency practitioner. This will be a lawyer or an accountant.The insolvency practitioner will charge fees for the IVA. These can often be high and are based on the amount you pay back through the IVA. 
-    
-    **Is this right for you?**
-    
-    1. your debts should be to more than £10000 or more, as the cost of IVA usually high, you said **${cost_will}**
-    
-    2. If you own a home, most IVA agreements include a requirement for you to get a valuation of your home in the final year. If there is equity in the property, you'll usually need to raise a lump sum to put into the IVA by re-mortgaging your home. Equity is the money you'd make from the sale of a property, after any mortgage or secured loans are paid off. You shouldn't have to sell your home to raise the lump sum. If you think you are being asked to sell your home, get specialist advice straight away. you preference on house is **${home_will}**
-    
-    3. Having an IVA may affect any future income or assets that you receive. For example, if you decide to move house while you have an IVA, any money you make from the sale may have to be paid into the IVA. yous said: **${change_will}**
-    
-  ** Debts you can include:**
-  
-  - catalogues
-  - personal loans
-  - overdrafts
-  - credit cards
-  - gas and electric arrears
-  - Council Tax arrears
-  - water arrears
-  - payday loans
-  - store cards
-  - income tax and national insurance arrears
-  - tax credit or benefit overpayments
-  - debts to family and friends
-  - other outstanding bills, for example solicitor's costs, invoices for building work and vets bills
-  
-  **Debts you can’t include:**
-
-   - maintenance arrears that have been ordered by a court
-   - child support arrears
-   - student loans
-   - magistrates' court fines
-   - Social Fund loans
-   - TV licence arrears
-  
-  **How the repayments work**
-  
-  If you decide to get an IVA, you will work out a repayment plan with the insolvency practitioner. This could be monthly payments, a lump sum or a combination of both.
-
-  The repayment plan should be based on an amount you can reasonably afford and the creditors will need to agree it. If you're making monthly payments the IVA will usually last for 5 or 6 years.
-
-  Any repayments will be paid directly to the insolvency practitioner. They will then distribute the money to your creditors. Some of this will be kept by the insolvency practitioner to pay their fees.
-
-  If the payments you make aren’t enough to pay your debts in full by the end of your IVA, you won’t have to pay the rest. The insolvency practitioner should advise you about this.
-    
+  ${ individual_voluntary_agreement }
 continue button field: user_saw_intro    
 ---
 section: debt_solutionss
@@ -1379,41 +1095,7 @@ event: Debt Management Plan
 question:  |
   You can apply for Debt Management Plan
 subquestion:  |
- ##### A debt management plan (DMP) helps you to manage your debts and pay them off at a more affordable rate by making reduced monthly payments. 
- 
- ** Is it right for you?**
- 
- A DMP may be a suitable debt solution if you have some surplus money available each month once you’ve paid your priority costs such as rent or mortgage, food, accommodation and utility bills.
- 
- **You can set up a Debt management plan with a debt agent who is qualified to do it**. Some company charge you for it, some are free. 
- 
- **Benefits of a DMP**:
-
- - You’ll only pay what you can afford to your creditors after your agent put together a monthly household budget
- - If you’ve fallen behind with your household bills you can add the arrears to your DMP to help get your accounts back up to date. You'll still need to make your regular ongoing monthly payments.
- - You'll make one monthly payment to us and your agent the payments to your creditors for you
- - Your agent can and should review your DMP regularly to make sure you’re paying what you can afford
-
- **Risks of a DMP**:
- 
- - Some of your creditors may still contact you
- - Most creditors will agree to reduce or stop interest and charges, but they don’t have to
- - If creditors continue adding interest and charges, this could increase the total amount you currently owe
- - Your creditors don’t have to agree to your reduced payments, but we’ll still send your payments anyway
- - Your creditors may still take further court action against you, such as a County Court judgment (CCJ)
- - Reduced payments may lead to a longer arrangement term and could have a negative impact on your credit file
- 
- ** Cost of a DMP**
-
- Some companies will charge:
-
- - a set up fee
- - a handling fee each time you make a payment
- 
- **Eligibility **
- 
- Debt Management Plans can only be used to pay {unsecured debts}, for example debts that have not been guaranteed against your property.
-
+  ${ debt_management_plan }
 continue button field: user_saw_intro
 ---
 terms:  
