@@ -16,21 +16,13 @@ modules:
 ---
 objects:
   - user: Individual
-  - degree: DAList
-  - address: Address
   - jobs: JobList.using(there_is_another=False,complete_attribute='is_hourly')
   - other_income: IncomeList.using(there_is_another=False,complete_attribute='type')
   - assets: ValueList.using(there_is_another=False,complete_attribute='type')
   - income_assets: IncomeList.using(there_is_another=False,complete_attribute='type')
   - expenses: JobList.using(there_is_another=False,complete_attribute='type')
-  - vehicles: VehicleList.using(there_is_another=False,there_are_any=True,complete_attribute='year')
   - debt:  DAList.using(there_are_any=True, object_type=DAObject, complete_attribute='name')
----
-#mandatory: True
-#code:  |
-#  user.number
-#  user.gender
-  
+
 ---
 sections:
   - introduction: Introduction
@@ -133,13 +125,6 @@ question:  |
 subquestion:  |
   ${ preparation }
 continue button field: user_saw_intro  
----
-section: personal_info
-event: final_screen
-question:  |
-  We can not provide right infromation for you
-subquestion:  
-  You need to agree with our term to proceed, you need to be a Welsh resident and you need to be at least 18 years old.
 ---
 section: personal_info
 event: personal_info
@@ -245,7 +230,7 @@ review:
 mandatory: True 
 question:  |
   Please provide your information?
-section: personal_infoo
+section: personal_info
 fields:
  
   - Proceed only if you are over 18 years old: user.birthday
@@ -345,11 +330,6 @@ fields:
     datatype: yesnoradio
     help: |
       Some of the debt solutions will need you to declare publicly, and will also affect your housing situation. 
-    
- 
-#mandatory: True
-#code: |
-#  address.geolocate()
 
 field: sees_nav_bar    
 
@@ -594,22 +574,6 @@ subquestion:  |
   ${ mentalh_bs }
 buttons:  
  - Continue: continue
----
-
-question:  |
-  Hello, ${user}!
----
-question: |
-  Vehicle
-fields:
-  - Year: vehicles[0].year
-  - Make: vehicles[0].make
-  - Model: vehicles[0].model
----
-#mandatory: True
-question: |
-  You said the vehicle was ${vehicles[0].year_make_model()}
-field: ok  
 ---
 question:  |
 
@@ -865,48 +829,6 @@ subquestion: |
   
   ${ expenses.add_action() }
 field: expenses_summary
----
-
-question:  |
-  Advices on your expenditure:
-subquestion:  |
-
-  
-  % for item in expense_advices:
-    ${item} 
-    
-  % endfor
-  
-
-field: expenditure_summary
----
-code:  |
-  expense_advices =[]
-  averge_cost_living ={
-          "Food & Non-Alcoholic Drinks": 254.8,
-          "Alcoholic drink, tobacco &carcotics":51.6,
-          "Clothing & Footwear": 93.6,
-          "Fuel & Power":100,
-          "Rent": 210, 
-          "Utilities": 146,
-          "Health": 32.8,
-          "Transport": 326.4,
-          "Communication": 85.6,
-          "Hotels & Restaurants": 211.6,
-          "Total Expenditure": 2351.6
-          }
-  averge_cost_list= ["Food & Non-Alcoholic Drinks","Alcoholic drink, tobacco &carcotics","Clothing & Footwear","Fuel & Power","Rent","Utilities", "Health","Transport","Communication","Hotels & Restaurants","Total Expenditure"]
-  
-  for item in expenses:
-    if item.type in averge_cost_list:
-       spend_diff = item.value - averge_cost_living[item.type] 
-       
-       if spend_diff <0 and abs(spend_diff) >40:
-         expense_advices.append("You spend £"+str(item.value)+" on "+ item.type+ "  which is £"+str(abs(spend_diff))+" less than average expenditure £" + str(averge_cost_living[item.type])+" per month.")
-       elif spend_diff >0 and abs(spend_diff) >40:
-         expense_advices.append("You spend £"+str(item.value)+" on "+ item.type+ "  which is £"+str(abs(spend_diff))+" more than average expenditure £" + str(averge_cost_living[item.type])+" per month.")
-  
-
 ---
 section: summary
 mandatory: True 
