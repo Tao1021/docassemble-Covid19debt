@@ -789,7 +789,29 @@ fields:
     datatype: number
     code: |
       period_list()
-
+---
+code:  |
+  expense_advices =[]
+  average_cost_living ={
+          "Food & Non-Alcoholic Drinks": 254.8,
+          "Alcoholic drink, tobacco &carcotics":51.6,
+          "Clothing & Footwear": 93.6,
+          "Fuel & Power":100,
+          "Rent": 210, 
+          "Utilities": 146,
+          "Health": 32.8,
+          "Transport": 326.4,
+          "Communication": 85.6,
+          "Hotels & Restaurants": 211.6,
+          "Total Expenditure": 2351.6
+          }  
+  for item in expenses:
+    if item.type in average_cost_living.keys():
+       spend_diff = item.value - average_cost_living[item.type] 
+       if spend_diff <0 and abs(spend_diff) >40:
+         expense_advices.append("You spend £"+str(item.value)+" on "+ item.type+ "  which is £"+str(abs(spend_diff))+" less than average expenditure £" + str(average_cost_living[item.type])+" per month.")
+       elif spend_diff >0 and abs(spend_diff) >40:
+         expense_advices.append("You spend £"+str(item.value)+" on "+ item.type+ "  which is £"+str(abs(spend_diff))+" more than average expenditure £" + str(average_cost_living[item.type])+" per month.")  
 ---
 question: |
   Summary of your Income
@@ -870,7 +892,17 @@ subquestion: |
   Your total annual expenses is ${ currency(expenses.total(),symbol=u'£') }
   
   ${ expenses.add_action() }
+  
+  **Expenses Comparison**
+  
+  % for item in expense_advices:
+    ${item} 
+    
+  % endfor
+  
 continue button field: expenses_summary
+reconsider:
+  - expense_advices
 ---
 section: summary
 question:  |
