@@ -19,10 +19,50 @@ objects:
   - jobs: JobList.using(there_is_another=False,complete_attribute='is_hourly')
   - other_income: IncomeList.using(there_is_another=False,complete_attribute='type')
   - assets: ValueList.using(there_is_another=False,complete_attribute='type')
-  - income_assets: IncomeList.using(there_is_another=False,complete_attribute='type')
+  - income_assets: IncomeList.using(auto_gather=False)
   - expenses: JobList.using(there_is_another=False,complete_attribute='type')
   - debt:  DAList.using(there_are_any=True, object_type=DAObject, complete_attribute='name')
 
+---
+
+initial: True
+code: |
+  menu_items = [ action_menu_item('Roadmap', 'road_map') ]
+---
+initial: True
+code: |
+  if returning_user(minutes=0.5):
+    welcome_back
+---
+initial: add_review_to_menu
+code: |
+  menu_items = [ action_menu_item('Review Answers', 'review_answers') ]
+---
+mandatory: True
+code: |
+  user_saw_introduction
+  user_saw_preparation 
+  user_provided_personal_info
+  user_provided_household_info
+  user_identified_priority_debts
+  user_identified_nonpriority_debts
+  user_saw_debt_table
+  user_saw_standard_bs
+  user_saw_mentalh_bs
+  income_summary
+  assets_summary
+  expenses_summary
+  add_review_to_menu = True
+  summary
+  user_saw_debt_solutions
+  documents_uploaded
+  user_signed
+  letter_and_end
+---
+code: |
+  add_review_to_menu = False
+comment: |
+  add_review_to_menu will add a Review Answers option to the menu bar you can find by clicking on the upper right corner.  The initial block will be rerun every time there's a new screen, so originally this block will set it to false and the option will not be added.  (This block needs to be below the interview order so that this block defines add_review_to_menu first.  After "add_review_to_menu" is reached in the interview order, it will go to the next section "summary" before it reruns a screen, so this page will not have the Review Answers option.  The next page will be the first page where add_review_to_menu is set to True when the initial block is run.
 ---
 sections:
   - introduction: Introduction
@@ -94,37 +134,21 @@ subquestion: |
 buttons:
   Continue: continue
 ---
-
-mandatory: True
-code: |
-  menu_items = [ action_menu_item('Roadmap', 'road_map') ]
----
-initial: True
-code: |
-  if returning_user(minutes=0.5):
-    welcome_back
----
-
-mandatory: True
 question: |
   Welcome To Personal Debt Help 
 subquestion: |
   ${ introduction }
+field: user_saw_introduction
 buttons: 
+  - "I agree": agree
   
-  - I Agree: continue
-  
-      
-    
-field: sees_nav_bar 
 ---
-mandatory: True
 section: preparation
 question:  |
   Preparation 
 subquestion:  |
   ${ preparation }
-continue button field: user_saw_intro  
+continue button field: user_saw_preparation  
 ---
 section: personal_info
 event: personal_info
@@ -227,7 +251,6 @@ subquestion:  |
 review:
   - note:  |
 ---
-mandatory: True 
 question:  |
   Please provide your information?
 section: personal_info
@@ -274,9 +297,8 @@ fields:
     
      
 
-field: sees_nav_bar    
+continue button field: user_provided_personal_info 
 ---
-mandatory: True 
 question:  |
   Please provide your household information?
 section:  house_hold
@@ -331,7 +353,7 @@ fields:
     help: |
       Some of the debt solutions will need you to declare publicly, and will also affect your housing situation. 
 
-field: sees_nav_bar    
+continue button field: user_provided_household_info    
 
 ---
 code:  |
@@ -343,7 +365,6 @@ code:  |
     if item.urgency =="Court Action":
       is_court_debt ="Have a Court Action"
 ---
-mandatory: True
 question:  |
   Priority Debts
 subquestion:  |
@@ -383,8 +404,8 @@ fields:
     datatype: noyes
     help: This is a priority debt because if you don’t pay, HMRC can, take the money from your wages, take the money from your benefits or tax credits and use bailiffs to take your property
 section: priority_debts
+continue button field: user_identified_priority_debts
 ---
-mandatory: True
 question:  |
   None Priority Debts
 subquestion:  |
@@ -406,6 +427,7 @@ fields:
       ]
     
 section: non_priority
+continue button field: user_identified_nonpriority_debts
 ---
 question:  |
   Debt Information
@@ -494,8 +516,6 @@ fields:
       
       
 ---   
-mandatory: True
-
 question: |
   Description of all your debts
   
@@ -516,8 +536,7 @@ subquestion: |
      % endif
    % endfor
    ${debt_total1}
-buttons:
-  - Continue: continue  
+continue button field: user_saw_debt_table 
 ---   
 
 code:  |
@@ -558,22 +577,18 @@ code:  |
   
 ---
 section: standard_bs
-mandatory: True
 question:  |
   Breathing space for Debt
 subquestion:  |
   ${ standard_bs }
-buttons:  
- - Continue: continue
+continue button field: user_saw_standard_bs
 ---
 section: mentalh_bs
-mandatory: True
 question:  |
   Mental health Breathing space 
 subquestion:  |
   ${ mentalh_bs }
-buttons:  
- - Continue: continue
+continue button field: user_saw_mentalh_bs
 ---
 question:  |
 
@@ -585,6 +600,8 @@ section: income
 fields:
 
   - Employment income: jobs.there_are_any
+    datatype: yesno
+  - Other income: other_income.there_are_any
     datatype: yesno
   - Assets (such as cars, boats, etc.): assets.there_are_any
     datatype: yesno
@@ -642,8 +659,6 @@ columns:
   - Amount: |
       currency(row_item.amount(),symbol=u'£')
       
-edit:
-  - type 
 minimum_number: 1
 ---
 table: expenses.table
@@ -690,25 +705,25 @@ fields:
 
 
 ---
-##question: |
-##  What income do you have that is not from a job?
-#section: income
-#fields:
-#  - What type of income is it?: other_income[i].type
-#    code: |
-#      income_type_list()
-#  - Amount earned: other_income[i].value 
-#    datatype: currency
-#    min: 0
-#    currency symbol: £
-#  - Over what time period: other_income[i].period
-#    datatype: number
-#    code: |
-#      period_list()
+question: |
+  What income do you have that is not from a job?
+section: income
+fields:
+  - What type of income is it?: other_income[i].type
+    code: |
+      income_type_list()
+  - Amount earned: other_income[i].value 
+    datatype: currency
+    min: 0
+    currency symbol: £
+  - Over what time period: other_income[i].period
+    datatype: number
+    code: |
+      period_list()
 
 ---
 question: |
-  What non-income generating assets do you have?
+  What assets do you have?
 section: income
 fields:
   - What type of asset is it?: assets[i].type
@@ -720,36 +735,45 @@ fields:
       is: other
     help:  |
       Write down anything you think of as valuable, A new TV, laptop etc.
-    
   - Estimated Value: assets[i].value 
     datatype: currency
     min: 0
     currency symbol: £
-
----
-question: |
-  What income generating assets do you have?
-section: income
-fields:
-  - What type of asset is it?: income_assets[i].type
-    code: |
-      asset_type_list()
-  - Present Value: income_assets[i].value 
+  - Does this asset generate income?: assets[i].generates_income
+    datatype: yesnoradio
+  - Income generated by this asset: assets[i].income
     datatype: currency
     min: 0
     currency symbol: £
-  - Income generated by this asset: income_assets[i].income
+    show if: assets[i].generates_income
+  - Loan amount (if any): assets[i].amount_owed
+    required: False
     datatype: currency
     min: 0
     currency symbol: £
-  - Loan amount (if any): income_assets[i].amount_owed
-    datatype: currency
-    min: 0
-    currency symbol: £
-  - Over what time period: income_assets[i].period
+    show if: assets[i].generates_income
+  - Over what time period: assets[i].period
     datatype: number
     code: |
       period_list()
+    show if: assets[i].generates_income
+  - Vehicle year:  assets[i].vehicle_year
+    required: False
+    show if:
+      variable: assets[i].type
+      is: vehicle
+  - Vehicle make:  assets[i].vehicle_make
+    required: False
+    show if:
+      variable: assets[i].type
+      is: vehicle
+  - Vehicle model:  assets[i].vehicle_model
+    required: False
+    show if:
+      variable: assets[i].type
+      is: vehicle
+reconsider:
+  - income_assets    
 
 ---
 question: |
@@ -769,40 +793,61 @@ fields:
       period_list()
 
 ---
-mandatory: True
 question: |
   Summary of your Income
 subquestion: |
+  **Employment Income**
+  
   ${ jobs.table }
 
-  Your total annual income is ${ currency(jobs.total(),symbol=u'£') }
+  Your total annual income from employment is ${ currency(jobs.total(),symbol=u'£') }
   
-  Your total monthly income is ${ currency(jobs.total(period_to_use=12),symbol=u'£') }  
+  Your total monthly income from employment is ${ currency(jobs.total(period_to_use=12),symbol=u'£') }  
 
   ${ jobs.add_action() }
   
+  **Other Income**
   
-field: income_summary
+  ${ other_income.table }
+
+  Your total annual non-wage income is ${ currency(other_income.total(),symbol=u'£') }
+  
+  Your total monthly non-wage income is ${ currency(other_income.total(period_to_use=12),symbol=u'£') }  
+
+  ${ other_income.add_action() }
+  
+  **Income from Assets**
+  
+  ${ income_assets.table }
+  
+  This information can be edited on the next page with information about all of your assets.
+
+  Your total annual income from assets is ${ currency(income_assets.total(),symbol=u'£') }
+  
+  Your total monthly income from assets is ${ currency(income_assets.total(period_to_use=12),symbol=u'£') }  
+
+  ${ assets.add_action() }
+  
+  **Total Income**
+  
+  Your total annual income is ${ currency((jobs.total() + other_income.total() + income_assets.total()),symbol=u'£') }
+  
+  Your total monthly income is ${ currency((jobs.total(period_to_use=12) + other_income.total(period_to_use=12) + income_assets.total(period_to_use=12)),symbol=u'£') }  
+  
+continue button field: income_summary
 ---
-#mandatory: True
-#question: |
-
-#Annual Other Income
-#subquestion: |
-#  ${ other_income.table }
-#
-#  Your total annual non-wage income is ${ currency(other_income.total(),symbol=u'£') }
-  
-#  Your total monthly non-wage income is ${ #currency(other_income.total(period_to_use=12),symbol=u'£') }  
-
-#  The types of income include ${ comma_and_list(other_income.types(),symbol=u'£') }
-
-#  ${ other_income.add_action() }
-  
-  
-#field: other_income_summary
+code: |
+  loopcounter = 0
+  for asset in assets:
+    if asset.generates_income:
+      income_assets[loopcounter].type = asset.type
+      income_assets[loopcounter].value = asset.income
+      income_assets[loopcounter].period = asset.period
+      loopcounter =+ 1
+  income_assets.gathered = True
+depends on: 
+  - assets
 ---
-mandatory: True
 question: |
   Assets
 subquestion: |
@@ -813,9 +858,8 @@ subquestion: |
   ${ assets.add_action() }
 
  
-field: assets_summary
+continue button field: assets_summary
 ---
-mandatory: True
 question: |
   Expenses
 subquestion: |
@@ -828,11 +872,9 @@ subquestion: |
   Your total annual expenses is ${ currency(expenses.total(),symbol=u'£') }
   
   ${ expenses.add_action() }
-field: expenses_summary
+continue button field: expenses_summary
 ---
 section: summary
-mandatory: True 
-event: summary
 question:  |
  Here are the summary, you can review and edit 
 subquestion:  |
@@ -863,15 +905,11 @@ review:
     button:  |
         Update to see most recent data by clicking on:
   
-field: review_answer
----
-mandatory: True
-code: |
-  menu_items = [ action_menu_item('Review Answers', 'review_answers') ]
+continue button field: summary
 ---
 
 code:  |
-  month_disposble_income = jobs.total(period_to_use=12) - expenses.total(period_to_use=12)
+  month_disposble_income = jobs.total(period_to_use=12) + other_income.total(period_to_use=12) + income_assets.total(period_to_use=12)- expenses.total(period_to_use=12)
 ---
 
 question:  |
@@ -946,7 +984,6 @@ code:  |
 ---
 section:  debt_solutions
 event: debt_solutionss
-mandatory: True 
 question: | 
    Debt Solutions
 subquestion: |
@@ -978,7 +1015,7 @@ review:
      - is_court_debt
      - is_homeowner
     button:  |
-continue button field: user_saw_intro
+continue button field: user_saw_debt_solutions
 ---
 section: debt_solutionss
 event: Bankruptcy
@@ -1198,7 +1235,6 @@ code: |
   uploaded_file.make_ocr_pdf() 
   ocr_finished = True
 ---
-mandatory: True
 question: |
   Please Upload supporting files if any. 
 subquestion: |
@@ -1208,8 +1244,8 @@ fields:
     datatype: files
     required: False
 section: Income
+continue button field: documents_uploaded
 ---
-mandatory: True
 question: |
   Sign your name
 subquestion: |
@@ -1217,8 +1253,9 @@ subquestion: |
   our terms and conditions.
 section: Signatures
 signature: your_signature
+continue button field: user_signed
 ---
-mandatory: True
+event: letter_and_end
 question: |
   Your documents are ready. Please print and file!
 buttons:
