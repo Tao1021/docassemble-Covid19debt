@@ -446,12 +446,10 @@ fields:
     datatype: currency 
     min: 0
     currency symbol: £
-  - Please Specify: new_name
+  - Please Specify: debt[i].other_name
     show if:
       variable: debt[i].name
       is: other
-    #code: |
-    #  debt[i].name = new_name
   - Creditor for the debt: debt[i].creditor 
     required: False
     help:  |
