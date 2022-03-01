@@ -22,6 +22,8 @@ objects:
   - income_assets: IncomeList.using(auto_gather=False)
   - expenses: JobList.using(there_is_another=False,complete_attribute='type')
   - debt:  DAList.using(there_are_any=True, object_type=DAObject, complete_attribute='name')
+  - priority_debts: DAList.using(auto_gather=False)
+  - nonpriority_debts: DAList.using(auto_gather=False)
 
 ---
 
@@ -34,6 +36,10 @@ code: |
   if returning_user(minutes=0.5):
     welcome_back
 ---
+initial: True
+code: |
+  set_locale(currency_symbol='£')
+---
 initial: add_review_to_menu
 code: |
   menu_items = [ action_menu_item('Review Answers', 'review_answers') ]
@@ -44,19 +50,20 @@ code: |
   user_saw_preparation 
   user_provided_personal_info
   user_provided_household_info
-  user_identified_priority_debts
-  user_identified_nonpriority_debts
+  # user_identified_priority_debts
+  # user_identified_nonpriority_debts
   user_saw_debt_table
-  user_saw_standard_bs
-  user_saw_mentalh_bs
+  # user_saw_standard_bs
+  # user_saw_mentalh_bs
   income_summary
   assets_summary
   expenses_summary
   add_review_to_menu = True
+  documents_uploaded
   summary
   user_saw_debt_solutions
-  documents_uploaded
-  user_signed
+  # user_signed
+  predocx_variables
   letter_and_end
 ---
 code: |
@@ -164,14 +171,16 @@ review:
     button:  |
       Working Status: ${user.work}
 ---
-section: priority_debts
-
-question:  |
-  Priority Debts
-review:  
-  - Edit Priority Debts: t_variable
-    button: |
-      Which Priority Debts is your main issues: ${t_variable}
+id: priority debt code
+code: |
+  for debt_item in debt:
+    if debt_item.name in priority_debt_type_list:
+      priority_debts.append(debt_item)
+    else:
+      nonpriority_debts.append(debt_item)
+  priority_debts.gathered = True
+  nonpriority_debts.gathered = True  
+    
 ---
 section: non_priority
 
@@ -212,8 +221,9 @@ subquestion:  |
 review:  
  - note: |
 ---
-table: debt.table
-rows: debt
+generic object: DAList
+table: x.table
+rows: x
 columns: 
   - Debt Type: |
       row_item.name
@@ -256,6 +266,20 @@ question:  |
 section: personal_info
 fields:
  
+  - First Name: user.name.first
+  - Last Name: user.name.last
+  - Address: user.address.address
+  - City: user.address.city
+  - Postal Code: user.address.zip
+  - Phone: user.phone
+  - Email: user.email
+  - Date of Birth: user.dob
+    datatype: date
+  - Gender: user.gender
+    choices:
+      - Male
+      - Female
+      - Other
   - Proceed only if you are over 18 years old: user.birthday
     datatype: yesnoradio
     required: False
@@ -352,6 +376,17 @@ fields:
     datatype: yesnoradio
     help: |
       Some of the debt solutions will need you to declare publicly, and will also affect your housing situation. 
+  - Going through a formal insolvency procedure currently?: another_debt_solution
+    required: False
+    input type: dropdown
+    choices: 
+      - Debt relief Order 
+      - Bankruptcy 
+      - Individual Voluntary arrangement 
+      - Administration Order 
+      - None 
+    help:  |
+       It is important to know this as some of the debt solutions might not be available to you if you are going through one of these. Please bring this up with your debt specialist when you consulte them. 
 
 continue button field: user_provided_household_info    
 
@@ -500,17 +535,6 @@ fields:
     show if: 
       variable: debt[i].urgency_court
       is: Enforcement
-  - Going through a formal insolvency procedure currently?: another_debt_solution
-    required: False
-    input type: dropdown
-    choices: 
-      - Debt relief Order 
-      - Bankruptcy 
-      - Individual Voluntary arrangement 
-      - Administration Order 
-      - None 
-    help:  |
-       It is important to know this as some of the debt solutions might not be available to you if you are going through one of these. Please bring this up with your debt specialist when you consulte them. 
       
       
 ---   
@@ -536,11 +560,12 @@ subquestion: |
    ${debt_total1}
 continue button field: user_saw_debt_table 
 ---   
-
 code:  |
-  debt_type_list = ['Credit Card', 'Bank overdraft', 'Rent arrears','Catalogue spending', 'Morgage arrears','Council Tax', 'Energy bill arrears','Water arrears','Mobile phone arrears','Home Phone or broadband arrears','Personal loan','TV license','Court Fine/ Penalty charge','Student Loans','Loan from family member or friend','Child maintenance/child support agency debts','Claims against you for damage or personal injury','Fine','Social fund loan','HMRC tax debt','Universal credit advance','other']
-
----
+  debt_type_list = ['Credit Card', 'Bank overdraft', 'Rent arrears','Catalogue spending', 'Mortgage arrears','Council Tax', 'Energy bill arrears','Water arrears','Mobile phone arrears','Home Phone or broadband arrears','Personal loan','TV license','Court Fine/ Penalty charge','Student Loans','Loan from family member or friend','Child maintenance/child support agency debts','Claims against you for damage or personal injury','Fine','Social fund loan','HMRC tax debt','Universal credit advance','other']
+--- 
+code:  |
+  priority_debt_type_list = ['Rent arrears','Mortgage arrears','Council Tax', 'Energy bill arrears','Mobile phone arrears','TV license','Court Fine/ Penalty charge','Child maintenance/child support agency debts','Fine','HMRC tax debt','Universal credit advance']
+--- 
 question:  Are there any other debts you want to add?
 yesno:  debt.there_is_another
 
@@ -1285,6 +1310,13 @@ section: Signatures
 signature: your_signature
 continue button field: user_signed
 ---
+code: |
+  total_annual_income
+  predocx_variables = True
+---
+code: |
+  total_annual_income = currency(jobs.total() + other_income.total() + income_assets.total())
+---
 event: letter_and_end
 question: |
   Your documents are ready. Please print and file!
@@ -1298,10 +1330,4 @@ attachment:
     valid formats:
       - docx
       - pdf
-    content:  |
-      This is just a place holder for the final document
-      
-      Hey, 
-      Your total annual income is ${ currency(jobs.total(),symbol=u'£')}
-      Your priority debts is
-      ${your_signature}
+    docx template file: debt_report.docx
