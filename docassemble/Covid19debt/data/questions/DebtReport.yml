@@ -157,20 +157,6 @@ subquestion:  |
   ${ preparation }
 continue button field: user_saw_preparation  
 ---
-section: personal_info
-event: personal_info
-question:  |
-  Please Review your information?
-review:
-  
-  - Edit Birth date: user.birthday
-    button:  |
-      Birthday: ${user.birthday}
-  
-  - Edit Work: user.work
-    button:  |
-      Working Status: ${user.work}
----
 id: priority debt code
 code: |
   for debt_item in debt:
@@ -181,45 +167,6 @@ code: |
   priority_debts.gathered = True
   nonpriority_debts.gathered = True  
     
----
-section: non_priority
-
-question:  |
-  Priority Debts
-review:  
-  - Edit Non Priority Debts: no_pd
-    button: |
-      Which Non Priority Debts is your main issues: ${no_pd}
-  
----
-section:  house_hold
-event:  house_hold
-question:  |
-  Please review your household information?
-review:
-  - Edit housing status: user.house_status
-    button :  |
-      Housing Status: ${user.house_status}
-  - Edit Marriage Status: user.marriage
-    button:  |
-      Marriage Status: ${user.marriage}
-  - Edit Children Number: user.childrenNum
-    button:  |
-      Children Number: ${user.childrenNum}
-  - Edit Total Household Number: user.house_num
-    button:  |
-      Household Number: ${user.house_num}
----
-event: debt_info
-section: debt_info
-question:  | 
-  Review your debt here 
-subquestion:  |
-   ${debt.table}
-   
-   ${debt.add_action()}
-review:  
- - note: |
 ---
 generic object: DAList
 table: x.table
@@ -238,28 +185,6 @@ columns:
 edit:
   - name
 minimum_number: 1
----
-event: income
-section: income
-question:  |
-  Review your income here
-subquestion:  |
-  ${jobs.table}
-  
-  ${jobs.add_action()}
-review:
-  - note:  |
----
-event: expenditure
-section: expenditure
-question:  |
-  Review your expenditure here 
-subquestion:  |
-  ${expenses.table}
-  
-  ${expenses.add_action()}
-review:
-  - note:  |
 ---
 question:  |
   Please provide your information?
@@ -280,11 +205,11 @@ fields:
       - Male
       - Female
       - Other
-  - Proceed only if you are over 18 years old: user.birthday
-    datatype: yesnoradio
-    required: False
-    help:  |
-      If you are under 18 and have debt yourself, please contact a professonal for help. It is most likely that your debt is not valid and you dont have to pay for it. 
+#  - Proceed only if you are over 18 years old: user.birthday
+#    datatype: yesnoradio
+#    required: False
+#    help:  |
+#      If you are under 18 and have debt yourself, please contact a professonal for help. It is most likely that your debt is not valid and you dont have to pay for it. 
     
 
 ##  - What is your condition: user.mentalcondition
@@ -310,12 +235,12 @@ fields:
       variable: user.work
       is: Part time
   
-  - Welsh Resident: user.uk
+  - Are you a Welsh Resident?: user.uk
     required: False
     datatype: yesnoradio
     help:  |
       Different regions within UK have different rules for debts. If you are holding a visa to work and live in Wales, please make sure it is known when you look for perfessonal help, as some of the the debt solutions might affect your visa application. 
-  - UK based debt: user.uk_debt
+  - Is your debt based in the UK?: user.uk_debt
     required: False
     datatype: yesnoradio
     
@@ -368,15 +293,15 @@ fields:
   - Number of dependents : user.childrenNum
     required: False
     datatype: integer
-  - How many people in your household in total?(including yourself): user.house_num
+  - How many people are in your household in total, including yourself?: user.house_num
     required: False
     datatype: integer
-  - Are the people in the household aware of your debt situation?: user.house_aware
+  - Are the people in your household aware of your debt situation?: user.house_aware
     required: False
     datatype: yesnoradio
     help: |
       Some of the debt solutions will need you to declare publicly, and will also affect your housing situation. 
-  - Going through a formal insolvency procedure currently?: another_debt_solution
+  - What formal insolvency procedure are you going through currently?: another_debt_solution
     required: False
     input type: dropdown
     choices: 
@@ -386,7 +311,7 @@ fields:
       - Administration Order 
       - None 
     help:  |
-       It is important to know this as some of the debt solutions might not be available to you if you are going through one of these. Please bring this up with your debt specialist when you consulte them. 
+       It is important to know whether you are currently in a formal insolvency procedure as some of the debt solutions may not be available to you.. Please bring this up with your debt specialist when you consult them. 
 
 continue button field: user_provided_household_info    
 
@@ -467,8 +392,7 @@ continue button field: user_identified_nonpriority_debts
 question:  |
   Debt Information
 subquestion:  |
-  Please provide you debts information correctly here.  
-  Identify type and amount of ${ ordinal(i) } debts you own:
+  Please provide information about your ${ ordinal(i) } debt.:
 section: debt_info
 fields: 
   - Debt type: debt[i].name
@@ -492,11 +416,11 @@ fields:
   - Relevant account or reference number: debt[i].reference
     required: False
     help:  |
-      If you own debt from an organisation, for instance Bank, you might have such a number.
+      You may have an account number if you owe money to an organization like a bank.
   - Date of first missed payment : debt[i].first_miss_date
     datatype: date
     required: False
-  - Liability Check on this Debt: debt[i].libility
+  - Reason to dispute this debt: debt[i].libility
     input type: dropdown
     choices: 
       - This debt is over 6 years
@@ -507,7 +431,7 @@ fields:
       - The debt shared with other person
       - None
     help:  |
-      You might not have to pay a debt if one of these is true for you. Please bring this up when you consult with a professonal debt help.
+      You may not have to pay a debt if one of these is true for you. Please bring this up when you consult with a professonal debt advisor.
   - What action has been taken by the creditor?: debt[i].urgency
     required: False
     input type: dropdown
@@ -548,7 +472,7 @@ subquestion: |
   ${item.creditor} | ${ item.name } | £${ item.amount }
   % endfor
   
-   Creditor    |Debt urgency    |Debt Liability 
+   Creditor    |Debt urgency    |Reason to Dispute Debt 
   -------|-----------|----------------
    % for item in debt:
      % if (item.urgency != 'None') or( item.libility !='None'):
@@ -568,7 +492,6 @@ code:  |
 --- 
 question:  Are there any other debts you want to add?
 yesno:  debt.there_is_another
-
 ---
 table: debt.table
 rows: debt
@@ -581,7 +504,7 @@ columns:
       row_item.creditor
   - Debt Urgency:  |
       row_item.urgency
-  - Debt Liability:  |
+  - Reason to Dispute Debt:  |
       row_item.libility
 edit:
   - amount
@@ -632,13 +555,15 @@ fields:
     datatype: yesno
 ---
 question: |
-  Do you want to add any more income?
+  Do you want to add any more jobs or employment income?
 yesno: jobs.there_is_another
+comment: |
+  This section is not called because the object block sets jobs.there_is_another as false.
 ---
 table: jobs.table
 rows: jobs
 columns:
-  - Source of Income: |
+  - Employer: |
       row_item.employer
   - Amount: |
       currency(row_item.amount(),symbol=u'£')
@@ -651,7 +576,7 @@ minimum_number: 1
 table: other_income.table
 rows: other_income
 columns:
-  - Type: |
+  - Source of Income: |
       row_item.type if defined('row_item.type') else ''
   - Amount: |
       currency(row_item.amount(), symbol=u'£')
@@ -735,7 +660,7 @@ fields:
   - What type of income is it?: other_income[i].type
     code: |
       income_type_list()
-  - Amount earned: other_income[i].value 
+  - Amount: other_income[i].value 
     datatype: currency
     min: 0
     currency symbol: £
@@ -937,7 +862,7 @@ subquestion:  |
   
   Your current house status is: **${user.house_status}**  
   
-  you own **${currency(debt_total1, symbol=u'£')}** debts in total, you have **${len(debt)}**  debts
+  You have **${currency(debt_total1, symbol=u'£')}** debts in total, you have **${len(debt)}**  debts
   
   Your debts  **${is_court_debt}**.
  
@@ -945,9 +870,9 @@ subquestion:  |
  
   Your total assets value is:  **${ currency(assets.total(),symbol=u'£') }**
   
-  Your total expenditure is **${ currency(expenses.total(period_to_use=12),symbol=u'£') }** per month
+  Your total expenses is **${ currency(expenses.total(period_to_use=12),symbol=u'£') }** per month
   
-  Your monthly disposible income **${currency(month_disposble_income, symbol=u'£')}**
+  Your monthly disposable income **${currency(month_disposble_income, symbol=u'£')}**
 
   ####### Revisit and edit your data by clicking on the menu at sections accordingly.
   
@@ -968,72 +893,71 @@ code:  |
 ---
 
 question:  |
-  Perferences and choices
+  Preferences and choices
 subquestion: |
-  Some of debt solutions will affect your credit rating, prohibt you from undertaking certain jobs and may have impacts on your home. Please answer the following question carefully. 
-  
+  Some debt solutions will affect your credit rating, prohibit you from undertaking certain jobs and may have impacts on your home. You can move the scale below to indicate which outcomes are important to consider.
   **click on question mark to see what each scale stands for.**
   
 fields:
-  - likehood of change of financial situations in the near future? : financial_change
+  - Is your financial situation likely to change in the near future? : financial_change
     datatype: range
     min: 0
     max: 10
     help:  |
       for instance, inheritance, promotion with job, move to new house etc. 0 means very unlikely, 10 means very possible change of situation.  
-  - your credit will be affected: credit_rating1
+  - How important is it to limit how much your credit will be affected?: credit_rating1
     datatype: range
     min: 0
     max: 10
     help:  |
-      When you apply for a loan or other type of credit, the credit provider will search your credit reference file to see how much of a risk it is to lend to you. The level of risk is known as your credit rating. It can be affected by your personal financial. O means you dont mind credit rating impact, 10 means you want to avoid low recredit punishment. 
-  - Cost of debt solution?: cost_debt 
+      When you apply for a loan or other type of credit, the credit provider will search your credit reference file to see how much of a risk it is to lend to you. The level of risk is known as your credit rating. It can be affected by your the debt solution. O means you don't mind an impact to your credit rating, 10 means you want to avoid an impact to your credit rating.. 
+  - How important is it to reduce the cost of the debt solution?: cost_debt 
     datatype: range
     min: 0
     max: 10
     help:  |
-      Some debt solution are significantly more expensive than others, from 90 pounds to 700 to few thousands. 0 menas you dont mind cost, 10 means you are very sensitive to the cost. 
-  - Keep your home: home_owner_pri
+      Some debt solution are significantly more expensive than others, from 90 pounds to 700 to few thousands. 0 means you don't mind how much the debt solution costs, 10 means you are very sensitive to the cost. 
+  - How important is it to keep your home?: home_owner_pri
     datatype: range
     min: 0
     max: 10
     help:  |
-      some debt solution need you to sell your house. 0 means you dont mind sell your house to pay back debt, 10 means you want to keep the house as much as possible. 
+      Some debt solution may force you to sell your house. 0 means you don't mind selling your house to pay back debt, 10 means you want to keep the house as much as possible. 
   
-  - Deal with creditor directly: deal_creditor
+  - Do you mind dealing with creditors directly?: deal_creditor
     datatype: range
     min: 0
     max: 10
     help:  |
-      Some debt solution will hdeal with your creditors for you. 0 means you dont want to have deal with creditor, 10 means you dont mind to deal with them yourself. 
+      Some debt solution will deal with your creditors for you. 0 means you dont want to have to deal with a creditor, 10 means you don't mind to deal with creditors yourself. 
       
   
 ---
 code:  |
   if home_owner_pri<5:
-    home_will=" Dont mind to sell house"
+    home_will=" Don't mind to sell house"
   else:
     home_will=" Prefer to keep house"
   
   if cost_debt>5:
-    cost_will= "You wish to spend less on debt solution"
+    cost_will= "You wish to spend less on the debt solution"
   else:
-    cost_will= " The cost of debt solution is not a issue for you"
+    cost_will= " The cost of the debt solution is not an issue for you"
   
   if credit_rating1>5:
-    credit_will="You wish to find a solution with less credit rating punishment"
+    credit_will="You wish to find a solution without impacting your credit rating"
   else:
-    credit_will="You dont mind much about credit rating"
+    credit_will="You don't mind if your credit rating is impacted"
     
   if financial_change>5:
-    change_will ="You are likely to have a change of financial/personal situation."
+    change_will ="You are likely to change your financial or personal situation"
   else:
-    change_will ="You are less likely to change you financial/personal situation"
+    change_will ="You are less likely to change your financial or personal situation"
   
   if deal_creditor<5:
-    change_creditor="You dont want to deal with creditors"
+    change_creditor="You don't want to deal with creditors"
   else:  
-    change_creditor="You dont mind to deal with creditors"
+    change_creditor="You don't mind to deal with creditors"
   
   
 ---
@@ -1135,19 +1059,19 @@ subquestion:  |
    | Not a homeowner       |${is_homeowner}      |
    | Assets no more than £2000| £${assets.total()}|
    | it's been at least 6 years since your last DRO | not know |
-   | Currently going through nother formal insolvency procedure| ${another_debt_solution} |
+   | Currently going through another formal insolvency procedure| ${another_debt_solution} |
    
-   It is also important to give your information truthfully when apply for DRO. 
+   It is also important to give your information truthfully when you apply for a DRO. 
   
     
-    The following debts of yours is **included** in DRO:
+    The following debts of yours is **included** in a DRO:
       % for item in Dro_debt:
         **${item}**
       % endfor
       
       
       
-  The following debts of yours is **not** included in your debt:
+  The following debts of yours is **not** included in a DRO:
       % for item in Dro_debt_not:
         **${item}**
       % endfor
@@ -1158,9 +1082,9 @@ event: not Administration Order
 question:  |
   You cant apply for Administration Order
 subquestion:  |
-   The following table shows comparison of Administration Order requirments and your personal situation, ther is one or more Criteria you dont meet. 
+   The following table shows comparison of Administration Order requirments and your personal situation, but there is one or more Criteria you dont meet. 
    
-   |Requirment | Your situation|
+   |Requirement | Your situation|
    |-----------|----------|
    |at least 2 debts | ${len(debt)} debt     |
    | max £5,000 debt       |£${debt_total}       |
@@ -1312,11 +1236,20 @@ continue button field: user_signed
 ---
 code: |
   total_annual_income
+  total_assets
+  total_expenses
   predocx_variables = True
 ---
 code: |
   total_annual_income = currency(jobs.total() + other_income.total() + income_assets.total())
 ---
+code: |
+  total_assets = currency(assets.total())
+---
+code: |
+  total_expenses = currency(expenses.total())
+---
+
 event: letter_and_end
 question: |
   Your documents are ready. Please print and file!
