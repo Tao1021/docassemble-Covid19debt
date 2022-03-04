@@ -478,22 +478,10 @@ question: |
   Description of all your debts
   
 subquestion: |
-  Creditor    |Debt Name     |Amout
-  -------|-----------|----------------
-  % for item in debt:
-  ${item.creditor} | ${ item.name } | £${ item.amount }
-  % endfor
+  ${ debt.table }
+  ${ debt.add_action() }
   
-   Creditor    |Debt urgency    |Reason to Dispute Debt 
-  -------|-----------|----------------
-   % for item in debt:
-     % if (item.urgency != 'None') or( item.libility !='None'):
-     ${item.creditor} | ${ item.urgency } | ${ item.libility }
-     % else:
-     None  |None |None
-     % endif
-   % endfor
-   ${debt_total1}
+  The total amount of your debt is ${debt_total1}
 continue button field: user_saw_debt_table 
 ---
 id: debt type list   
