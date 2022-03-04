@@ -57,9 +57,9 @@ code: |
   # user_saw_mentalh_bs
   income_summary
   assets_summary
-  expenses_summary
   add_review_to_menu = True
-  documents_uploaded
+  expenses_summary
+  # documents_uploaded
   summary
   user_saw_debt_solutions
   # user_signed
