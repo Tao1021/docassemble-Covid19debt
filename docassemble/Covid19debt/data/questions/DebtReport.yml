@@ -26,19 +26,40 @@ objects:
   - nonpriority_debts: DAList.using(auto_gather=False)
 
 ---
+id: enable welcome back screen
 initial: True
 code: |
   if returning_user(minutes=0.5):
     welcome_back
 ---
+event: welcome_back
+question: |
+  Welcome back!
+subquestion: |
+  You are currently in the
+  **${ nav.get_section(display=True) }**
+  section.
+
+  ${ nav }
+
+  Press "Continue" to pick up
+  where you left off.
+buttons:
+  Continue: continue
+---
+id: set currency
 initial: True
 code: |
   set_locale(currency_symbol='£')
 ---
+id: enable review answers menu item
 initial: add_review_to_menu
 code: |
   menu_items = [ action_menu_item('Review Answers', 'review_answers') ]
+comment: |
+  This block adds Review Answers to the menu after a certain point in the interview, when all of the information is collected.  It does this because add_review_to_menu is initially set to false (in block id: set review to false) and then changed in the interview order to True.
 ---
+id: interview order
 mandatory: True
 code: |
   user_saw_introduction
@@ -61,6 +82,7 @@ code: |
   predocx_variables
   letter_and_end
 ---
+id: set review to false
 code: |
   add_review_to_menu = False
 comment: |
@@ -121,21 +143,7 @@ features:
   small screen navigation: dropdown
   progress bar: True
 ---
-event: welcome_back
-question: |
-  Welcome back!
-subquestion: |
-  You are currently in the
-  **${ nav.get_section(display=True) }**
-  section.
-
-  ${ nav }
-
-  Press "Continue" to pick up
-  where you left off.
-buttons:
-  Continue: continue
----
+id: introduction block
 question: |
   Welcome To Personal Debt Help 
 subquestion: |
@@ -145,6 +153,7 @@ buttons:
   - "I agree": agree
   
 ---
+id: preparation block
 section: preparation
 question:  |
   Preparation 
@@ -163,6 +172,7 @@ code: |
   nonpriority_debts.gathered = True  
     
 ---
+id: generic debt table
 generic object: DAList
 table: x.table
 rows: x
@@ -181,6 +191,7 @@ edit:
   - name
 minimum_number: 1
 ---
+id: personal information block
 question:  |
   Please provide your information?
 section: personal_info
@@ -243,6 +254,7 @@ fields:
 
 continue button field: user_provided_personal_info 
 ---
+id: household information
 question:  |
   Please provide your household information?
 section:  house_hold
@@ -311,6 +323,7 @@ fields:
 continue button field: user_provided_household_info    
 
 ---
+id: homeowner code
 code:  |
   is_homeowner = "Not Home Owner"
   is_court_debt = "Dont have a Court Action"
@@ -320,6 +333,7 @@ code:  |
     if item.urgency =="Court Action":
       is_court_debt ="Have a Court Action"
 ---
+id: priority debt identification
 question:  |
   Priority Debts
 subquestion:  |
@@ -361,6 +375,7 @@ fields:
 section: priority_debts
 continue button field: user_identified_priority_debts
 ---
+id: non priority debt identification
 question:  |
   None Priority Debts
 subquestion:  |
@@ -384,6 +399,7 @@ fields:
 section: non_priority
 continue button field: user_identified_nonpriority_debts
 ---
+id: debt info collection
 question:  |
   Debt Information
 subquestion:  |
@@ -456,7 +472,8 @@ fields:
       is: Enforcement
       
       
----   
+---
+id: debt summary   
 question: |
   Description of all your debts
   
@@ -478,16 +495,20 @@ subquestion: |
    % endfor
    ${debt_total1}
 continue button field: user_saw_debt_table 
----   
+---
+id: debt type list   
 code:  |
   debt_type_list = ['Credit Card', 'Bank overdraft', 'Rent arrears','Catalogue spending', 'Mortgage arrears','Council Tax', 'Energy bill arrears','Water arrears','Mobile phone arrears','Home Phone or broadband arrears','Personal loan','TV license','Court Fine/ Penalty charge','Student Loans','Loan from family member or friend','Child maintenance/child support agency debts','Claims against you for damage or personal injury','Fine','Social fund loan','HMRC tax debt','Universal credit advance','other']
 --- 
+id: priority debt type list
 code:  |
   priority_debt_type_list = ['Rent arrears','Mortgage arrears','Council Tax', 'Energy bill arrears','Mobile phone arrears','TV license','Court Fine/ Penalty charge','Child maintenance/child support agency debts','Fine','HMRC tax debt','Universal credit advance']
---- 
+---
+id: asks is there another debt
 question:  Are there any other debts you want to add?
 yesno:  debt.there_is_another
 ---
+id: table for debt list
 table: debt.table
 rows: debt
 columns: 
@@ -505,6 +526,7 @@ edit:
   - amount
 minimum_number: 1
 ---
+id: code to count and sum debt
 code:  |
   debt_list = []
   for item in debt:
@@ -517,6 +539,7 @@ code:  |
   debt_num=len(debt) 
   
 ---
+id: breathing space description
 section: standard_bs
 question:  |
   Breathing space for Debt
@@ -524,6 +547,7 @@ subquestion:  |
   ${ standard_bs }
 continue button field: user_saw_standard_bs
 ---
+id: mental health breathing space description
 section: mentalh_bs
 question:  |
   Mental health Breathing space 
@@ -531,6 +555,7 @@ subquestion:  |
   ${ mentalh_bs }
 continue button field: user_saw_mentalh_bs
 ---
+id: type of income information selection
 question:  |
 
   What types of financial information can you provide? 
@@ -549,12 +574,14 @@ fields:
   - Expenses: expenses.there_are_any
     datatype: yesno
 ---
+id: asks if there is another job
 question: |
   Do you want to add any more jobs or employment income?
 yesno: jobs.there_is_another
 comment: |
   This section is not called because the object block sets jobs.there_is_another as false.
 ---
+id: jobs table
 table: jobs.table
 rows: jobs
 columns:
@@ -568,6 +595,7 @@ edit:
 minimum_number: 1
 
 ---
+id: other income table
 table: other_income.table
 rows: other_income
 columns:
@@ -582,6 +610,7 @@ edit:
   - type 
 minimum_number: 1
 ---
+id: assets table
 table: assets.table
 rows: assets
 columns:
@@ -594,6 +623,7 @@ edit:
   - type 
 minimum_number: 1
 ---
+id: income from assets table
 table: income_assets.table
 rows: income_assets
 columns:
@@ -604,6 +634,7 @@ columns:
       
 minimum_number: 1
 ---
+id: expenses table
 table: expenses.table
 rows: expenses
 columns:
@@ -617,6 +648,7 @@ edit:
   - type 
 minimum_number: 1
 ---
+id: job info collection
 question: |
   Describe your ${ordinal(i)} job.
 section: income
@@ -648,6 +680,7 @@ fields:
 
 
 ---
+id: other income info collection
 question: |
   What income do you have that is not from a job?
 section: income
@@ -665,6 +698,7 @@ fields:
       period_list()
 
 ---
+id: asset info collection
 question: |
   What assets do you have?
 section: income
@@ -719,6 +753,7 @@ reconsider:
   - income_assets    
 
 ---
+id: expense information collection
 question: |
   What expenses do you have?
 section: expenditure
@@ -735,6 +770,7 @@ fields:
     code: |
       period_list()
 ---
+id: expense deviation calculation
 code:  |
   expense_advices =[]
   average_cost_living ={
@@ -758,6 +794,7 @@ code:  |
        elif spend_diff >0 and abs(spend_diff) >40:
          expense_advices.append("You spend £"+str(item.value)+" on "+ item.type+ "  which is £"+str(abs(spend_diff))+" more than average expenditure £" + str(average_cost_living[item.type])+" per month.")  
 ---
+id: income summary
 question: |
   Summary of your Income
 subquestion: |
@@ -801,6 +838,7 @@ subquestion: |
   
 continue button field: income_summary
 ---
+id: income from assets calculation
 code: |
   loopcounter = 0
   for asset in assets:
@@ -813,6 +851,7 @@ code: |
 depends on: 
   - assets
 ---
+id: assets summary
 question: |
   Assets
 subquestion: |
@@ -825,6 +864,7 @@ subquestion: |
  
 continue button field: assets_summary
 ---
+id: expenses summary
 question: |
   Expenses
 subquestion: |
@@ -849,6 +889,7 @@ continue button field: expenses_summary
 reconsider:
   - expense_advices
 ---
+id: total summary
 section: summary
 question:  |
  Here are the summary, you can review and edit 
@@ -882,11 +923,11 @@ review:
   
 continue button field: summary
 ---
-
+id: monthly disposable income calculation
 code:  |
   month_disposble_income = jobs.total(period_to_use=12) + other_income.total(period_to_use=12) + income_assets.total(period_to_use=12)- expenses.total(period_to_use=12)
 ---
-
+id: preferences information collection
 question:  |
   Preferences and choices
 subquestion: |
@@ -928,6 +969,7 @@ fields:
       
   
 ---
+id: preferences translation to statements
 code:  |
   if home_owner_pri<5:
     home_will=" Don't mind to sell house"
@@ -956,6 +998,7 @@ code:  |
   
   
 ---
+id: debt solutions summary
 section:  debt_solutions
 event: debt_solutionss
 question: | 
@@ -991,6 +1034,7 @@ review:
     button:  |
 continue button field: user_saw_debt_solutions
 ---
+id: bankruptcy relevant description
 section: debt_solutionss
 event: Bankruptcy
 question:  |
@@ -999,6 +1043,7 @@ subquestion:  |
   ${ bankruptcy }
 continue button field: user_saw_intro
 ---
+id: debt relief order relevant description
 section:  debt_solutionss
 event: Debt Relief Order
 question:  |
@@ -1007,6 +1052,7 @@ subquestion:  |
   ${ debt_relief_order }
 continue button field: user_saw_intro
 ---
+id: administration order relevant description
 section:  debt_solutionss
 event: Administration Order 
 question:  |
@@ -1015,6 +1061,7 @@ subquestion:  |
   ${ administration_order }
 continue button field: user_saw_intro  
 ---
+id: individual voluntary agreement relevant description
 section:  debt_solutionss
 event: Individual Voluntary Arrangement 
 question:  |
@@ -1023,6 +1070,7 @@ subquestion:  |
   ${ individual_voluntary_agreement }
 continue button field: user_saw_intro    
 ---
+id: debt management plan relevant description
 section: debt_solutionss
 event: Debt Management Plan
 question:  |
@@ -1040,6 +1088,7 @@ terms:
     A secured debt is a debt for which the creditor has a security interest in collateral, meaning the creditor has a right to take property to satisfy the debt.
     
 ---
+id: debt relief order not relevant description
 section:  debt_solutionss
 event: not Debt Relief Order
 question:  |
@@ -1072,6 +1121,7 @@ subquestion:  |
       % endfor
 continue button field: user_saw_intro
 ---
+id: administration order not relevant description
 section:  debt_solutionss
 event: not Administration Order
 question:  |
@@ -1089,6 +1139,7 @@ subquestion:  |
 
 continue button field: user_saw_intro
 ---
+id: debt solutions filtering
 code:  |
   
   Available_solutions=[]
@@ -1191,6 +1242,7 @@ code:  |
  
   Available_solutions = [x for x in formal_solutions if x not in not_available_solution]
 ---
+id: debt relief order relevant debts filtering
 code:  |
   Dro_notcover_list=['TV license','Court Fine/ Penalty charge','Student Loans','Child maintenance/child support agency debts','Claims against you for damage or personal injury','Criminal fines']
   Dro_debt_not=["None"]
@@ -1205,10 +1257,12 @@ code:  |
   
  
 ---
+id: make pdf
 code: |
   uploaded_file.make_ocr_pdf() 
   ocr_finished = True
 ---
+id: document upload
 question: |
   Please Upload supporting files if any. 
 subquestion: |
@@ -1220,6 +1274,7 @@ fields:
 section: Income
 continue button field: documents_uploaded
 ---
+id: signature collection
 question: |
   Sign your name
 subquestion: |
@@ -1229,22 +1284,26 @@ section: Signatures
 signature: your_signature
 continue button field: user_signed
 ---
+id: collect variables before docx assembled
 code: |
   total_annual_income
   total_assets
   total_expenses
   predocx_variables = True
 ---
+id: total income calculation
 code: |
   total_annual_income = currency(jobs.total() + other_income.total() + income_assets.total())
 ---
+id: format total assets as currency
 code: |
   total_assets = currency(assets.total())
 ---
+id: format total expenses as currency
 code: |
   total_expenses = currency(expenses.total())
 ---
-
+id: final document
 event: letter_and_end
 question: |
   Your documents are ready. Please print and file!
