@@ -26,11 +26,6 @@ objects:
   - nonpriority_debts: DAList.using(auto_gather=False)
 
 ---
-
-initial: True
-code: |
-  menu_items = [ action_menu_item('Roadmap', 'road_map') ]
----
 initial: True
 code: |
   if returning_user(minutes=0.5):
