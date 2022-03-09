@@ -1,7 +1,7 @@
 ---
 metadata:
   title:  |
-    Personal Debt Advisor  
+    Personal Debt Triage  
   description:  |
     A system to help individul to understand the full extent of your their debt problem as well privide debt advices.  
   authors:
@@ -24,6 +24,7 @@ objects:
   - debt:  DAList.using(there_are_any=True, object_type=DAObject, complete_attribute='name')
   - priority_debts: DAList.using(auto_gather=False)
   - nonpriority_debts: DAList.using(auto_gather=False)
+
 
 ---
 id: enable welcome back screen
@@ -64,6 +65,7 @@ mandatory: True
 code: |
   user_saw_introduction
   user_saw_preparation 
+  debt_signpost 
   user_provided_personal_info
   if user.dob.plus(years=18) > today():
     under18_kickout
@@ -77,6 +79,7 @@ code: |
   debt_total1
   # user_saw_standard_bs
   # user_saw_mentalh_bs
+  finance_signpost
   jobs.total()
   other_income.total()
   assets.total()
@@ -97,9 +100,8 @@ comment: |
 ---
 sections:
   - introduction: Introduction
-  - preparation: Preparation
-  - personal_info: Personal Info
-  - house_hold: Household Info
+  - preparation: Get Ready
+  - personal_info: Your Information
   - debt_types: Debt Type
     subsections:
     - priority_debts: Priority Debts
@@ -109,7 +111,7 @@ sections:
     subsections:
      - standard_bs: Standard Breathing Space
      - mentalh_bs: Mental Health Breathing Space
-  - finance_info: Finance
+  - finance_info: Your Finances
     subsections: 
     - income: Income
     - expenditure: Expenditure
@@ -145,6 +147,18 @@ content file: debt_management_plan.md
 template: individual_voluntary_agreement
 content file: individual_voluntary_agreement.md
 ---
+template: debt_information_signpost
+content file: debt_information_signpost.md
+---
+template: personal_finance_signpost
+content file: personal_finance_signpost.md
+---
+#template: 
+#content file: 
+#---
+#template: 
+#content file: 
+---
 features:
   navigation: True
   small screen navigation: dropdown
@@ -152,21 +166,38 @@ features:
 ---
 id: introduction block
 question: |
-  Welcome To Personal Debt Help 
+  Create a brief to organize your debts 
 subquestion: |
   ${ introduction }
 field: user_saw_introduction
 buttons: 
   - "I agree": agree
-  
 ---
 id: preparation block
 section: preparation
 question:  |
-  Preparation 
+  Get your information and documents ready  
 subquestion:  |
   ${ preparation }
 continue button field: user_saw_preparation  
+---
+id: debt signpost
+section: personal_info
+decoration: address-card
+question: | 
+  First, we will collect your information 
+subquestion: | 
+  ${ debt_information_signpost }
+continue button field: debt_signpost
+---
+id: debt signpost 
+section: finance_info
+#decoration: 
+question: |  
+  Placeholder personal finance sign post
+subquestion: | 
+  ${ personal_finance_signpost }
+continue button field: finance_signpost 
 ---
 id: priority debt code
 code: |
@@ -200,10 +231,9 @@ minimum_number: 1
 ---
 id: personal information block
 question:  |
-  Please provide your information?
+  Tell us about yourself 
 section: personal_info
 fields:
- 
   - First Name: user.name.first
   - Last Name: user.name.last
   - Address: user.address.address
@@ -256,11 +286,10 @@ fields:
       Different regions within UK have different rules for debts. If you are holding a visa to work and live in Wales, please make sure it is known when you look for perfessonal help, as some of the the debt solutions might affect your visa application. 
   - Is your debt based in the UK?: user.uk_debt
     required: True
-    datatype: yesnoradio
     default: True
+    datatype: yesnoradio
     
-     
-
+   
 continue button field: user_provided_personal_info 
 ---
 event: under18_kickout
@@ -289,8 +318,8 @@ buttons:
 ---
 id: household information
 question:  |
-  Please provide your household information?
-section:  house_hold
+  Tell us about your household
+section:  personal_info
 fields:
   - What is your housing status? : user.house_status
     required: False
@@ -506,14 +535,6 @@ fields:
       
       
 ---
-id: debt type list   
-code:  |
-  debt_type_list = ['Credit Card', 'Bank overdraft', 'Rent arrears','Catalogue spending', 'Mortgage arrears','Council Tax', 'Energy bill arrears','Water arrears','Mobile phone arrears','Home Phone or broadband arrears','Personal loan','TV license','Court Fine/ Penalty charge','Student Loans','Loan from family member or friend','Child maintenance/child support agency debts','Claims against you for damage or personal injury','Fine','Social fund loan','HMRC tax debt','Universal credit advance','other']
---- 
-id: priority debt type list
-code:  |
-  priority_debt_type_list = ['Rent arrears','Mortgage arrears','Council Tax', 'Energy bill arrears','Mobile phone arrears','TV license','Court Fine/ Penalty charge','Child maintenance/child support agency debts','Fine','HMRC tax debt','Universal credit advance']
----
 id: debt summary   
 question: |
   Description of debts entered so far
@@ -526,6 +547,18 @@ buttons:
   - "Add another": True
   - "Continue to next section": False
 
+---
+id: debt type list   
+code:  |
+  debt_type_list = ['Credit Card', 'Bank overdraft', 'Rent arrears','Catalogue spending', 'Mortgage arrears','Council Tax', 'Energy bill arrears','Water arrears','Mobile phone arrears','Home Phone or broadband arrears','Personal loan','TV license','Court Fine/ Penalty charge','Student Loans','Loan from family member or friend','Child maintenance/child support agency debts','Claims against you for damage or personal injury','Fine','Social fund loan','HMRC tax debt','Universal credit advance','other']
+--- 
+id: priority debt type list
+code:  |
+  priority_debt_type_list = ['Rent arrears','Mortgage arrears','Council Tax', 'Energy bill arrears','Mobile phone arrears','TV license','Court Fine/ Penalty charge','Child maintenance/child support agency debts','Fine','HMRC tax debt','Universal credit advance']
+---
+id: asks is there another debt
+question:  Are there any other debts you want to add?
+yesno:  debt.there_is_another
 ---
 id: table for debt list
 table: debt.table
@@ -575,24 +608,37 @@ subquestion:  |
   ${ mentalh_bs }
 continue button field: user_saw_mentalh_bs
 ---
+id: personal finance  signpost 
+section: 
+question: | 
+  Personal finance
+subquestion: | 
+  ${ personal_finance_signpost } 
+---
 id: type of income information selection
 question:  |
-
-  What types of financial information can you provide? 
+  Do you have any of the following? 
 subquestion:   | 
-
-  In this section, you need to enter how much money you take home (after tax) from each income type listed in the table below and wheather it's paid weekly, monthly or annually.  
+  Check all that apply 
+ 
 section: income
 fields:
-
   - Employment income: jobs.there_are_any
-    datatype: yesno
+    datatype: yesnowide
+    help: | 
+      Pay from full-time and part-time work
   - Other income: other_income.there_are_any
-    datatype: yesno
-  - Assets (such as cars, boats, etc.): assets.there_are_any
-    datatype: yesno
+    datatype: yesnowide
+    help: | 
+      Income not from employment can include regular maintenance or child support payments,disability benefits, investment income, contributions from household members, occupational or other pensions
+  - Assets: assets.there_are_any
+    datatype: yesnowide
+    help: | 
+      Assets **include** most items you own like cars, boats, buildings or land, or other items of value. Assets **do not** include household equipment like bedding; items you use for your job or buisness. 
   - Expenses: expenses.there_are_any
-    datatype: yesno
+    datatype: yesnowide
+    help: | 
+      List everything you spend your income on: housing, childcare, fuel, health costs, transport, furniture, hire purchase, fines, laundry, telephone, TV, broadband, toiletries, clothing, food, child support payments, self-employment costs and so on. 
 ---
 id: asks if there is another job
 question: Job Information Summary
@@ -721,7 +767,6 @@ fields:
     datatype: number
     code: |
       period_list()
-
 ---
 question: Other income
 subquestion:
@@ -945,7 +990,7 @@ subquestion:  |
   
   Your current house status is: **${user.house_status}**  
   
-  You have **${currency(debt_total1)}** debts in total, you have **${len(debt)}**  debts
+  You have **${currency(debt_total1, symbol=u'£')}** debts in total, you have **${len(debt)}**  debts
   
   Your debts  **${is_court_debt}**.
  
@@ -955,7 +1000,7 @@ subquestion:  |
   
   Your total expenses is **${ currency(expenses.total(period_to_use=12)) }** per month
   
-  Your monthly disposable income **${currency(month_disposble_income)}**
+  Your monthly disposable income **${currency(month_disposble_income, symbol=u'£')}**
 
   ####### Revisit and edit your data by clicking on the menu at sections accordingly.
   
