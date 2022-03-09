@@ -65,6 +65,12 @@ code: |
   user_saw_introduction
   user_saw_preparation 
   user_provided_personal_info
+  if user.dob.plus(years=18) > today():
+    under18_kickout
+  if not user.uk:
+    nonUKresident_kickout
+  if not user.uk_debt:
+    nonUKdebt_kickout
   user_provided_household_info
   # user_identified_priority_debts
   # user_identified_nonpriority_debts
@@ -243,17 +249,43 @@ fields:
       is: Part time
   
   - Are you a Welsh Resident?: user.uk
-    required: False
+    required: True
     datatype: yesnoradio
+    default: True
     help:  |
       Different regions within UK have different rules for debts. If you are holding a visa to work and live in Wales, please make sure it is known when you look for perfessonal help, as some of the the debt solutions might affect your visa application. 
   - Is your debt based in the UK?: user.uk_debt
-    required: False
+    required: True
     datatype: yesnoradio
+    default: True
     
      
 
 continue button field: user_provided_personal_info 
+---
+event: under18_kickout
+question: Goodbye
+subquestion: |
+	Sorry, this debt triage tool is not intended for people under 18.  If you are under 18, you should contact a debt advisor.  There are special protections for people under 18 years old.
+buttons:
+  - Exit: exit
+  - Restart: restart
+---
+event: nonUKresident_kickout
+question: Goodbye
+subquestion: |
+	Sorry, this debt triage tool is not intended for people who are not residents of the United Kingdom.  Look for advice in your jurisdiction
+buttons:
+  - Exit: exit
+  - Restart: restart
+---
+event: nonUKdebt_kickout
+question: 
+subquestion: |
+	Sorry, this debt triage tool is not intended for people whose debt is not based in the United Kingdom.  Look for advice in your jurisdiction
+buttons:
+  - Exit: exit
+  - Restart: restart
 ---
 id: household information
 question:  |
