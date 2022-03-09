@@ -147,11 +147,11 @@ content file: debt_management_plan.md
 template: individual_voluntary_agreement
 content file: individual_voluntary_agreement.md
 ---
-template: debt_information_signpost
-content file: debt_information_signpost.md
+#template: debt_information_signpost
+#content file: debt_information_signpost.md
 ---
-template: personal_finance_signpost
-content file: personal_finance_signpost.md
+#template: personal_finance_signpost
+#content file: personal_finance_signpost.md
 ---
 #template: 
 #content file: 
@@ -187,7 +187,9 @@ decoration: address-card
 question: | 
   First, we will collect your information 
 subquestion: | 
-  ${ debt_information_signpost }
+
+# ${ debt_information_signpost }
+
 continue button field: debt_signpost
 ---
 id: debt signpost 
@@ -196,7 +198,9 @@ section: finance_info
 question: |  
   Placeholder personal finance sign post
 subquestion: | 
-  ${ personal_finance_signpost }
+
+# ${ personal_finance_signpost }
+
 continue button field: finance_signpost 
 ---
 id: priority debt code
