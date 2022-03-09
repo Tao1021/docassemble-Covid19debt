@@ -1,16 +1,18 @@
+Having debt issues is stressful. We are here to help you organize information about your debts so you can seek professional help.
 
-Having debt issues is stressful. We are here to help. Our goals are:
+This tool will:  
 
- 
-  -- Help users to understand thier debt situation
+* Help you organize your debt information before you look for help
+* Create a document that details your debts to share with your debt advisor 
+* Encourage you to take actions to address your debts
+* Help you to understand your debt situation
+* Share some options that may be relevant to your personal situation 
   
-  -- Encourage users to take actions to address their debts.
+Our service is not an alternative to seeking for professional help. 
+
+We do not store identifying information such as a name, an identification number, or specific location data of an individual.
   
-  -- Provide options and solutions according to your personal siutation. 
-  
-  -- We will not ask or store reference to an identifier such as a name, an identification number, specific location data of an individual. 
-  
-  -- Our service is not an alternative to seeking for professional help. Our goal is to help you prepare necessary information as well as knowledge before you look for help. You will also need professional to set up certain debt solutions. 
 ######Would like to proceed to application page?
-note: You must agree with our terms and conditions to continue. All you  data is **confidential** and wil not be stored or used elsewhere.  
+
+Note: You must agree with our terms and conditions to continue. All your data is **confidential** and will not be stored or used elsewhere.  
 
