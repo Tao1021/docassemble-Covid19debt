@@ -15,7 +15,7 @@ modules:
   - .income
 ---
 objects:
-  - user: Individual
+  - user: Individual.using(complete_attribute='complete')
   - jobs: JobList.using(complete_attribute='is_hourly')
   - other_income: IncomeList.using(complete_attribute='type')
   - assets: ValueList.using(complete_attribute='type')
@@ -24,8 +24,6 @@ objects:
   - debt:  DAList.using(there_are_any=True, object_type=DAObject, complete_attribute='name')
   - priority_debts: DAList.using(auto_gather=False)
   - nonpriority_debts: DAList.using(auto_gather=False)
-
-
 ---
 id: enable welcome back screen
 initial: True
@@ -66,14 +64,24 @@ code: |
   user_saw_introduction
   user_saw_preparation 
   debt_signpost 
-  user_provided_personal_info
+  user.name.first
+  user.name.last
   if user.dob.plus(years=18) > today():
     under18_kickout
+  user_contact_nformation
   if not user.uk:
     nonUKresident_kickout
   if not user.uk_debt:
     nonUKdebt_kickout
-  user_provided_household_info
+  user.work
+  user.uk_debt
+  #user_provided_personal_info
+  if user.house_status == 'Joint tenants': 
+    user.house_status_rentshare
+  if user.house_status == 'Joint Mortgage':
+    user.house_status_mortshare
+  followup_housing
+  current_insolvency
   # user_identified_priority_debts
   # user_identified_nonpriority_debts
   debt_total1
@@ -234,17 +242,12 @@ edit:
 minimum_number: 1
 ---
 id: personal information block
+section: personal_info
 question:  |
   Tell us about yourself 
-section: personal_info
 fields:
   - First Name: user.name.first
   - Last Name: user.name.last
-  - Address: user.address.address
-  - City: user.address.city
-  - Postal Code: user.address.zip
-  - Phone: user.phone
-  - Email: user.email
   - Date of Birth: user.dob
     datatype: date
   - Gender: user.gender
@@ -252,18 +255,26 @@ fields:
       - Male
       - Female
       - Other
-#  - Proceed only if you are over 18 years old: user.birthday
-#    datatype: yesnoradio
-#    required: False
-#    help:  |
-#      If you are under 18 and have debt yourself, please contact a professonal for help. It is most likely that your debt is not valid and you dont have to pay for it. 
-    
-
-##  - What is your condition: user.mentalcondition
-##    show if:
-##      variable: user.ifhealth
-##      is: True   
-  - Are you working at the moment?: user.work
+---
+id: user address
+section: personal_info
+question: | 
+  What is your contact information? 
+fields: 
+  - Email: user.email
+  - Phone Number: user.phone
+  - Street address: user.address.address
+  - Unit: user.address.unit 
+  - City: user.address.city
+  - Postal Code: user.address.zip
+continue button field: user_contact_nformation 
+---
+id: user work status 
+section: personal_info
+question: |
+  Are you employed?
+fields: 
+  - no label: user.work
     required: False
     input type: dropdown
     choices:
@@ -272,6 +283,10 @@ fields:
       - Unemployed 
       - Retired
       - Student
+##  - What is your condition: user.mentalcondition
+##    show if:
+##      variable: user.ifhealth
+##      is: True   
   - What is your occupation? : user.occup1
     required: False
     show if:
@@ -281,39 +296,44 @@ fields:
     show if:
       variable: user.work
       is: Part time
-  
+---
+id: UK questions
+section: personal_info
+question: | 
+  Question question 
+fields: 
   - Are you a Welsh Resident?: user.uk
     required: True
     datatype: yesnoradio
-    default: True
     help:  |
-      Different regions within UK have different rules for debts. If you are holding a visa to work and live in Wales, please make sure it is known when you look for perfessonal help, as some of the the debt solutions might affect your visa application. 
+      Different regions within UK have different rules for debts. If you are holding a visa to work and live in Wales, make sure it is known when you look for perfessonal help, as some of the the debt solutions might affect your visa application. 
   - Is your debt based in the UK?: user.uk_debt
     required: True
-    default: True
     datatype: yesnoradio
-    
-   
-continue button field: user_provided_personal_info 
 ---
 event: under18_kickout
-question: Goodbye
+question: | 
+  Since you are under 18 
 subquestion: |
-	Sorry, this debt triage tool is not intended for people under 18.  If you are under 18, you should contact a debt advisor.  There are special protections for people under 18 years old.
+	Sorry, this debt triage tool is not intended for people under 18.  
+  
+  If you are under 18, you should contact a debt advisor.  There are special protections for people under 18 years old.
 buttons:
   - Exit: exit
   - Restart: restart
 ---
 event: nonUKresident_kickout
-question: Goodbye
+question: | 
+  Since you do not live in the United Kingdom
 subquestion: |
-	Sorry, this debt triage tool is not intended for people who are not residents of the United Kingdom.  Look for advice in your jurisdiction
+	Sorry, this debt triage tool is only intended for people who are residents of the United Kingdom.  Look for advice in your jurisdiction
 buttons:
   - Exit: exit
   - Restart: restart
 ---
 event: nonUKdebt_kickout
-question: 
+question: | 
+  Since your debt is not based in the United Kingdom 
 subquestion: |
 	Sorry, this debt triage tool is not intended for people whose debt is not based in the United Kingdom.  Look for advice in your jurisdiction
 buttons:
@@ -322,38 +342,60 @@ buttons:
 ---
 id: household information
 question:  |
-  Tell us about your household
-section:  personal_info
-fields:
-  - What is your housing status? : user.house_status
+  What is your housing status?
+section: personal_info
+field: user.house_status
+choices: 
+  - Renting: Renting
+  - Renting (social house): Renting (social house)
+  - Mortgaged: Mortgaged
+  - Owns property outright: Owns property outright
+  - Joint tenants: Joint tenants
+  - Joint Mortgage: Joint Mortgage 
+  - Living with family: Living with family
+  - Homeless: Homeless
+  - Other: Other
+---
+id: follow up to joint tenants  
+section: personal_info
+question: | 
+  Who do you share with for renting?
+subquestion: | 
+  Explain the relationship. Specific names are not required. 
+  
+  If you have a joint tenancy, you are liable for the rent both jointly and individually. This means that one or all of you can be held responsible for the whole rent. 
+fields: 
+  - Joint tenancy explaination: user.house_status_rentshare
     required: False
-    input type: dropdown
-    choices: 
-      - Renting
-      - Renting (social house)
-      - Mortgaged
-      - Owns property outright
-      - Joint tenants
-      - Joint Mortgage 
-      - Living with family
-      - other
-  - Who do you share with for renting? : user.house_status_rentshare
+    datatype: area
+    hint: |
+      E.g., Sharing with family, friends 
+---
+id: follow up shared mortgage
+section: personal_information 
+question: | 
+  Who do you share mortgage with?
+subquestion: | 
+  Explain the relationship. Specific names are not required. 
+fields: 
+  - no label: user.house_status_mortshare
+    hint: |
+      E.g., Sharing with partner, family
+---  
+id: more housing questions
+question: | 
+  Tell us more about your household and family 
+fields:    
+  - How many people are in your household in total, including yourself?: user.house_num
     required: False
-    show if:
-      variable: user.house_status
-      is: Joint tenants 
-    help:  |
-      If you have a joint tenancy, you are liable for the rent both jointly and individually. This means that one or all of you can be held responsible for the whole rent
-    hint: |
-      etc., sharing with family, friends 
-  - Who do you share mortgage with?: user.house_status_mortshare
-    show if:
-      variable: user.house_status
-      is: Joint Mortgage 
-    hint: |
-      etc., sharing with partner, family
-    help:  |
-      Specific name is not required, just to clarify the general situation. 
+    datatype: integer
+    
+  - Are the people in your household aware of your debt situation?: user.house_aware
+    required: False
+    datatype: yesnoradio
+    help: |
+      Some of the debt solutions will need you to declare publicly, and will also affect your housing situation. 
+    
   - Marriage Status: user.marriage
     required: False
     input type: dropdown
@@ -366,27 +408,33 @@ fields:
   - Number of dependents : user.childrenNum
     required: False
     datatype: integer
-  - How many people are in your household in total, including yourself?: user.house_num
-    required: False
-    datatype: integer
-  - Are the people in your household aware of your debt situation?: user.house_aware
-    required: False
-    datatype: yesnoradio
-    help: |
-      Some of the debt solutions will need you to declare publicly, and will also affect your housing situation. 
-  - What formal insolvency procedure are you going through currently?: another_debt_solution
-    required: False
-    input type: dropdown
-    choices: 
-      - Debt relief Order 
-      - Bankruptcy 
-      - Individual Voluntary arrangement 
-      - Administration Order 
-      - None 
-    help:  |
-       It is important to know whether you are currently in a formal insolvency procedure as some of the debt solutions may not be available to you.. Please bring this up with your debt specialist when you consult them. 
 
-continue button field: user_provided_household_info    
+
+continue button field: followup_housing 
+---
+id: personal insolvency 
+question: | 
+  Are you going through a formal insolvency procedure right now?
+subquestion: | 
+  Select the insovlency procedure you are going through right now. 
+  
+  It is important to know whether you are currently in a formal insolvency procedure as some of the debt solutions may not be available to you. Bring this up with your debt specialist when you consult them. 
+field: another_debt_solution
+choices: 
+  - Debt Relief Order: Debt Relief Order 
+    help: |
+      Debt relief order info
+  - Bankruptcy: Bankruptcy
+    help: |
+      Bankruptcy info  
+  - Individual Voluntary Arrangement: Individual Voluntary Arrangement
+    help: |
+      Individual Voluntary Arrangement info
+  - Administration Order: Administration Order  
+    help: |
+      Administration Order  
+  - None: None 
+continue button field: current_insolvency    
 
 ---
 id: homeowner code
@@ -405,7 +453,7 @@ question:  |
 subquestion:  |
   Some debts are called priority debts because if you do not pay them you could face serious consequences. Priority debts should always be dealt with BEFORE your non-priority debts. 
  
-  Please Select one or more Priority debts that is closer to your debt issue:
+  Select one or more Priority debts that is closer to your debt issue:
  
 fields:  
   - Rent/Mortgage: placehold_1
