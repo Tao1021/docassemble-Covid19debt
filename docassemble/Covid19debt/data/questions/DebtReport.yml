@@ -25,26 +25,26 @@ objects:
   - priority_debts: DAList.using(auto_gather=False)
   - nonpriority_debts: DAList.using(auto_gather=False)
 ---
-id: enable welcome back screen
-initial: True
-code: |
-  if returning_user(minutes=0.5):
-    welcome_back
+#id: enable welcome back screen
+#initial: True
+#code: |
+#  if returning_user(minutes=0.5):
+#    welcome_back
 ---
-event: welcome_back
-question: |
-  Welcome back!
-subquestion: |
-  You are currently in the
-  **${ nav.get_section(display=True) }**
-  section.
-
-  ${ nav }
-
-  Press "Continue" to pick up
-  where you left off.
-buttons:
-  Continue: continue
+#event: welcome_back
+#question: |
+#  Welcome back!
+#subquestion: |
+#  You are currently in the
+#  **${ nav.get_section(display=True) }**
+#  section.
+#
+#  ${ nav }
+#
+#  Press "Continue" to pick up
+#  where you left off.
+#buttons:
+#  Continue: continue
 ---
 id: set currency
 initial: True
@@ -82,6 +82,7 @@ code: |
     user.house_status_mortshare
   followup_housing
   current_insolvency
+  debt_info_signpost
   # user_identified_priority_debts
   # user_identified_nonpriority_debts
   debt_total1
@@ -123,9 +124,8 @@ sections:
     subsections: 
     - income: Income
     - expenditure: Expenditure
-  - summary: Summary 
-  - debt_solutionss: Debt Solutions
-  - signatures: Signatures
+    - summary: Summary 
+  - debt_solutions_section: Debt Solutions
   - conclusions: Conclusion
 ---
 template: introduction
@@ -173,13 +173,22 @@ features:
   progress bar: True
 ---
 id: introduction block
+decoration: receipt
 question: |
   Create a brief to organize your debts 
 subquestion: |
   ${ introduction }
-field: user_saw_introduction
-buttons: 
-  - "I agree": agree
+fields: 
+ - To continue, you must accept our [terms of use]: acknowledged_information_use
+   datatype: checkboxes
+   none of the above: False    
+   minlength: 1
+   choices:
+     - I accept the terms of use.
+   validation messages:
+     minlength: |
+        You cannot continue unless you agree to the terms of use.        
+continue button field: user_saw_introduction
 ---
 id: preparation block
 section: preparation
@@ -266,13 +275,16 @@ fields:
   - Street address: user.address.address
   - Unit: user.address.unit 
   - City: user.address.city
+  - Country: user.address.country
+    code: |
+      countries_list()
   - Postal Code: user.address.zip
 continue button field: user_contact_nformation 
 ---
 id: user work status 
 section: personal_info
 question: |
-  Are you employed?
+  What is your employment status?
 fields: 
   - no label: user.work
     required: False
@@ -300,7 +312,7 @@ fields:
 id: UK questions
 section: personal_info
 question: | 
-  Question question 
+  Tell us more 
 fields: 
   - Are you a Welsh Resident?: user.uk
     required: True
@@ -378,7 +390,8 @@ question: |
 subquestion: | 
   Explain the relationship. Specific names are not required. 
 fields: 
-  - no label: user.house_status_mortshare
+  - Joint mortgage explaination: user.house_status_mortshare
+    datatype: area
     hint: |
       E.g., Sharing with partner, family
 ---  
@@ -513,6 +526,14 @@ fields:
 section: non_priority
 continue button field: user_identified_nonpriority_debts
 ---
+id: debt information signpost
+section: debt_info
+question: | 
+  Debt information 
+subquestion: | 
+  ${ debt_information_signpost } 
+continue button field: debt_info_signpost 
+---
 id: debt info collection
 question:  |
   Debt Information
@@ -587,7 +608,8 @@ fields:
       
       
 ---
-id: debt summary   
+id: debt summary  
+section: summary
 question: |
   Description of debts entered so far
   
@@ -1139,12 +1161,12 @@ code:  |
   
 ---
 id: debt solutions summary
-section:  debt_solutions
+section: debt_solutions_section
 event: debt_solutionss
 question: | 
    Debt Solutions
 subquestion: |
-  #####You can consider the following solutions:
+  ## You can consider the following solutions:
   
   **Debt Management Plan** [detail](${ url_action("Debt Management Plan") })
   % for item in Available_solutions:
@@ -1156,12 +1178,12 @@ subquestion: |
 
   
   
-  #####The follwoing solutions are not ready for you:
+  ## The following solutions are not ready for you:
   
   
   % for item in not_available_solution:
   
-    **${item["name"]}**   due to  
+    **${item["name"]}** because
     ${item['reason']}
     [detail](${ url_action("not "+item["name"]) }),
   % endfor
@@ -1175,7 +1197,7 @@ review:
 continue button field: user_saw_debt_solutions
 ---
 id: bankruptcy relevant description
-section: debt_solutionss
+section: debt_solutions_section
 event: Bankruptcy
 question:  |
   What is Bankruptcy and if it is for you 
@@ -1184,7 +1206,7 @@ subquestion:  |
 continue button field: user_saw_intro
 ---
 id: debt relief order relevant description
-section:  debt_solutionss
+section:  debt_solutions_section
 event: Debt Relief Order
 question:  |
   What is Debt relief order and is it for you  
@@ -1193,7 +1215,7 @@ subquestion:  |
 continue button field: user_saw_intro
 ---
 id: administration order relevant description
-section:  debt_solutionss
+section:  debt_solutions_section
 event: Administration Order 
 question:  |
   What is an administration order and is it for you?
@@ -1202,7 +1224,7 @@ subquestion:  |
 continue button field: user_saw_intro  
 ---
 id: individual voluntary agreement relevant description
-section:  debt_solutionss
+section:  debt_solutions_section
 event: Individual Voluntary Arrangement 
 question:  |
   What is Individual Voluntary Arrangement(IVA) and is it for you?
@@ -1211,7 +1233,7 @@ subquestion:  |
 continue button field: user_saw_intro    
 ---
 id: debt management plan relevant description
-section: debt_solutionss
+section: debt_solutions_section
 event: Debt Management Plan
 question:  |
   You can apply for Debt Management Plan
@@ -1229,7 +1251,7 @@ terms:
     
 ---
 id: debt relief order not relevant description
-section:  debt_solutionss
+section:  debt_solutions_section
 event: not Debt Relief Order
 question:  |
   You cant  apply for Debt relief Order  
@@ -1262,7 +1284,7 @@ subquestion:  |
 continue button field: user_saw_intro
 ---
 id: administration order not relevant description
-section:  debt_solutionss
+section:  debt_solutions_section
 event: not Administration Order
 question:  |
   You cant apply for Administration Order
@@ -1352,11 +1374,11 @@ code:  |
       not_available_solution.append(item)
       
       
-      item["reason"] = "Your debt amount " +"£"+str(debt_total1) + " exceeded maximum allowance "+ "£"+str(item['amount'] )
+      item["reason"] = "your debt amount " +"£"+str(debt_total1) + " exceeded maximum allowance "+ "£"+str(item['amount'] )
     if debt_total1 < item['min_amount']:
       not_available_solution.append(item)
       
-      item["reason"] = "Your debt amount " +"£"+str(debt_total1) + " do not meet the minimum requirments "+ "£"+str(item['min_amount'] )
+      item["reason"] = "your debt amount " +"£"+str(debt_total1) + " do not meet the minimum requirments "+ "£"+str(item['min_amount'] )
       
     
     elif item["homeowner"]=="No" and (user.house_status =="Mortgaged" or user.house_status =="Owns property outright"):
@@ -1444,13 +1466,13 @@ code: |
   total_expenses = currency(expenses.total())
 ---
 id: final document
+section: conclusion 
 event: letter_and_end
 question: |
   Your documents are ready. Please print and file!
 buttons:
   - Exit: exit
   - Restart: restart
-section: conclusion  
 attachment:
   - name: Personal Debt Advisor
     filename: Example_Doc

@@ -1,1 +1,1 @@
-Placeholder signpost for debt information 
+In this section we will ask about your personal information, your household, and your employment. This information will help a debt advisor gain an understanding of your debt situation. 
