@@ -147,11 +147,11 @@ content file: debt_management_plan.md
 template: individual_voluntary_agreement
 content file: individual_voluntary_agreement.md
 ---
-#template: debt_information_signpost
-#content file: debt_information_signpost.md
+template: debt_information_signpost
+content file: debt_information_signpost.md
 ---
-#template: personal_finance_signpost
-#content file: personal_finance_signpost.md
+template: personal_finance_signpost
+content file: personal_finance_signpost.md
 ---
 #template: 
 #content file: 
@@ -188,7 +188,7 @@ question: |
   First, we will collect your information 
 subquestion: | 
 
-# ${ debt_information_signpost }
+  ${ debt_information_signpost }
 
 continue button field: debt_signpost
 ---
@@ -199,7 +199,7 @@ question: |
   Placeholder personal finance sign post
 subquestion: | 
 
-# ${ personal_finance_signpost }
+  ${ personal_finance_signpost }
 
 continue button field: finance_signpost 
 ---
@@ -559,10 +559,6 @@ code:  |
 id: priority debt type list
 code:  |
   priority_debt_type_list = ['Rent arrears','Mortgage arrears','Council Tax', 'Energy bill arrears','Mobile phone arrears','TV license','Court Fine/ Penalty charge','Child maintenance/child support agency debts','Fine','HMRC tax debt','Universal credit advance']
----
-id: asks is there another debt
-question:  Are there any other debts you want to add?
-yesno:  debt.there_is_another
 ---
 id: table for debt list
 table: debt.table
