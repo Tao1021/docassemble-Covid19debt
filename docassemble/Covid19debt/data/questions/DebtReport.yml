@@ -8,7 +8,6 @@ metadata:
     - name: Adam Wyner, Tao Li
       organization: Swansea University 
   revision_data: 2021-06-13
-
 ---
 modules:
   - docassemble.base.util
@@ -86,8 +85,6 @@ code: |
   # user_identified_priority_debts
   # user_identified_nonpriority_debts
   debt_total1
-  # user_saw_standard_bs
-  # user_saw_mentalh_bs
   finance_signpost
   jobs.total()
   other_income.total()
@@ -96,6 +93,8 @@ code: |
   expenses.total()
   # documents_uploaded
   summary
+  user_saw_standard_bs
+  user_saw_mentalh_bs
   user_saw_debt_solutions
   # user_signed
   predocx_variables
@@ -116,17 +115,18 @@ sections:
     - priority_debts: Priority Debts
     - non_priority: Non-priority Debts 
   - debt_info: Debt Information
-  - breathing_space: Breathing Space
-    subsections:
-     - standard_bs: Standard Breathing Space
-     - mentalh_bs: Mental Health Breathing Space
+
   - finance_info: Your Finances
     subsections: 
     - income: Income
     - expenditure: Expenditure
     - summary: Summary 
+  - breathing_space: Breathing Space
+    subsections:
+     - standard_bs: Standard Breathing Space
+     - mentalh_bs: Mental Health Breathing Space
   - debt_solutions_section: Debt Solutions
-  - conclusions: Conclusion
+  - conclusions: Print your document
 ---
 template: introduction
 content file: introduction.md
@@ -160,6 +160,9 @@ content file: debt_information_signpost.md
 ---
 template: personal_finance_signpost
 content file: personal_finance_signpost.md
+--- 
+template: personal_information_signpost
+content file: personal_information_signpost.md
 ---
 #template: 
 #content file: 
@@ -173,6 +176,7 @@ features:
   progress bar: True
 ---
 id: introduction block
+section: introduction
 decoration: receipt
 question: |
   Create a brief to organize your debts 
@@ -198,14 +202,14 @@ subquestion:  |
   ${ preparation }
 continue button field: user_saw_preparation  
 ---
-id: debt signpost
+id: personal info signpost
 section: personal_info
 decoration: address-card
 question: | 
-  First, we will collect your information 
+  Tell us about yourself 
 subquestion: | 
 
-  ${ debt_information_signpost }
+  ${ personal_information_signpost }
 
 continue button field: debt_signpost
 ---
@@ -213,7 +217,7 @@ id: debt signpost
 section: finance_info
 #decoration: 
 question: |  
-  Placeholder personal finance sign post
+  Now, we will discuss your personal finances
 subquestion: | 
 
   ${ personal_finance_signpost }
@@ -253,13 +257,14 @@ minimum_number: 1
 id: personal information block
 section: personal_info
 question:  |
-  Tell us about yourself 
+  What is your name? 
 fields:
   - First Name: user.name.first
   - Last Name: user.name.last
   - Date of Birth: user.dob
     datatype: date
   - Gender: user.gender
+    required: False
     choices:
       - Male
       - Female
@@ -270,25 +275,27 @@ section: personal_info
 question: | 
   What is your contact information? 
 fields: 
-  - Email: user.email
-  - Phone Number: user.phone
+  - Email address: user.email
+  - Phone number: user.phone
   - Street address: user.address.address
   - Unit: user.address.unit 
+    required: False
   - City: user.address.city
+  - Postal Code: user.address.zip
   - Country: user.address.country
     code: |
       countries_list()
-  - Postal Code: user.address.zip
+
 continue button field: user_contact_nformation 
 ---
 id: user work status 
 section: personal_info
 question: |
-  What is your employment status?
+  What is your employment situation?
 fields: 
-  - no label: user.work
+  - Employment status: user.work
     required: False
-    input type: dropdown
+    datatype: radio
     choices:
       - Full time 
       - Part time 
@@ -354,19 +361,37 @@ buttons:
 ---
 id: household information
 question:  |
-  What is your housing status?
+  What is your housing situation?
 section: personal_info
-field: user.house_status
-choices: 
-  - Renting: Renting
-  - Renting (social house): Renting (social house)
-  - Mortgaged: Mortgaged
-  - Owns property outright: Owns property outright
-  - Joint tenants: Joint tenants
-  - Joint Mortgage: Joint Mortgage 
-  - Living with family: Living with family
-  - Homeless: Homeless
-  - Other: Other
+fields: 
+  - Housing stauts: user.house_status
+    datatype: radio
+    choices: 
+      - Renting: Renting
+        help: | 
+          Information 
+      - Renting (social house): Renting, Social house
+        help: | 
+          Information 
+      - Mortgaged: Mortgaged
+        help: | 
+          Information 
+      - Owns property outright: Owns property outright
+        help: | 
+          Information 
+      - Joint tenants: Joint tenants
+        help: | 
+          Information 
+      - Joint Mortgage: Joint Mortgage 
+        help: | 
+          Information 
+      - Living with family: Living with family
+        help: | 
+          Information 
+      - Homeless: Homeless
+        help: | 
+          Information 
+      - Other: Other
 ---
 id: follow up to joint tenants  
 section: personal_info
@@ -399,22 +424,21 @@ id: more housing questions
 question: | 
   Tell us more about your household and family 
 fields:    
-  - How many people are in your household in total, including yourself?: user.house_num
+  - How many people are in your household, including yourself?: user.house_num
     required: False
     datatype: integer
-    
   - Are the people in your household aware of your debt situation?: user.house_aware
     required: False
     datatype: yesnoradio
     help: |
-      Some of the debt solutions will need you to declare publicly, and will also affect your housing situation. 
+      Some of the debt solutions will need you to declare publicly and might affect your housing situation. 
     
   - Marriage Status: user.marriage
     required: False
     input type: dropdown
     choices:
-      - Married
       - Single 
+      - Married
       - Divorced 
       - Separated 
       - Widowed
@@ -529,7 +553,7 @@ continue button field: user_identified_nonpriority_debts
 id: debt information signpost
 section: debt_info
 question: | 
-  Debt information 
+  Next, we will ask questions about your debt 
 subquestion: | 
   ${ debt_information_signpost } 
 continue button field: debt_info_signpost 
