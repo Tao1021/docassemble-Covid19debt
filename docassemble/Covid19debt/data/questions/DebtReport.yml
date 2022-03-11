@@ -14,7 +14,7 @@ modules:
   - .income
 ---
 objects:
-  - user: Individual.using(complete_attribute='complete')
+  - user: Individual
   - jobs: JobList.using(complete_attribute='is_hourly')
   - other_income: IncomeList.using(complete_attribute='type')
   - assets: ValueList.using(complete_attribute='type')
