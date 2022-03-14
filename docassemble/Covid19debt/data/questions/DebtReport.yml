@@ -492,6 +492,9 @@ code: |
   temp_other_name_exists = False
 ---
 code: |
+  temp_sub_type_exists = False
+---
+code: |
   debt_parent_list[i] = temp_debt_parent
   undefine('temp_debt_parent')
 ---
@@ -515,7 +518,11 @@ code: |
     if debt_parent_list.complete_elements().last() == "Start Again":
       while len(debt_parent_list.complete_elements()) > 1:
         debt_parent_list.pop()
-  	  debt_parent_list.there_is_another = True 
+  	  debt_parent_list.there_is_another = True
+  	else:
+  	  temp_sub_type_exists = True
+  	  temp_sub_type = debt_parent_list.pop()
+  		debt_parent_list.there_is_another = False
   elif len(debt_dict[debt_parent_list.complete_elements().last()]['children']) == 0:
     debt_parent_list.there_is_another = False 
   else:
@@ -548,6 +555,8 @@ generic object: Debt
 code: |
   x.type
   x.name
+  if temp_other_name_exists:
+    x.other_name = temp_other_name
   x.value
   x.urgency
   x.notes
@@ -555,7 +564,11 @@ code: |
 ---
 generic object: Debt
 code: |
-  x.name = x.type
+  if temp_sub_type_exists:
+    x.name = temp_sub_type
+  else:
+    x.name = x.type
+  undefine('temp_sub_type_exists','temp_sub_type')
 ---
 generic object: LoansDebt
 code: |
