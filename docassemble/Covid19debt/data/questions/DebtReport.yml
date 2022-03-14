@@ -423,26 +423,55 @@ fields:
     currency symbol: £
 ---
 code: |
-	if debt_type_input_method == "most common":
-		debt.new_object_type = debt_dict[selected_most_common]['class_name']
-		temp_type = selected_most_common
-		debt_parent_list.there_is_another = False
-		undefine('debt_type_input_method')
-	if debt_type_input_method == "from all":
-		debt.new_object_type = debt_dict[selected_from_all]['class_name']
-		temp_type = selected_from_all
-		debt_parent_list.there_is_another = False
-		undefine('debt_type_input_method')
-	if debt_type_input_method == "navigate categories":
-		debt.new_object_type = debt_dict[debt_parent_list.last()]['class_name']
-		temp_type = debt_parent_list.last()
-		undefine('debt_type_input_method')
+	debt.new_object_type = debt_dict[debt_parent_list.last()]['class_name']
+	temp_type = debt_parent_list.last()
 ---
-question: Type of Debt Selection
+code: |
+	if debt_type_input_method == "most common":
+	  if len(debt_parent_list.complete_elements()) > 1:
+		  debt_parent_list.there_is_another = False
+		else:
+		  debt_parent_list.there_is_another = True
+	if debt_type_input_method == "from all":
+	  if len(debt_parent_list.complete_elements()) > 1:
+			if not debt_parent_list.complete_elements().last() in debt_dict.keys():
+			  temp_other_name_exists = True
+			  temp_other_name = debt_parent_list.pop()
+			debt_parent_list.there_is_another = False
+		else:
+		  debt_parent_list.there_is_another = True
+	if debt_type_input_method == "navigate categories":
+		if not debt_parent_list.complete_elements().last() in debt_dict.keys():
+			if debt_parent_list.complete_elements().last() == "None":
+		    debt_parent_list.pop()
+			  debt_parent_list.there_is_another = False 
+		  elif debt_parent_list.complete_elements().last() == "Other":
+		    temp_other_name_exists = True
+			  temp_other_name = debt_parent_list.pop()
+			  debt_parent_list.there_is_another = False 
+		  elif debt_parent_list.complete_elements().last() == "Back to Previous":
+		    debt_parent_list.pop()
+		    debt_parent_list.pop()
+			  debt_parent_list.there_is_another = True 
+		  elif debt_parent_list.complete_elements().last() == "Start Again":
+		    while len(debt_parent_list.complete_elements()) > 1:
+		      debt_parent_list.pop()
+			  debt_parent_list.there_is_another = True
+			else:
+			  temp_sub_type_exists = True
+			  temp_sub_type = debt_parent_list.pop()
+				debt_parent_list.there_is_another = False
+		elif len(debt_dict[debt_parent_list.complete_elements().last()]['children']) == 0:
+		  debt_parent_list.there_is_another = False 
+		else:
+		  debt_parent_list.there_is_another = True
+---
+code:
+  
+  debt_parent_list_popped = True
+---
+question: Method to select type of debt
 subquestion: |
-  % if len(debt.complete_elements()) > 0:
-  ${ debt.table }
-  % endif
 fields:
   - How do you want to find the debt type?: debt_type_input_method
     datatype: radio
@@ -451,29 +480,36 @@ fields:
       - Pick from most common: most common
       - Pick from all: from all
     default: navigate categories
-  - Pick the type of debt from this drop-down list of most common debt types: selected_most_common
+---
+question: Type of Debt Selection
+subquestion: |
+#  % if len(debt.complete_elements()) > 0:
+#  ${ debt.complete_elements().table }
+#  % endif
+fields:
+  - Pick the type of debt from this drop-down list of most common debt types: debt_parent_list[i]
     datatype: dropdown
     choices:
       - Credit card: Credit Card
       - Behind on rent: Rent arrears
-      - Parking tickets: unpaid parking tickets -… Parking Charge Notices
+      - Parking tickets: unpaid parking tickets - these are called Penalty Charge Notices or Parking Charge Notices
     show if:
-      variable: debt_type_input_method
-      is: most common
-  - Pick the type of debt from all debt types: selected_from_all
+      code: |
+      	debt_type_input_method == "most common"
+  - Pick the type of debt from all debt types: debt_parent_list[i]
     datatype: combobox
     code: |
       debt_dict.keys()
     show if:
-      variable: debt_type_input_method
-      is: from all
-  - Pick a subset of ${ debt_parent_list.complete_elements().last() }: temp_debt_parent
+      code: |
+      	debt_type_input_method == "from all"
+  - Pick a subset of ${ debt_parent_list.complete_elements().last() }: debt_parent_list[i]
     datatype: radio
     code: |
   		debt_dict[debt_parent_list.complete_elements().last()]['children'] + other_list
     show if:
-      variable: debt_type_input_method
-      is: navigate categories
+      code: |
+      	debt_type_input_method == "navigate categories"
 reconsider: other_list
 ---
 code: |
@@ -495,38 +531,8 @@ code: |
   temp_sub_type_exists = False
 ---
 code: |
-  debt_parent_list[i] = temp_debt_parent
-  undefine('temp_debt_parent')
----
-code: |
   debt[i].type = temp_type
   undefine('temp_type')
----
-code: |
-  if not debt_parent_list.complete_elements().last() in debt_dict.keys():
-  	if debt_parent_list.complete_elements().last() == "None":
-      debt_parent_list.pop()
-  	  debt_parent_list.there_is_another = False 
-    if debt_parent_list.complete_elements().last() == "Other":
-      temp_other_name_exists = True
-  	  temp_other_name = debt_parent_list.pop()
-  	  debt_parent_list.there_is_another = False 
-    if debt_parent_list.complete_elements().last() == "Back to Previous":
-      debt_parent_list.pop()
-      debt_parent_list.pop()
-  	  debt_parent_list.there_is_another = True 
-    if debt_parent_list.complete_elements().last() == "Start Again":
-      while len(debt_parent_list.complete_elements()) > 1:
-        debt_parent_list.pop()
-  	  debt_parent_list.there_is_another = True
-  	else:
-  	  temp_sub_type_exists = True
-  	  temp_sub_type = debt_parent_list.pop()
-  		debt_parent_list.there_is_another = False
-  elif len(debt_dict[debt_parent_list.complete_elements().last()]['children']) == 0:
-    debt_parent_list.there_is_another = False 
-  else:
-    debt_parent_list.there_is_another = True
 ---
 question: More debt information
 fields:
@@ -601,11 +607,18 @@ question: |
 subquestion: |
   ${ debt.table }
   
-field: debt.there_is_another
+field: debt.there_is_anotherstep
 buttons:
   - "Add another": True
   - "Continue to next section": False
-
+---
+code: |
+  if debt.there_is_anotherstep:
+    undefine('debt.there_is_anotherstep','debt_parent_list','debt_type_input_method')
+    debt.there_is_another = True
+  else:
+    undefine('debt.there_is_anotherstep')
+    debt.there_is_another = False
 ---
 id: debt type list   
 code:  |
