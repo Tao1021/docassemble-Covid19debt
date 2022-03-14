@@ -487,6 +487,15 @@ code:  |
     if item.urgency =="Court Action":
       is_court_debt ="Have a Court Action"
 ---
+id: debt information signpost
+section: debt_info
+decoration: wallet
+question: | 
+  Next, we will ask questions about your debt 
+subquestion: | 
+  ${ debt_information_signpost } 
+continue button field: debt_info_signpost 
+---
 id: debt info collection
 question:  |
   Debt Information
