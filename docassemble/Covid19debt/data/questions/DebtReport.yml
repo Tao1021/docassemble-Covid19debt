@@ -21,9 +21,10 @@ objects:
   - assets: ValueList.using(complete_attribute='type')
   - income_assets: IncomeList.using(auto_gather=False)
   - expenses: JobList.using(complete_attribute='type')
-  - debt:  DAList.using(there_are_any=True, object_type=DAObject, complete_attribute='name')
+  - debt: ValueListNoObject.using(there_are_any=True, ask_object_type=True, complete_attribute='complete')
   - priority_debts: DAList.using(auto_gather=False)
   - nonpriority_debts: DAList.using(auto_gather=False)
+  - debt_parent_list: DAList.using(there_are_any=True)
 
 
 ---
@@ -76,7 +77,8 @@ code: |
   user_provided_household_info
   # user_identified_priority_debts
   # user_identified_nonpriority_debts
-  debt_total1
+  debt_parent_list[0]
+  debt.total()
   # user_saw_standard_bs
   # user_saw_mentalh_bs
   finance_signpost
@@ -158,6 +160,9 @@ content file: personal_finance_signpost.md
 #---
 #template: 
 #content file: 
+---
+code: |
+  debt_total = debt.total()
 ---
 features:
   navigation: True
@@ -399,145 +404,182 @@ code:  |
     if item.urgency =="Court Action":
       is_court_debt ="Have a Court Action"
 ---
-id: priority debt identification
-question:  |
-  Priority Debts
-subquestion:  |
-  Some debts are called priority debts because if you do not pay them you could face serious consequences. Priority debts should always be dealt with BEFORE your non-priority debts. 
- 
-  Please Select one or more Priority debts that is closer to your debt issue:
- 
-fields:  
-  - Rent/Mortgage: placehold_1
-    datatype: noyes
-    help: might lose your home through mortgage or rent arrears 
-  - Gas and electricity debts: placehold_2
-    datatype: noyes
-    help: they might cut off your gas or electricity if you don’t pay
-  - Council Tax: placehold_3
-    datatype: noyes
-    help: This is a priority debt because your local council might take you to the magistrate’s court if you don’t pay.If you have the money but choose not to pay when the magistrate’s court tells you to, you could go to prison. You won’t go to prison if you can show you can’t pay
-  - certain payments ordered by the courts: placeholder4
-    datatype: noyes
-    help: you could be sent to prison if you have the money but choose not to pay. You won’t go to prison if you can show you can’t pay
-  - Unpaid child maintenance: placeholder5
-    datatype: noyes
-    help: Child Maintenance Service can take the money from your wages or bank accounts if you don’t pay
-  - Phone and internet Bills: placeholder6
-    datatype: noyes
-    help: These might be priority debts because your supplier can cut off your phone or internet if you don’t pay.
-  - TV licence payments: placeholder7
-    datatype: noyes
-    help: This is a priority debt because you could be fined by the magistrate’s court if you watch TV without a licence. If you have the money but choose not to pay a court fine, you could be sent to prison. You won’t go to prison if you can show you can’t pay.
-  - Payments for goods bought on hire purchase or conditional sale: placeholder8
-    datatype: noyes
-    help: This might be a priority debt because the creditor could take back the goods you bought. If you keep the goods in your home or you’ve paid back more than a third of the cost, the creditor has to go to court to do this.
-  - Unpaid income tax, National Insurance or VAT: placeholder9
-    datatype: noyes
-    help: These are priority debts because if you don’t pay, HM Revenue and Customs (HMRC) can take the money from your wages, can use bailiffs to take your property
-  - Overpaid tax credits: placeholder10
-    datatype: noyes
-    help: This is a priority debt because if you don’t pay, HMRC can, take the money from your wages, take the money from your benefits or tax credits and use bailiffs to take your property
-section: priority_debts
-continue button field: user_identified_priority_debts
----
-id: non priority debt identification
-question:  |
-  None Priority Debts
-subquestion:  |
-  Once you’ve got your priority debts under control, you should look at all your other debts. They’re ‘non-priority debts’ because the problems they cause are less serious.
-  
-  Your non-priority debts might include:
-fields: 
-  - Select one or more: no_pd
-    datatype: checkboxes
-    code:  |
-      [
-        {'credit card or store card debts':'Credit card or store card debts'},
-        {'catalogue debts':'Catalogue debts'},
-        {'unsecured loans including payday loans':'Unsecured loans including payday loans'},
-        {'unpaid water bills - your supplier can’t cut off your water supply':'unpaid water bills'},
-        {'overpayments of benefits - apart from tax credits':'overpayments of benefits - apart from tax credits'},
-        {'unpaid parking tickets - these are called Penalty Charge Notices or Parking Charge Notices':'Unpaid parking tickets - these are called Penalty Charge Notices or Parking Charge Notices'},
-        {'money you own to friends or family': 'Money you owe to family and friends'}
-      ]
-    
-section: non_priority
-continue button field: user_identified_nonpriority_debts
----
 id: debt info collection
 question:  |
   Debt Information
 subquestion:  |
-  Please provide information about your ${ ordinal(i) } debt.:
+  Please provide information about the debt you want to add.
 section: debt_info
 fields: 
-  - Debt type: debt[i].name
+  - Debt type: temp_debt_name
     required: False
     datatype: dropdown
     code:  |
       debt_type_list
-  - Amount: debt[i].amount
+  - Amount: temp_debt_amount
     required: False
     datatype: currency 
     min: 0
     currency symbol: £
-  - Please Specify: debt[i].other_name
+---
+code: |
+	if debt_type_input_method == "most common":
+		debt.new_object_type = debt_dict[selected_most_common]['class_name']
+		temp_type = selected_most_common
+		debt_parent_list.there_is_another = False
+		undefine('debt_type_input_method')
+	if debt_type_input_method == "from all":
+		debt.new_object_type = debt_dict[selected_from_all]['class_name']
+		temp_type = selected_from_all
+		debt_parent_list.there_is_another = False
+		undefine('debt_type_input_method')
+	if debt_type_input_method == "navigate categories":
+		debt.new_object_type = debt_dict[debt_parent_list.last()]['class_name']
+		temp_type = debt_parent_list.last()
+		undefine('debt_type_input_method')
+---
+question: Type of Debt Selection
+subquestion: |
+  % if len(debt.complete_elements()) > 0:
+  ${ debt.table }
+  % endif
+fields:
+  - How do you want to find the debt type?: debt_type_input_method
+    datatype: radio
+    choices:
+      - Navigate categories: navigate categories
+      - Pick from most common: most common
+      - Pick from all: from all
+    default: navigate categories
+  - Pick the type of debt from this drop-down list of most common debt types: selected_most_common
+    datatype: dropdown
+    choices:
+      - Credit card: Credit Card
+      - Behind on rent: Rent arrears
+      - Parking tickets: unpaid parking tickets -… Parking Charge Notices
     show if:
-      variable: debt[i].name
-      is: other
-  - Creditor for the debt: debt[i].creditor 
+      variable: debt_type_input_method
+      is: most common
+  - Pick the type of debt from all debt types: selected_from_all
+    datatype: combobox
+    code: |
+      debt_dict.keys()
+    show if:
+      variable: debt_type_input_method
+      is: from all
+  - Pick a subset of ${ debt_parent_list.complete_elements().last() }: temp_debt_parent
+    datatype: radio
+    code: |
+  		debt_dict[debt_parent_list.complete_elements().last()]['children'] + other_list
+    show if:
+      variable: debt_type_input_method
+      is: navigate categories
+reconsider: other_list
+---
+code: |
+  other_list = ["None","Other"]
+  if len(debt_parent_list.complete_elements()) > 1:
+    other_list.append("Back to Previous")
+  if len(debt_parent_list.complete_elements()) > 2:
+    other_list.append("Start Again")
+depends on:
+  debt_parent_list
+---
+code: |
+  debt_parent_list[0] = "Debt"
+---
+code: |
+  temp_other_name_exists = False
+---
+code: |
+  debt_parent_list[i] = temp_debt_parent
+  undefine('temp_debt_parent')
+---
+code: |
+  debt[i].type = temp_type
+  undefine('temp_type')
+---
+code: |
+  if not debt_parent_list.complete_elements().last() in debt_dict.keys():
+  	if debt_parent_list.complete_elements().last() == "None":
+      debt_parent_list.pop()
+  	  debt_parent_list.there_is_another = False 
+    if debt_parent_list.complete_elements().last() == "Other":
+      temp_other_name_exists = True
+  	  temp_other_name = debt_parent_list.pop()
+  	  debt_parent_list.there_is_another = False 
+    if debt_parent_list.complete_elements().last() == "Back to Previous":
+      debt_parent_list.pop()
+      debt_parent_list.pop()
+  	  debt_parent_list.there_is_another = True 
+    if debt_parent_list.complete_elements().last() == "Start Again":
+      while len(debt_parent_list.complete_elements()) > 1:
+        debt_parent_list.pop()
+  	  debt_parent_list.there_is_another = True 
+  elif len(debt_dict[debt_parent_list.complete_elements().last()]['children']) == 0:
+    debt_parent_list.there_is_another = False 
+  else:
+    debt_parent_list.there_is_another = True
+---
+question: More debt information
+fields:
+	- Pick a subset of ${ debt_parent_list.complete_elements().last() }: temp_debt_parent
+    datatype: radio
+    code: |
+  		debt_dict[debt_parent_list.complete_elements().last()]['children'] + other_list
+reconsider: other_list
+---
+generic object: Debt
+question: Amount of debt
+fields:
+  - Amount: x.value
     required: False
-    help:  |
-      People or organisation you own debt to
-  - Relevant account or reference number: debt[i].reference
-    required: False
-    help:  |
-      You may have an account number if you owe money to an organization like a bank.
-  - Date of first missed payment : debt[i].first_miss_date
+    datatype: currency 
+    min: 0
+    currency symbol: £
+---
+if: |
+  defined('temp_debt_amount')
+code: |
+  debt[i].value = temp_debt_amount
+  undefine('temp_debt_amount')
+---
+generic object: Debt
+code: |
+  x.type
+  x.name
+  x.value
+  x.urgency
+  x.notes
+  x.complete = True
+---
+generic object: Debt
+code: |
+  x.name = x.type
+---
+generic object: LoansDebt
+code: |
+  x.name = x.creditor + x.type
+---
+generic object: Debt
+question: First Missed Payment
+fields:
+  - When did you first miss payment?: x.first_miss_date
     datatype: date
-    required: False
-  - Reason to dispute this debt: debt[i].libility
-    input type: dropdown
-    choices: 
-      - This debt is over 6 years
-      - Have payments been made wowards the debt within past 6 years
-      - There was pressure applied to the individual to sign/borrow
-      - under the age of 18 years when signed/borrowed
-      - The debt/extent of the debt was not agreed/committed to by contract 
-      - The debt shared with other person
-      - None
-    help:  |
-      You may not have to pay a debt if one of these is true for you. Please bring this up when you consult with a professonal debt advisor.
-  - What action has been taken by the creditor?: debt[i].urgency
-    required: False
-    input type: dropdown
-    choices: 
-      - Will be evcited from home 
-      - Court Action
-      - Cut off electricity/gas
-      - No Action
-  - What type of court action?: debt[i].urgency_court
-    required: False
-    input type: dropdown
-    choices:
-      - Liability Order
-      - Enforcement 
-    show if:
-      variable: debt[i].urgency
-      is: Court Action
-  - What type of enforcement?: debt[i].urgency_court_enforce
-    required: False
-    input type: dropdown
-    choices:
-      - Bailiff
-      - Attachment of earnings
-      - Charging order 
-    show if: 
-      variable: debt[i].urgency_court
-      is: Enforcement
-      
-      
+---
+generic object: Debt
+code: |
+  x.notes = "First missed payment date: " + format_date(x.first_miss_date)
+---
+generic object: Debt
+question: Urgency
+fields:
+#  - Is this debt urgent?: x.is_urgent
+#    datatype: yesnowide
+  - State reason: x.urgency
+#    show if:
+#      variable: x.is_urgent
+#      is: True
 ---
 id: debt summary   
 question: |
@@ -554,7 +596,13 @@ buttons:
 ---
 id: debt type list   
 code:  |
-  debt_type_list = ['Credit Card', 'Bank overdraft', 'Rent arrears','Catalogue spending', 'Mortgage arrears','Council Tax', 'Energy bill arrears','Water arrears','Mobile phone arrears','Home Phone or broadband arrears','Personal loan','TV license','Court Fine/ Penalty charge','Student Loans','Loan from family member or friend','Child maintenance/child support agency debts','Claims against you for damage or personal injury','Fine','Social fund loan','HMRC tax debt','Universal credit advance','other']
+  debt_type_list = [
+    {"ConsumerDebt":"Debt from purchases, rent or services"},
+    {"LiabilityDebt":"Money you owe to others because of court order"},
+    {"LoansDebt":"Loans, including credit cards"},
+    {"PenaltiesDebt":"Fines and Penalties"},
+    {"TaxDebt":"Taxes"}
+    ]
 --- 
 id: priority debt type list
 code:  |
@@ -567,30 +615,22 @@ columns:
   - Debt Type:  |
       row_item.name
   - Debt Amount:  |
-      currency(row_item.amount)
-  - Debt Creditor:  |
-      row_item.creditor
-  - Debt Urgency:  |
-      row_item.urgency
-  - Reason to Dispute Debt:  |
-      row_item.libility
+      currency(row_item.value)
+  - Notes: |
+      row_item.notes
+     
 edit:
-  - amount
+  - value
 minimum_number: 1
 ---
-id: code to count and sum debt
-code:  |
-  debt_list = []
-  for item in debt:
-    debt_list.append(item.amount)
-  debt_total= sum(debt_list)
-  debt_total1=0
- 
-  for i in range(0,len(debt)):
-    debt_total1= debt_total1+debt[i].amount
-  debt_num=len(debt) 
-depends on:
-  debt
+generic object: ConsumerDebt
+code: |
+   x.notes = "Creditor:" + x.creditor
+---
+generic object: Debt
+question: Creditor
+fields:
+ - Creditor: x.creditor
 ---
 id: breathing space description
 section: standard_bs
@@ -990,7 +1030,7 @@ subquestion:  |
   
   Your current house status is: **${user.house_status}**  
   
-  You have **${currency(debt_total1, symbol=u'£')}** debts in total, you have **${len(debt)}**  debts
+  You have **${currency(debt.total())}** debts in total, you have **${len(debt)}**  debts
   
   Your debts  **${is_court_debt}**.
  
@@ -1006,7 +1046,6 @@ subquestion:  |
   
 review:
   - Update:
-     - debt_total
      - month_disposble_income
      - is_court_debt
      - is_homeowner
@@ -1119,7 +1158,6 @@ subquestion: |
   % endfor
 review:
   - Re-evaluate:
-     - debt_total
      - month_disposble_income
      - is_court_debt
      - is_homeowner
@@ -1191,7 +1229,7 @@ subquestion:  |
    |Requirment | Your situation|
    |-----------|----------|
    |less than £75 monthly disposible income | £${month_disposble_income}
-   | max £30,000 debt       |£${debt_total}       |
+   | max £30,000 debt       |£${debt.total()}       |
    | Not a homeowner       |${is_homeowner}      |
    | Assets no more than £2000| £${assets.total()}|
    | it's been at least 6 years since your last DRO | not know |
@@ -1224,7 +1262,7 @@ subquestion:  |
    |Requirement | Your situation|
    |-----------|----------|
    |at least 2 debts | ${len(debt)} debt     |
-   | max £5,000 debt       |£${debt_total}       |
+   | max £5,000 debt       |£${debt.total()}       |
    | one of your debts is a county court or high court judgment       |${is_court_debt}      |
    |you have a regular income with some spare income each month| £${month_disposble_income } disposable income|
    | you don't want to have to deal with your creditors directly| ${change_creditor} |
@@ -1300,15 +1338,15 @@ code:  |
   "reason":"none"}]
   
   for item in formal_solutions:
-    if item['amount']< debt_total1:
+    if item['amount']< debt.total():
       not_available_solution.append(item)
       
       
-      item["reason"] = "Your debt amount " +"£"+str(debt_total1) + " exceeded maximum allowance "+ "£"+str(item['amount'] )
-    if debt_total1 < item['min_amount']:
+      item["reason"] = "Your debt amount " + currency(debt.total()) + " exceeded maximum allowance "+ currency(item['amount'] )
+    if debt.total() < item['min_amount']:
       not_available_solution.append(item)
       
-      item["reason"] = "Your debt amount " +"£"+str(debt_total1) + " do not meet the minimum requirments "+ "£"+str(item['min_amount'] )
+      item["reason"] = "Your debt amount " + currency(debt.total()) + " do not meet the minimum requirments "+ currency(item['min_amount'] )
       
     
     elif item["homeowner"]=="No" and (user.house_status =="Mortgaged" or user.house_status =="Owns property outright"):
@@ -1319,15 +1357,15 @@ code:  |
     elif month_disposble_income >= item['income']:
       not_available_solution.append(item)
       
-      item["reason"]="Your net monthly income " +"£"+str(month_disposble_income) + " exceeded maximum allowance "+ "£"+str(item['income'] )
+      item["reason"]="Your net monthly income " + currency(month_disposble_income) + " exceeded maximum allowance "+ currency(item['income'] )
    
     elif len(debt) <=item["number"]:
       not_available_solution.append(item)
-      item["reason"]= "you need to have more than 1 debts, you currently have: "+ str(debt_num)+" debts"
+      item["reason"]= "you need to have more than 1 debts, you currently have: "+ str(len(debt))+" debts"
     
     elif item['assets']<= total_assets:
       not_available_solution.append(item)
-      item["reason"]= "You currently have assets worth £"+str(total_assets)+" which is more than what is required:  £"+ str(item['assets'])
+      item["reason"]= "You currently have assets worth"+currency(total_assets)+" which is more than what is required:  "+ currency(item['assets'])
       
     
       
@@ -1410,3 +1448,98 @@ attachment:
       - docx
       - pdf
     docx template file: debt_report.docx
+---
+code: |
+	debt_dict = {
+		'Debt':
+			{
+			 'class_name': Debt,
+			 'label':"Debt",
+				'children':["Loans","Tax","Penalties","Liability","Consumer Debt"]
+			},
+		'Credit Card':
+			{
+			 'class_name': CreditCardDebt,
+			 'label':"Credit card",
+				'children':[]
+			},
+		'Rent arrears':
+			{
+			 'class_name': RentDebt,
+			 'label':"Behind on rent",
+				'children':[]
+			},
+		'TV license':
+			{
+			 'class_name': TVLicenseDebt,
+			 'label':"TV license",
+				'children':[]
+			},
+		'Unsecured loans':
+			{
+			 'class_name': UnsecuredLoansDebt,
+			 'label':"Unsecured loans",
+				'children':["Revolving credit", "Bank overdraft", "Personal loan", "Loan from family member or friend", "Hire purchase", "Payday loans", "other outstanding bills, for example solicitor's costs, invoices for building work and vets bills", "Bill of Sale", "Conditional sale agreement", "Credit sale agreement", "Interest-free credit", "Pawnbroker", "Regulated credit agreements"]
+			},
+		'unpaid parking tickets - these are called Penalty Charge Notices or Parking Charge Notices':
+			{
+			 'class_name': PenaltyChargeDebt,
+			 'label':"Parking tickets",
+				'children':[]
+			},
+		'Mortgage':
+			{
+			 'class_name': MortgageDebt,
+			 'label':"Mortgage",
+				'children':[]
+			},
+		'Revolving credit':
+			{
+			 'class_name': RevolvingCreditDebt,
+			 'label':"Revolving credit",
+				'children':["Credit Card", "store cards\Budget Account", "Charge Card", "Bank overdraft"]
+			},
+		'Secured loans':
+			{
+			 'class_name': SecuredLoansDebt,
+			 'label':"Secured loans",
+				'children':["Bill of Sale", "Regulated credit agreements", "Regulated mortgage contracts", "Unregulated Agreements"]
+			},
+		'Traffic penalties':
+			{
+			 'class_name': TrafficPenaltiesDebt,
+			 'label':"Traffic penalties",
+				'children':["unpaid parking tickets - these are called Penalty Charge Notices or Parking Charge Notices"]
+			},
+		'Loans':
+			{
+			 'class_name': LoansDebt,
+			 'label':"Loans and credit, including credit cards",
+				'children':["Secured loans", "Student Loans", "Loan from family member or friend", "Payday loans", "Revolving credit"]
+			},
+		'Tax':
+			{
+			 'class_name': TaxDebt,
+			 'label':"Taxes",
+				'children':["TV license", "Unpaid income tax, National Insurance or VAT", "Overpayment of benefits", "Non-domestic rates", "Council Tax"]
+			},
+		'Penalties':
+			{
+			 'class_name': PenaltiesDebt,
+			 'label':"Fines and penalties",
+				'children':["Fine", "unpaid parking tickets - these are called Penalty Charge Notices or Parking Charge Notices", "Traffic penalties", "debts from certain orders of the criminal courts, including confiscation orders and", " the criminal courts charge", "compensation/costs orders made under a criminal conviction", "Costs of enforcement, eg, bailliff charges."]
+			},
+		'Liability':
+			{
+			 'class_name': LiabilityDebt,
+			 'label':"Money",
+				'children':["Claims against you for damage or personal injury", "Child maintenance/child support agency debts", "debts incurred from fraud or fraudulent breach of trust", "debts from certain orders of the criminal courts, including confiscation orders and", "Payments ordered by a court as part of family proceedings", "Maintenance payments"]
+			},
+		'Consumer Debt':
+			{
+			 'class_name': ConsumerDebt,
+			 'label':"Bills for rent, utilities and other services",
+				'children':["Rent arrears", "Energy bill arrears", "Water arrears", "Mobile phone arrears", "Home Phone or broadband arrears", "Private parking charges"]
+			}
+		}
+---
