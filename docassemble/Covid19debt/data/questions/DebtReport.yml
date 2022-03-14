@@ -294,7 +294,6 @@ question: |
   What is your employment situation?
 fields: 
   - Employment status: user.work
-    required: False
     datatype: radio
     choices:
       - Full time 
@@ -307,7 +306,6 @@ fields:
 ##      variable: user.ifhealth
 ##      is: True   
   - What is your occupation? : user.occup1
-    required: False
     show if:
       variable: user.work
       is: Full time 
@@ -460,13 +458,13 @@ field: another_debt_solution
 choices: 
   - Debt Relief Order: Debt Relief Order 
     help: |
-      Debt relief order info
+      A Debt Relief Order (DRO) are 12-month moratorium, during which time creditors cannot in force you to pay the debts included in the DRO.
   - Bankruptcy: Bankruptcy
     help: |
       Bankruptcy info  
   - Individual Voluntary Arrangement: Individual Voluntary Arrangement
     help: |
-      Individual Voluntary Arrangement info
+      This is a formal arrangement made between you and the creditor that creates a legally binding agreement. This agreement allows the client to defer payment of your debts and/or the creditors to accept less than 100 per cent of the debts. 
   - Administration Order: Administration Order  
     help: |
       Administration Order  
@@ -552,6 +550,7 @@ continue button field: user_identified_nonpriority_debts
 ---
 id: debt information signpost
 section: debt_info
+decoration: wallet
 question: | 
   Next, we will ask questions about your debt 
 subquestion: | 
@@ -633,7 +632,7 @@ fields:
       
 ---
 id: debt summary  
-section: summary
+section: debt_info
 question: |
   Description of debts entered so far
   
