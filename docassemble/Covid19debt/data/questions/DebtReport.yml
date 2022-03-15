@@ -780,7 +780,15 @@ columns:
       row_item.notes
      
 edit:
+  - name
   - value
+  - creditor
+  - is_urgent
+  - urgency
+  - delinquent
+  - possession_order
+  - first_miss_date
+  - notes
 minimum_number: 1
 ---
 generic object: ConsumerDebt

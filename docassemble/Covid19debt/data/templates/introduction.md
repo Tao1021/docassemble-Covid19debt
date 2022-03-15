@@ -10,9 +10,4 @@ This tool will:
   
 Our service is not an alternative to seeking for professional help. 
 
-We do not store identifying information such as a name, an identification number, or specific location data of an individual.
-  
-######Would like to proceed to application page?
-
-Note: You must agree with our terms and conditions to continue. All your data is **confidential** and will not be stored or used elsewhere.  
-
+ All your data is **confidential** and will not be stored or used elsewhere. We do not store identifying information such as a name, an identification number, or specific location data of an individual.
