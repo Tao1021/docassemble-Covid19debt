@@ -8,6 +8,12 @@ metadata:
     - name: Adam Wyner, Tao Li
       organization: Swansea University 
   revision_data: 2021-06-13
+--- 
+default screen parts:
+  pre: |
+    % if get_config('debug'):
+    `id: ${ user_info().question_id }`  
+    % endif
 ---
 modules:
   - docassemble.base.util
@@ -339,6 +345,7 @@ fields:
     required: True
     datatype: yesnoradio
 ---
+id: under 18 kickout
 event: under18_kickout
 question: | 
   Since you are under 18 
@@ -350,6 +357,7 @@ buttons:
   - Exit: exit
   - Restart: restart
 ---
+id: UK kickout
 event: nonUKresident_kickout
 question: | 
   Since you do not live in the United Kingdom
@@ -628,7 +636,7 @@ reconsider: other_list
 id: debt amount
 generic object: Debt
 question: | 
-  How much is owed on this ${ debt[i].name.lower() } debt
+  How much is owed on this debt?
 fields:
   - Amount: x.value
     required: False
@@ -667,11 +675,14 @@ generic object: LoansDebt
 code: |
   x.name = x.creditor +" " + x.type
 ---
+id: behind on payment
 generic object: Debt
 question: | 
-   When did you first miss payment?
+   Are you behind on payments?
+subquetion: | 
+  Check if you are behind on payments. 
 fields:
-  - Are you behind on payments?: x.delinquent
+  - Yes, I am behind on payments: x.delinquent
     datatype: yesnowide
   - When did you first miss payment?: x.first_miss_date1
     datatype: date
@@ -804,8 +815,10 @@ generic object: ConsumerDebt
 code: |
    x.notes = "Creditor:" + x.creditor
 ---
+id: creditor info
 generic object: Debt
-question: Creditor
+question: | 
+  What is the name of the creditor for this debt?
 fields:
  - Creditor: x.creditor
 ---
