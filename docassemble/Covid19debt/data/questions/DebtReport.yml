@@ -8,12 +8,6 @@ metadata:
     - name: Adam Wyner, Tao Li
       organization: Swansea University 
   revision_data: 2021-06-13
---- 
-default screen parts:
-  pre: |
-    % if get_config('debug'):
-    `id: ${ user_info().question_id }`  
-    % endif
 ---
 modules:
   - docassemble.base.util
@@ -178,6 +172,7 @@ content file: personal_information_signpost.md
 #template: 
 #content file: 
 ---
+id: debt_total backup
 code: |
   debt_total = debt.total()
 ---
@@ -345,7 +340,7 @@ fields:
     required: True
     datatype: yesnoradio
 ---
-id: under 18 kickout
+id: under 18 contact
 event: under18_kickout
 question: | 
   Since you are under 18 
@@ -357,7 +352,7 @@ buttons:
   - Exit: exit
   - Restart: restart
 ---
-id: UK kickout
+id: non UK resident kickout
 event: nonUKresident_kickout
 question: | 
   Since you do not live in the United Kingdom
@@ -367,6 +362,7 @@ buttons:
   - Exit: exit
   - Restart: restart
 ---
+id: non UK debt kickout
 event: nonUKdebt_kickout
 question: | 
   Since your debt is not based in the United Kingdom 
@@ -510,28 +506,12 @@ subquestion: |
   ${ debt_information_signpost } 
 continue button field: debt_info_signpost 
 ---
-id: debt info collection
-question:  |
-  Debt Information
-subquestion:  |
-  Please provide information about the debt you want to add.
-section: debt_info
-fields: 
-  - Debt type: temp_debt_name
-    required: False
-    datatype: dropdown
-    code:  |
-      debt_type_list
-  - Amount: temp_debt_amount
-    required: False
-    datatype: currency 
-    min: 0
-    currency symbol: £
----
+id: set new object type to last item in debt parent list
 code: |
 	debt.new_object_type = debt_dict[debt_parent_list.last()]['class_name']
 	temp_type = debt_parent_list.last()
 ---
+id: sets there_is_another for debt parent list
 code: |
 	if debt_type_input_method == "most common":
 	  if len(debt_parent_list.complete_elements()) > 1:
@@ -561,10 +541,6 @@ code: |
 		else:
 		  debt_parent_list.there_is_another = True
 ---
-code:
-  
-  debt_parent_list_popped = True
----
 id: debt view selection
 question: | 
   How do you want to find the debt type?
@@ -578,6 +554,7 @@ fields:
       - Pick from the full list of debt types: from all
     default: navigate categories
 ---
+id: Selection of type of debt
 question: | 
   Select the type of debt 
 subquestion: |
@@ -609,18 +586,23 @@ fields:
       code: |
       	debt_type_input_method == "navigate categories"
 ---
+id: other list
 code: |
   other_list = ["Other"]
 ---
+id: adding debt to debt parent list automatically
 code: |
   debt_parent_list[0] = "Debt"
 ---
+id: tracks whether there should be other_name attribute
 code: |
   temp_other_name_exists = False
 ---
+id: tracks whether there should be sub_type attribute
 code: |
   temp_sub_type_exists = False
 ---
+id: sets the debt .type attribute to last in debt parent list 
 code: |
   debt[i].type = temp_type
   undefine('temp_type')
@@ -636,7 +618,7 @@ reconsider: other_list
 id: debt amount
 generic object: Debt
 question: | 
-  How much is owed on this debt?
+  How much is owed on this ${ x.name.lower() } debt
 fields:
   - Amount: x.value
     required: False
@@ -644,12 +626,7 @@ fields:
     min: 0
     currency symbol: £
 ---
-if: |
-  defined('temp_debt_amount')
-code: |
-  debt[i].value = temp_debt_amount
-  undefine('temp_debt_amount')
----
+id: Debt complete order
 generic object: Debt
 code: |
   x.type
@@ -663,6 +640,7 @@ code: |
   x.notes
   x.complete = True
 ---
+id: .type for Debt
 generic object: Debt
 code: |
   if temp_sub_type_exists:
@@ -671,23 +649,23 @@ code: |
     x.name = x.type
   undefine('temp_sub_type_exists','temp_sub_type')
 ---
+id: .name for LoansDebt
 generic object: LoansDebt
 code: |
   x.name = x.creditor +" " + x.type
 ---
-id: behind on payment
+id: question to get you to first_miss_date for Debt
 generic object: Debt
 question: | 
-   Are you behind on payments?
-subquetion: | 
-  Check if you are behind on payments. 
+   Payment history
 fields:
-  - Yes, I am behind on payments: x.delinquent
+  - Are you behind on payments?: x.delinquent
     datatype: yesnowide
   - When did you first miss payment?: x.first_miss_date1
     datatype: date
     show if: x.delinquent
 ---
+id: first_miss_date calculated and set as none if not appropriate
 generic object: Debt
 code: |
   if x.delinquent:
@@ -695,6 +673,7 @@ code: |
   else:
     x.first_miss_date = None
 ---
+id: notes for Debt
 generic object: Debt
 code: |
   if x.delinquent:
@@ -702,6 +681,7 @@ code: |
   else:
     x.notes = ""
 ---
+id: gets to urgency for Debt
 generic object: Debt
 question: | 
   Has the creditor threatened to take immediate action against your fuel supply, property, or threatened you with imprisonment?
@@ -715,6 +695,7 @@ fields:
       variable: x.is_urgent
       is: True
 ---
+id: calculates .urgency from .urgency_reason if appropriate
 generic object: Debt
 code: |
   if x.is_urgent:
@@ -722,14 +703,17 @@ code: |
   else:
     x.urgency = "None"
 ---
+id: .urgency for CreditCardDebt
 generic object: CreditCardDebt
 code: |
   x.urgency = "None"
 ---
+id: .urgency for PenaltyChargeDebt
 generic object: PenaltyChargeDebt
 code: |
   x.urgency = "None"
 ---
+id: gets to .urgency for RentDebt
 generic object: RentDebt
 question: Urgency of your Rent Debt
 fields:
@@ -739,6 +723,7 @@ fields:
     datatype: date
     show if: x.possession_order
 ---
+id: calculates .urgency for RentDebt
 generic object: RentDebt
 code: |
   if x.possession_order:
@@ -749,6 +734,7 @@ code: |
   else:
     x.urgency = "None"
 ---
+id: .urgency for CreditCardDebt
 generic object: CreditCardDebt
 code: |
   x.urgency = "None"
@@ -766,6 +752,7 @@ buttons:
   - "Add another debt": True
   - "Continue to next section": False
 ---
+id: sets debt.there_is_another and undefines
 code: |
   if debt.there_is_anotherstep:
     undefine('debt.there_is_anotherstep','debt_parent_list','debt_type_input_method')
@@ -811,14 +798,14 @@ edit:
   - notes
 minimum_number: 1
 ---
+id: .notes for ConsumerDebt
 generic object: ConsumerDebt
 code: |
    x.notes = "Creditor:" + x.creditor
 ---
-id: creditor info
+id: .creditor for Debt
 generic object: Debt
-question: | 
-  What is the name of the creditor for this debt?
+question: Creditor
 fields:
  - Creditor: x.creditor
 ---
@@ -1001,6 +988,7 @@ fields:
     code: |
       period_list()
 ---
+id: other income summary
 question: Other income
 subquestion:
   
@@ -1392,6 +1380,7 @@ code:  |
           "Hotels & Restaurants": 211.6,
           }  
 ---
+id: sets categories for expenses
 code: |
   acl_loop_counter = 0
   for type_key in average_cost_living.keys():
@@ -1402,6 +1391,7 @@ code: |
     acl_loop_counter += 1
   collect_expenses = "Enter your monthly expenses."
 ---
+id: expenses gathered order
 code: |
   if expenses.want_to_collect:
     collect_expenses
