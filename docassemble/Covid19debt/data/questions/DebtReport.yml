@@ -657,6 +657,7 @@ code: |
     x.other_name = temp_other_name
   x.value
   x.urgency
+  x.first_miss_date
   x.notes
   x.complete = True
 ---
