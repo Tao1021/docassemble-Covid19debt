@@ -1071,9 +1071,9 @@ fields:
   - For: expenses[0].period
     datatype: number
     inline width: 4em
+    default: 12
     code: |
       period_list()
-    default: 12
   - ${ expenses[1].type }: expenses[1].value
     datatype: currency
     default: ${ expenses[1].default }
@@ -1090,9 +1090,9 @@ fields:
     inline width: 2em
   - For: expenses[1].period
     datatype: number
+    default: 12
     code: |
       period_list()
-    default: 12
   - ${ expenses[2].type }: expenses[2].value
     datatype: currency
     default: ${ expenses[2].default }
@@ -1301,7 +1301,8 @@ fields:
     code: |
       period_list()
     default: 12
-  - Have you had unusual expenses?: unusual_expenses
+  - note: |
+      
   	
 ---
 id: average cost of living
