@@ -234,9 +234,15 @@ code: |
   for debt_item in debt:
     if debt_item.name in priority_debt_type_list:
       priority_debts.append(debt_item)
-    else:
-      nonpriority_debts.append(debt_item)
   priority_debts.gathered = True
+
+    
+---
+id: priority debt code
+code: |
+  for debt_item in debt:
+    if not debt_item.name in priority_debt_type_list:
+      nonpriority_debts.append(debt_item)
   nonpriority_debts.gathered = True  
     
 ---
@@ -534,21 +540,10 @@ code: |
 		  debt_parent_list.there_is_another = True
 	if debt_type_input_method == "navigate categories":
 		if not debt_parent_list.complete_elements().last() in debt_dict.keys():
-			if debt_parent_list.complete_elements().last() == "None":
-		    debt_parent_list.pop()
-			  debt_parent_list.there_is_another = False 
-		  elif debt_parent_list.complete_elements().last() == "Other":
+		  if debt_parent_list.complete_elements().last() == "Other":
 		    temp_other_name_exists = True
 			  temp_other_name = debt_parent_list.pop()
 			  debt_parent_list.there_is_another = False 
-		  elif debt_parent_list.complete_elements().last() == "Back to Previous":
-		    debt_parent_list.pop()
-		    debt_parent_list.pop()
-			  debt_parent_list.there_is_another = True 
-		  elif debt_parent_list.complete_elements().last() == "Start Again":
-		    while len(debt_parent_list.complete_elements()) > 1:
-		      debt_parent_list.pop()
-			  debt_parent_list.there_is_another = True
 			else:
 			  temp_sub_type_exists = True
 			  temp_sub_type = debt_parent_list.pop()
@@ -602,16 +597,9 @@ fields:
     show if:
       code: |
       	debt_type_input_method == "navigate categories"
-reconsider: other_list
 ---
 code: |
-  other_list = ["None","Other"]
-  if len(debt_parent_list.complete_elements()) > 1:
-    other_list.append("Back to Previous")
-  if len(debt_parent_list.complete_elements()) > 2:
-    other_list.append("Start Again")
-depends on:
-  debt_parent_list
+  other_list = ["Other"]
 ---
 code: |
   debt_parent_list[0] = "Debt"
@@ -652,10 +640,11 @@ code: |
 generic object: Debt
 code: |
   x.type
+  x.value
+  x.creditor
   x.name
   if temp_other_name_exists:
     x.other_name = temp_other_name
-  x.value
   x.urgency
   x.first_miss_date
   x.notes
@@ -791,7 +780,15 @@ columns:
       row_item.notes
      
 edit:
+  - name
   - value
+  - creditor
+  - is_urgent
+  - urgency
+  - delinquent
+  - possession_order
+  - first_miss_date
+  - notes
 minimum_number: 1
 ---
 generic object: ConsumerDebt
