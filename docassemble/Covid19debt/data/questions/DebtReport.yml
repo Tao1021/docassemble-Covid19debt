@@ -540,21 +540,10 @@ code: |
 		  debt_parent_list.there_is_another = True
 	if debt_type_input_method == "navigate categories":
 		if not debt_parent_list.complete_elements().last() in debt_dict.keys():
-			if debt_parent_list.complete_elements().last() == "None":
-		    debt_parent_list.pop()
-			  debt_parent_list.there_is_another = False 
-		  elif debt_parent_list.complete_elements().last() == "Other":
+		  if debt_parent_list.complete_elements().last() == "Other":
 		    temp_other_name_exists = True
 			  temp_other_name = debt_parent_list.pop()
 			  debt_parent_list.there_is_another = False 
-		  elif debt_parent_list.complete_elements().last() == "Back to Previous":
-		    debt_parent_list.pop()
-		    debt_parent_list.pop()
-			  debt_parent_list.there_is_another = True 
-		  elif debt_parent_list.complete_elements().last() == "Start Again":
-		    while len(debt_parent_list.complete_elements()) > 1:
-		      debt_parent_list.pop()
-			  debt_parent_list.there_is_another = True
 			else:
 			  temp_sub_type_exists = True
 			  temp_sub_type = debt_parent_list.pop()
@@ -608,16 +597,9 @@ fields:
     show if:
       code: |
       	debt_type_input_method == "navigate categories"
-reconsider: other_list
 ---
 code: |
-  other_list = ["None","Other"]
-  if len(debt_parent_list.complete_elements()) > 1:
-    other_list.append("Back to Previous")
-  if len(debt_parent_list.complete_elements()) > 2:
-    other_list.append("Start Again")
-depends on:
-  debt_parent_list
+  other_list = ["Other"]
 ---
 code: |
   debt_parent_list[0] = "Debt"
