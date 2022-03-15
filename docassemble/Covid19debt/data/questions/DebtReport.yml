@@ -658,10 +658,11 @@ code: |
 generic object: Debt
 code: |
   x.type
+  x.value
+  x.creditor
   x.name
   if temp_other_name_exists:
     x.other_name = temp_other_name
-  x.value
   x.urgency
   x.first_miss_date
   x.notes
