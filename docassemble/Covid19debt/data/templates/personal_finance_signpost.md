@@ -1,1 +1,1 @@
-personal_finance_signpost placeholder
+We will ask about your income, assets, and expenses. 
