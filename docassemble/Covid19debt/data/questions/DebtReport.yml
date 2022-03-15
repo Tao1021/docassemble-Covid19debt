@@ -679,9 +679,10 @@ code: |
   x.name = x.creditor + x.type
 ---
 generic object: Debt
-question: First Missed Payment
+question: | 
+   When did you first miss payment?
 fields:
-  - When did you first miss payment?: x.first_miss_date
+  - Date of missed payment: x.first_miss_date
     datatype: date
 ---
 generic object: Debt
