@@ -19,7 +19,7 @@ objects:
   - other_income: IncomeList.using(complete_attribute='type')
   - assets: ValueList.using(complete_attribute='type')
   - income_assets: IncomeList.using(auto_gather=False)
-  - expenses: JobList.using(complete_attribute='type')
+  - expenses: PeriodicFinancialList.using(target_number=len(average_cost_living.keys()),complete_attribute='value',auto_gather=False)
   - debt: ValueListNoObject.using(there_are_any=True, ask_object_type=True, complete_attribute='complete')
   - priority_debts: DAList.using(auto_gather=False)
   - nonpriority_debts: DAList.using(auto_gather=False)
@@ -794,10 +794,13 @@ fields:
     datatype: yesnowide
     help: | 
       Assets **include** most items you own like cars, boats, buildings or land, or other items of value. Assets **do not** include household equipment like bedding; items you use for your job or buisness. 
-  - Expenses: expenses.there_are_any
+  - Expenses: expenses.want_to_collect
     datatype: yesnowide
     help: | 
       List everything you spend your income on: housing, childcare, fuel, health costs, transport, furniture, hire purchase, fines, laundry, telephone, TV, broadband, toiletries, clothing, food, child support payments, self-employment costs and so on. 
+  - Do you want to start with the average amount spent on expenses?: use_default
+    datatype: yesnoradio
+    show if: expenses.want_to_collect
 ---
 id: asks if there is another job
 question: Job Information Summary
@@ -1017,6 +1020,292 @@ fields:
 id: expense deviation calculation
 code:  |
   expense_advices =[]
+  for item in expenses:
+    if item.type in average_cost_living.keys():
+       spend_diff = item.value - average_cost_living[item.type] 
+       if spend_diff <0 and abs(spend_diff) >40:
+         expense_advices.append("You spend "+currency(item.value)+" on "+ item.type+ "  which is "+currency(abs(spend_diff))+" less than average expenditure " + currency(average_cost_living[item.type])+" per month.")
+       elif spend_diff >0 and abs(spend_diff) >40:
+         expense_advices.append("You spend "+currency(item.value)+" on "+ item.type+ "  which is "+currency(abs(spend_diff))+" more than average expenditure " + currency(average_cost_living[item.type])+" per month.")  
+---
+id: expenses single page 
+question: Expenses
+continue button field: expenses_values
+subquestion: |
+
+  ${ expenses[0].type }: [FIELD expenses[0].value] [FIELD expenses[0].period]
+  
+  Alcohol, tobacco & narcotics: [FIELD expenses[1].value] [FIELD expenses[1].period]
+  
+  ${ expenses[2].type }: [FIELD expenses[2].value] [FIELD expenses[2].period]
+  
+  ${ expenses[3].type }: [FIELD expenses[3].value] [FIELD expenses[3].period]
+  
+  ${ expenses[4].type }: [FIELD expenses[4].value] [FIELD expenses[4].period]
+  
+  ${ expenses[5].type }: [FIELD expenses[5].value] [FIELD expenses[5].period]
+  
+  ${ expenses[6].type }: [FIELD expenses[6].value] [FIELD expenses[6].period]
+  
+  ${ expenses[7].type }: [FIELD expenses[7].value] [FIELD expenses[7].period]
+  
+  ${ expenses[8].type }: [FIELD expenses[8].value] [FIELD expenses[8].period]
+  
+  ${ expenses[9].type }: [FIELD expenses[9].value] [FIELD expenses[9].period]
+  
+fields:
+  - ${ expenses[0].type }: expenses[0].value
+    datatype: currency
+    default: ${ expenses[0].default }
+  	show if: 
+  		code: |
+  			use_default
+    inline width: 2em
+  - ${ expenses[0].type }: expenses[0].value
+    datatype: currency
+    default: 0
+  	hide if: 
+  		code: |
+  			use_default
+    inline width: 2em
+  - For: expenses[0].period
+    datatype: number
+    inline width: 4em
+    code: |
+      period_list()
+    default: 12
+  - ${ expenses[1].type }: expenses[1].value
+    datatype: currency
+    default: ${ expenses[1].default }
+  	show if: 
+  		code: |
+  			use_default
+    inline width: 2em
+  - ${ expenses[1].type }: expenses[1].value
+    datatype: currency
+    default: 0
+  	hide if: 
+  		code: |
+  			use_default
+    inline width: 2em
+  - For: expenses[1].period
+    datatype: number
+    code: |
+      period_list()
+    default: 12
+  - ${ expenses[2].type }: expenses[2].value
+    datatype: currency
+    default: ${ expenses[2].default }
+  	show if: 
+  		code: |
+  			use_default
+    inline width: 2em
+  - ${ expenses[2].type }: expenses[2].value
+    datatype: currency
+    default: 0
+  	hide if: 
+  		code: |
+  			use_default
+    inline width: 2em
+  - ${ expenses[2].type }: expenses[2].value
+    datatype: currency
+    default: 0
+  	hide if: 
+  		code: |
+  			use_default
+    inline width: 2em
+  - For: expenses[2].period
+    datatype: number
+    code: |
+      period_list()
+    default: 12
+  - ${ expenses[3].type }: expenses[3].value
+    datatype: currency
+    default: ${ expenses[3].default }
+  	show if: 
+  		code: |
+  			use_default
+    inline width: 2em
+  - ${ expenses[3].type }: expenses[3].value
+    datatype: currency
+    default: 0
+  	hide if: 
+  		code: |
+  			use_default
+    inline width: 2em
+  - ${ expenses[3].type }: expenses[3].value
+    datatype: currency
+    default: 0
+  	hide if: 
+  		code: |
+  			use_default
+    inline width: 2em
+  - For: expenses[3].period
+    datatype: number
+    code: |
+      period_list()
+    default: 12
+  - ${ expenses[4].type }: expenses[4].value
+    datatype: currency
+    default: ${ expenses[4].default }
+  	show if: 
+  		code: |
+  			use_default
+    inline width: 2em
+  - ${ expenses[4].type }: expenses[4].value
+    datatype: currency
+    default: 0
+  	hide if: 
+  		code: |
+  			use_default
+    inline width: 2em
+  - ${ expenses[4].type }: expenses[4].value
+    datatype: currency
+    default: 0
+  	hide if: 
+  		code: |
+  			use_default
+    inline width: 2em
+  - For: expenses[4].period
+    datatype: number
+    code: |
+      period_list()
+    default: 12
+  - ${ expenses[5].type }: expenses[5].value
+    datatype: currency
+    default: ${ expenses[5].default }
+  	show if: 
+  		code: |
+  			use_default
+    inline width: 2em
+  - ${ expenses[5].type }: expenses[5].value
+    datatype: currency
+    default: 0
+  	hide if: 
+  		code: |
+  			use_default
+    inline width: 2em
+  - ${ expenses[5].type }: expenses[5].value
+    datatype: currency
+    default: 0
+  	hide if: 
+  		code: |
+  			use_default
+    inline width: 2em
+  - For: expenses[5].period
+    datatype: number
+    code: |
+      period_list()
+    default: 12
+  - ${ expenses[6].type }: expenses[6].value
+    datatype: currency
+    default: ${ expenses[6].default }
+  	show if: 
+  		code: |
+  			use_default
+    inline width: 2em
+  - ${ expenses[6].type }: expenses[6].value
+    datatype: currency
+    default: 0
+  	hide if: 
+  		code: |
+  			use_default
+    inline width: 2em
+  - ${ expenses[6].type }: expenses[6].value
+    datatype: currency
+    default: 0
+  	hide if: 
+  		code: |
+  			use_default
+    inline width: 2em
+  - For: expenses[6].period
+    datatype: number
+    code: |
+      period_list()
+    default: 12
+  - ${ expenses[7].type }: expenses[7].value
+    datatype: currency
+    default: ${ expenses[7].default }
+  	show if: 
+  		code: |
+  			use_default
+    inline width: 2em
+  - ${ expenses[7].type }: expenses[7].value
+    datatype: currency
+    default: 0
+  	hide if: 
+  		code: |
+  			use_default
+    inline width: 2em
+  - ${ expenses[7].type }: expenses[7].value
+    datatype: currency
+    default: 0
+  	hide if: 
+  		code: |
+  			use_default
+    inline width: 2em
+  - For: expenses[7].period
+    datatype: number
+    code: |
+      period_list()
+    default: 12    
+  - ${ expenses[8].type }: expenses[8].value
+    datatype: currency
+    default: ${ expenses[8].default }
+  	show if: 
+  		code: |
+  			use_default
+    inline width: 2em
+  - ${ expenses[8].type }: expenses[8].value
+    datatype: currency
+    default: 0
+  	hide if: 
+  		code: |
+  			use_default
+    inline width: 2em
+  - ${ expenses[8].type }: expenses[8].value
+    datatype: currency
+    default: 0
+  	hide if: 
+  	  code: |
+  	  	use_default
+    inline width: 2em
+  - For: expenses[8].period
+    datatype: number
+    code: |
+      period_list()
+    default: 12
+  - ${ expenses[9].type }: expenses[9].value
+    datatype: currency
+    default: ${ expenses[9].default }
+  	show if: 
+  		code: |
+  			use_default
+    inline width: 2em
+  - ${ expenses[9].type }: expenses[9].value
+    datatype: currency
+    default: 0
+  	hide if: 
+  		code: |
+  			use_default
+    inline width: 2em
+  - ${ expenses[9].type }: expenses[9].value
+    datatype: currency
+    default: 0
+  	hide if: 
+  		code: |
+  			use_default
+    inline width: 2em
+  - For: expenses[9].period
+    datatype: number
+    code: |
+      period_list()
+    default: 12
+  - Have you had unusual expenses?: unusual_expenses
+  	
+---
+id: average cost of living
+code:  |
   average_cost_living ={
           "Food & Non-Alcoholic Drinks": 254.8,
           "Alcoholic drink, tobacco &carcotics":51.6,
@@ -1028,16 +1317,25 @@ code:  |
           "Transport": 326.4,
           "Communication": 85.6,
           "Hotels & Restaurants": 211.6,
-          "Total Expenditure": 2351.6
           }  
-  for item in expenses:
-    if item.type in average_cost_living.keys():
-       spend_diff = item.value - average_cost_living[item.type] 
-       if spend_diff <0 and abs(spend_diff) >40:
-         expense_advices.append("You spend "+currency(item.value)+" on "+ item.type+ "  which is "+currency(abs(spend_diff))+" less than average expenditure " + currency(average_cost_living[item.type])+" per month.")
-       elif spend_diff >0 and abs(spend_diff) >40:
-         expense_advices.append("You spend "+currency(item.value)+" on "+ item.type+ "  which is "+currency(abs(spend_diff))+" more than average expenditure " + currency(average_cost_living[item.type])+" per month.")  
 ---
+code: |
+  acl_loop_counter = 0
+  for type_key in average_cost_living.keys():
+    expenses[acl_loop_counter].type = type_key
+    expenses[acl_loop_counter].default = average_cost_living[type_key]
+    expenses[acl_loop_counter].exists = True
+    expenses[acl_loop_counter].exists = True
+    acl_loop_counter += 1
+  collect_expenses = "Enter your monthly expenses."
+---
+code: |
+  if expenses.want_to_collect:
+    collect_expenses
+    expenses_values
+  expenses.gathered = True
+---
+
 id: income summary
 question: |
   Summary of your Income
@@ -1112,7 +1410,7 @@ buttons:
   - "Add another": True
   - "Continue to next section": False
 ---
-id: expenses summary
+id: expenses summary 
 question: |
   Expenses
 subquestion: |
