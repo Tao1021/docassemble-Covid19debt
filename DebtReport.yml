@@ -1,0 +1,2024 @@
+---
+metadata:
+  title:  |
+    Personal Debt Triage  
+  description:  |
+    A system to help individul to understand the full extent of your their debt problem as well privide debt advices.  
+  authors:
+    - name: Adam Wyner, Tao Li
+      organization: Swansea University 
+  revision_data: 2021-06-13
+---
+modules:
+  - docassemble.base.util
+  - .income
+---
+objects:
+  - user: Individual
+  - jobs: JobList.using(complete_attribute='is_hourly')
+  - other_income: IncomeList.using(complete_attribute='type')
+  - assets: ValueList.using(complete_attribute='type')
+  - income_assets: IncomeList.using(auto_gather=False)
+  - expenses: PeriodicFinancialList.using(target_number=len(average_cost_living.keys()),complete_attribute='value',auto_gather=False)
+  - debt: ValueListNoObject.using(there_are_any=True, ask_object_type=True, complete_attribute='complete')
+  - priority_debts: DAList.using(auto_gather=False)
+  - nonpriority_debts: DAList.using(auto_gather=False)
+  - debt_parent_list: DAList.using(there_are_any=True)
+---
+#id: enable welcome back screen
+#initial: True
+#code: |
+#  if returning_user(minutes=0.5):
+#    welcome_back
+---
+#event: welcome_back
+#question: |
+#  Welcome back!
+#subquestion: |
+#  You are currently in the
+#  **${ nav.get_section(display=True) }**
+#  section.
+#
+#  ${ nav }
+#
+#  Press "Continue" to pick up
+#  where you left off.
+#buttons:
+#  Continue: continue
+---
+id: set currency
+initial: True
+code: |
+  set_locale(currency_symbol='£')
+---
+id: enable review answers menu item
+initial: add_review_to_menu
+code: |
+  menu_items = [ action_menu_item('Review Answers', 'review_answers') ]
+comment: |
+  This block adds Review Answers to the menu after a certain point in the interview, when all of the information is collected.  It does this because add_review_to_menu is initially set to false (in block id: set review to false) and then changed in the interview order to True.
+---
+id: interview order
+mandatory: True
+code: |
+  user_saw_introduction
+  user_saw_preparation 
+  debt_signpost 
+  user.name.first
+  user.name.last
+  if user.dob.plus(years=18) > today():
+    under18_kickout
+  user_contact_nformation
+  if not user.uk:
+    nonUKresident_kickout
+  if not user.uk_debt:
+    nonUKdebt_kickout
+  user.work
+  user.uk_debt
+  #user_provided_personal_info
+  if user.house_status == 'Joint tenants': 
+    user.house_status_rentshare
+  if user.house_status == 'Joint Mortgage':
+    user.house_status_mortshare
+  followup_housing
+  current_insolvency
+  debt_info_signpost
+  # user_identified_priority_debts
+  # user_identified_nonpriority_debts
+  debt_parent_list[0]
+  debt.total()
+  finance_signpost
+  jobs.total()
+  other_income.total()
+  assets.total()
+  add_review_to_menu = True
+  expenses.total()
+  # documents_uploaded
+  summary
+  user_saw_standard_bs
+  user_saw_mentalh_bs
+  user_saw_debt_solutions
+  # user_signed
+  predocx_variables
+  letter_and_end
+---
+id: set review to false
+code: |
+  add_review_to_menu = False
+comment: |
+  add_review_to_menu will add a Review Answers option to the menu bar you can find by clicking on the upper right corner.  The initial block will be rerun every time there's a new screen, so originally this block will set it to false and the option will not be added.  (This block needs to be below the interview order so that this block defines add_review_to_menu first.  After "add_review_to_menu" is reached in the interview order, it will go to the next section "summary" before it reruns a screen, so this page will not have the Review Answers option.  The next page will be the first page where add_review_to_menu is set to True when the initial block is run.
+---
+sections:
+  - introduction: Introduction
+  - preparation: Get Ready
+  - personal_info: Your Information
+  - debt_types: Debt Type
+    subsections:
+    - priority_debts: Priority Debts
+    - non_priority: Non-priority Debts 
+  - debt_info: Debt Information
+
+  - finance_info: Your Finances
+    subsections: 
+    - income: Income
+    - expenditure: Expenses
+    - summary: Summary 
+  - breathing_space: Breathing Space
+    subsections:
+     - standard_bs: Standard Breathing Space
+     - mentalh_bs: Mental Health Breathing Space
+  - debt_solutions_section: Debt Solutions
+  - conclusions: Print your document
+---
+template: introduction
+content file: introduction.md
+---
+template: preparation
+content file: preparation.md
+---
+template: standard_bs
+content file: standard_bs.md
+---
+template: mentalh_bs
+content file: mentalh_bs.md
+---
+template: bankruptcy
+content file: bankruptcy.md
+---
+template: debt_relief_order
+content file: debt_relief_order.md
+---
+template: administration_order
+content file: administration_order.md
+---
+template: debt_management_plan
+content file: debt_management_plan.md
+---
+template: individual_voluntary_agreement
+content file: individual_voluntary_agreement.md
+---
+template: debt_information_signpost
+content file: debt_information_signpost.md
+---
+template: personal_finance_signpost
+content file: personal_finance_signpost.md
+--- 
+template: personal_information_signpost
+content file: personal_information_signpost.md
+---
+#template: 
+#content file: 
+#---
+#template: 
+#content file: 
+---
+id: debt_total backup
+code: |
+  debt_total = debt.total()
+---
+features:
+  navigation: True
+  small screen navigation: dropdown
+  progress bar: True
+---
+id: introduction block
+section: introduction
+decoration: receipt
+question: |
+  Create a brief to organize your debts 
+subquestion: |
+  ${ introduction }
+fields: 
+ - To continue, you must accept our [terms of use]: acknowledged_information_use
+   datatype: checkboxes
+   none of the above: False    
+   minlength: 1
+   choices:
+     - I accept the terms of use.
+   validation messages:
+     minlength: |
+        You cannot continue unless you agree to the terms of use.        
+continue button field: user_saw_introduction
+---
+id: preparation block
+section: preparation
+question:  |
+  Get your information and documents ready  
+subquestion:  |
+  ${ preparation }
+continue button field: user_saw_preparation  
+---
+id: personal info signpost
+section: personal_info
+decoration: address-card
+question: | 
+  Tell us about yourself 
+subquestion: | 
+
+  ${ personal_information_signpost }
+
+continue button field: debt_signpost
+---
+id: debt signpost 
+section: finance_info
+#decoration: 
+question: |  
+  Now, we will discuss your personal finances
+subquestion: | 
+
+  ${ personal_finance_signpost }
+
+continue button field: finance_signpost 
+---
+id: priority debt code
+code: |
+  for debt_item in debt:
+    if debt_item.name in priority_debt_type_list:
+      priority_debts.append(debt_item)
+  priority_debts.gathered = True
+
+    
+---
+id: priority debt code
+code: |
+  for debt_item in debt:
+    if not debt_item.name in priority_debt_type_list:
+      nonpriority_debts.append(debt_item)
+  nonpriority_debts.gathered = True  
+    
+---
+id: generic debt table
+generic object: DAList
+table: x.table
+rows: x
+columns: 
+  - Debt Type: |
+      row_item.name
+  - Debt Amount: |
+      row_item.amount
+  - Debt Creditor: |
+      row_item.creditor
+  - Debt Urgency: |
+      row_item.urgency
+  - Debt Liability: |
+      row_item.libility
+edit:
+  - name
+minimum_number: 1
+---
+id: personal information block
+section: personal_info
+question:  |
+  What is your name? 
+fields:
+  - First Name: user.name.first
+  - Last Name: user.name.last
+  - Date of Birth: user.dob
+    datatype: date
+  - Gender: user.gender
+    required: False
+    choices:
+      - Male
+      - Female
+      - Other
+---
+id: user address
+section: personal_info
+question: | 
+  What is your contact information? 
+fields: 
+  - Email address: user.email
+  - Phone number: user.phone
+  - Street address: user.address.address
+  - Unit: user.address.unit 
+    required: False
+  - City: user.address.city
+  - Postal Code: user.address.zip
+  - Country: user.address.country
+    code: |
+      countries_list()
+
+continue button field: user_contact_nformation 
+---
+id: user work status 
+section: personal_info
+question: |
+  What is your employment situation?
+fields: 
+  - Employment status: user.work
+    datatype: radio
+    choices:
+      - Full time 
+      - Part time 
+      - Unemployed 
+      - Retired
+      - Student
+##  - What is your condition: user.mentalcondition
+##    show if:
+##      variable: user.ifhealth
+##      is: True   
+  - What is your occupation? : user.occup1
+    show if:
+      variable: user.work
+      is: Full time 
+  - What is your occupation?: user.occup2
+    show if:
+      variable: user.work
+      is: Part time
+---
+id: UK questions
+section: personal_info
+question: | 
+  Tell us more 
+fields: 
+  - Are you a Welsh Resident?: user.uk
+    required: True
+    datatype: yesnoradio
+    help:  |
+      Different regions within UK have different rules for debts. If you are holding a visa to work and live in Wales, make sure it is known when you look for perfessonal help, as some of the the debt solutions might affect your visa application. 
+  - Is your debt based in the UK?: user.uk_debt
+    required: True
+    datatype: yesnoradio
+---
+id: under 18 contact
+event: under18_kickout
+question: | 
+  Since you are under 18 
+subquestion: |
+	Sorry, this debt triage tool is not intended for people under 18.  
+  
+  If you are under 18, you should contact a debt advisor.  There are special protections for people under 18 years old.
+buttons:
+  - Exit: exit
+  - Restart: restart
+---
+id: non UK resident kickout
+event: nonUKresident_kickout
+question: | 
+  Since you do not live in the United Kingdom
+subquestion: |
+	Sorry, this debt triage tool is only intended for people who are residents of the United Kingdom.  Look for advice in your jurisdiction
+buttons:
+  - Exit: exit
+  - Restart: restart
+---
+id: non UK debt kickout
+event: nonUKdebt_kickout
+question: | 
+  Since your debt is not based in the United Kingdom 
+subquestion: |
+	Sorry, this debt triage tool is not intended for people whose debt is not based in the United Kingdom.  Look for advice in your jurisdiction
+buttons:
+  - Exit: exit
+  - Restart: restart
+---
+id: household information
+question:  |
+  What is your housing situation?
+section: personal_info
+fields: 
+  - Housing stauts: user.house_status
+    datatype: radio
+    choices: 
+      - Renting: Renting
+        help: | 
+          Information 
+      - Renting (social house): Renting, Social house
+        help: | 
+          Information 
+      - Mortgaged: Mortgaged
+        help: | 
+          Information 
+      - Owns property outright: Owns property outright
+        help: | 
+          Information 
+      - Joint tenants: Joint tenants
+        help: | 
+          Information 
+      - Joint Mortgage: Joint Mortgage 
+        help: | 
+          Information 
+      - Living with family: Living with family
+        help: | 
+          Information 
+      - Homeless: Homeless
+        help: | 
+          Information 
+      - Other: Other
+---
+id: follow up to joint tenants  
+section: personal_info
+question: | 
+  Who do you share with for renting?
+subquestion: | 
+  Explain the relationship. Specific names are not required. 
+  
+  If you have a joint tenancy, you are liable for the rent both jointly and individually. This means that one or all of you can be held responsible for the whole rent. 
+fields: 
+  - Joint tenancy explaination: user.house_status_rentshare
+    required: False
+    datatype: area
+    hint: |
+      E.g., Sharing with family, friends 
+---
+id: follow up shared mortgage
+section: personal_information 
+question: | 
+  Who do you share mortgage with?
+subquestion: | 
+  Explain the relationship. Specific names are not required. 
+fields: 
+  - Joint mortgage explaination: user.house_status_mortshare
+    datatype: area
+    hint: |
+      E.g., Sharing with partner, family
+---  
+id: more housing questions
+question: | 
+  Tell us more about your household and family 
+fields:    
+  - How many people are in your household, including yourself?: user.house_num
+    required: False
+    datatype: integer
+  - Are the people in your household aware of your debt situation?: user.house_aware
+    required: False
+    datatype: yesnoradio
+    help: |
+      Some of the debt solutions will need you to declare publicly and might affect your housing situation. 
+    
+  - Marriage Status: user.marriage
+    required: False
+    input type: dropdown
+    choices:
+      - Single 
+      - Married
+      - Divorced 
+      - Separated 
+      - Widowed
+  - Number of dependents : user.childrenNum
+    required: False
+    datatype: integer
+
+
+continue button field: followup_housing 
+---
+id: personal insolvency 
+question: | 
+  Are you going through a formal insolvency procedure right now?
+subquestion: | 
+  Select the insovlency procedure you are going through right now. 
+  
+  It is important to know whether you are currently in a formal insolvency procedure as some of the debt solutions may not be available to you. Bring this up with your debt specialist when you consult them. 
+field: another_debt_solution
+choices: 
+  - Debt Relief Order: Debt Relief Order 
+    help: |
+      A Debt Relief Order (DRO) are 12-month moratorium, during which time creditors cannot in force you to pay the debts included in the DRO.
+  - Bankruptcy: Bankruptcy
+    help: |
+      Bankruptcy info  
+  - Individual Voluntary Arrangement: Individual Voluntary Arrangement
+    help: |
+      This is a formal arrangement made between you and the creditor that creates a legally binding agreement. This agreement allows the client to defer payment of your debts and/or the creditors to accept less than 100 per cent of the debts. 
+  - Administration Order: Administration Order  
+    help: |
+      Administration Order  
+  - None: None 
+continue button field: current_insolvency    
+
+---
+id: homeowner code
+code:  |
+  is_homeowner = "Not Home Owner"
+  is_court_debt = "Dont have a Court Action"
+  if user.house_status == "Mortgaged" or  user.house_status == "Owns property outright":
+    is_homeowner = "Is a Homeowner"
+  for item in debt:
+    if item.urgency =="Court Action":
+      is_court_debt ="Have a Court Action"
+---
+id: debt information signpost
+section: debt_info
+decoration: wallet
+question: | 
+  Next, we will ask questions about your debt 
+subquestion: | 
+  ${ debt_information_signpost } 
+continue button field: debt_info_signpost 
+---
+id: set new object type to last item in debt parent list
+code: |
+	debt.new_object_type = debt_dict[debt_parent_list.last()]['class_name']
+	temp_type = debt_parent_list.last()
+---
+id: sets there_is_another for debt parent list
+code: |
+	if debt_type_input_method == "most common":
+	  if len(debt_parent_list.complete_elements()) > 1:
+		  debt_parent_list.there_is_another = False
+		else:
+		  debt_parent_list.there_is_another = True
+	if debt_type_input_method == "from all":
+	  if len(debt_parent_list.complete_elements()) > 1:
+			if not debt_parent_list.complete_elements().last() in debt_dict.keys():
+			  temp_other_name_exists = True
+			  temp_other_name = debt_parent_list.pop()
+			debt_parent_list.there_is_another = False
+		else:
+		  debt_parent_list.there_is_another = True
+	if debt_type_input_method == "navigate categories":
+		if not debt_parent_list.complete_elements().last() in debt_dict.keys():
+		  if debt_parent_list.complete_elements().last() == "Other":
+		    temp_other_name_exists = True
+			  temp_other_name = debt_parent_list.pop()
+			  debt_parent_list.there_is_another = False 
+			else:
+			  temp_sub_type_exists = True
+			  temp_sub_type = debt_parent_list.pop()
+				debt_parent_list.there_is_another = False
+		elif len(debt_dict[debt_parent_list.complete_elements().last()]['children']) == 0:
+		  debt_parent_list.there_is_another = False 
+		else:
+		  debt_parent_list.there_is_another = True
+---
+id: debt view selection
+question: | 
+  How do you want to find the debt type?
+subquestion: |
+fields:
+  - Pick how you view the debt types: debt_type_input_method
+    datatype: radio
+    choices:
+      - Sort by categories  : navigate categories
+      - Pick from most common debt types: most common
+      - Pick from the full list of debt types: from all
+    default: navigate categories
+---
+id: Selection of type of debt
+question: | 
+  Select the type of debt 
+subquestion: |
+#  % if len(debt.complete_elements()) > 0:
+#  ${ debt.complete_elements().table }
+#  % endif
+fields:
+  - Pick the type of debt from this drop-down list of most common debt types: debt_parent_list[i]
+    datatype: dropdown
+    choices:
+      - Credit card: Credit Card
+      - Behind on rent: Rent arrears
+      - Parking tickets: unpaid parking tickets - these are called Penalty Charge Notices or Parking Charge Notices
+    show if:
+      code: |
+      	debt_type_input_method == "most common"
+  - Pick the type of debt from all debt types: debt_parent_list[i]
+    datatype: combobox
+    code: |
+      debt_dict.keys()
+    show if:
+      code: |
+      	debt_type_input_method == "from all"
+  - Pick a subset of ${ debt_parent_list.complete_elements().last() }: debt_parent_list[i]
+    datatype: radio
+    code: |
+  		debt_dict[debt_parent_list.complete_elements().last()]['children'] + other_list
+    show if:
+      code: |
+      	debt_type_input_method == "navigate categories"
+---
+id: other list
+code: |
+  other_list = ["Other"]
+---
+id: adding debt to debt parent list automatically
+code: |
+  debt_parent_list[0] = "Debt"
+---
+id: tracks whether there should be other_name attribute
+code: |
+  temp_other_name_exists = False
+---
+id: tracks whether there should be sub_type attribute
+code: |
+  temp_sub_type_exists = False
+---
+id: sets the debt .type attribute to last in debt parent list 
+code: |
+  debt[i].type = temp_type
+  undefine('temp_type')
+---
+question: More debt information
+fields:
+	- Pick a subset of ${ debt_parent_list.complete_elements().last() }: temp_debt_parent
+    datatype: radio
+    code: |
+  		debt_dict[debt_parent_list.complete_elements().last()]['children'] + other_list
+reconsider: other_list
+---
+id: debt amount
+generic object: Debt
+question: | 
+  How much is owed on this ${ x.name.lower() } debt
+fields:
+  - Amount: x.value
+    required: False
+    datatype: currency 
+    min: 0
+    currency symbol: £
+---
+id: Debt complete order
+generic object: Debt
+code: |
+  x.type
+  x.value
+  x.creditor
+  x.name
+  if temp_other_name_exists:
+    x.other_name = temp_other_name
+  x.urgency
+  x.first_miss_date
+  x.notes
+  x.complete = True
+---
+id: .type for Debt
+generic object: Debt
+code: |
+  if temp_sub_type_exists:
+    x.name = temp_sub_type
+  else:
+    x.name = x.type
+  undefine('temp_sub_type_exists','temp_sub_type')
+---
+id: .name for LoansDebt
+generic object: LoansDebt
+code: |
+  x.name = x.creditor +" " + x.type
+---
+id: question to get you to first_miss_date for Debt
+generic object: Debt
+question: | 
+   Payment history
+fields:
+  - Are you behind on payments?: x.delinquent
+    datatype: yesnowide
+  - When did you first miss payment?: x.first_miss_date1
+    datatype: date
+    show if: x.delinquent
+---
+id: first_miss_date calculated and set as none if not appropriate
+generic object: Debt
+code: |
+  if x.delinquent:
+    x.first_miss_date = x.first_miss_date1
+  else:
+    x.first_miss_date = None
+---
+id: notes for Debt
+generic object: Debt
+code: |
+  if x.delinquent:
+    x.notes = "First missed payment date: " + format_date(x.first_miss_date)
+  else:
+    x.notes = ""
+---
+id: gets to urgency for Debt
+generic object: Debt
+question: | 
+  Has the creditor threatened to take immediate action against your fuel supply, property, or threatened you with imprisonment?
+subquestion: | 
+  This can considered an urgent situation. Check the box if any of these apply to this debt. 
+fields:
+  - The creditor threatened action: x.is_urgent
+    datatype: yesnowide
+  - Explain what happened : x.urgency_reason
+    show if:
+      variable: x.is_urgent
+      is: True
+---
+id: calculates .urgency from .urgency_reason if appropriate
+generic object: Debt
+code: |
+  if x.is_urgent:
+    x.urgency = x.urgency_reason
+  else:
+    x.urgency = "None"
+---
+id: .urgency for CreditCardDebt
+generic object: CreditCardDebt
+code: |
+  x.urgency = "None"
+---
+id: .urgency for PenaltyChargeDebt
+generic object: PenaltyChargeDebt
+code: |
+  x.urgency = "None"
+---
+id: gets to .urgency for RentDebt
+generic object: RentDebt
+question: Urgency of your Rent Debt
+fields:
+  - Has a possession order been granted against you?: x.possession_order
+    datatype: yesnowide
+  - Date the property will be repossessed: x.repossession_date
+    datatype: date
+    show if: x.possession_order
+---
+id: calculates .urgency for RentDebt
+generic object: RentDebt
+code: |
+  if x.possession_order:
+    if x.repossession_date.minus(days=3) < today():
+      x.urgency = "REPOSSESSION IN LESS THAN 3 DAYS"
+    else:
+      x.urgency = "Possession order has been granted, but reposessession not scheduled for at least 3 days"
+  else:
+    x.urgency = "None"
+---
+id: .urgency for CreditCardDebt
+generic object: CreditCardDebt
+code: |
+  x.urgency = "None"
+---
+id: debt summary  
+section: debt_info
+question: |
+  Description of debts entered so far
+  
+subquestion: |
+  ${ debt.table }
+  
+field: debt.there_is_anotherstep
+buttons:
+  - "Add another debt": True
+  - "Continue to next section": False
+---
+id: sets debt.there_is_another and undefines
+code: |
+  if debt.there_is_anotherstep:
+    undefine('debt.there_is_anotherstep','debt_parent_list','debt_type_input_method')
+    debt.there_is_another = True
+  else:
+    undefine('debt.there_is_anotherstep')
+    debt.there_is_another = False
+---
+id: debt type list   
+code:  |
+  debt_type_list = [
+    {"ConsumerDebt":"Debt from purchases, rent or services"},
+    {"LiabilityDebt":"Money you owe to others because of court order"},
+    {"LoansDebt":"Loans, including credit cards"},
+    {"PenaltiesDebt":"Fines and Penalties"},
+    {"TaxDebt":"Taxes"}
+    ]
+--- 
+id: priority debt type list
+code:  |
+  priority_debt_type_list = ['Rent arrears','Mortgage arrears','Council Tax', 'Energy bill arrears','Mobile phone arrears','TV license','Court Fine/ Penalty charge','Child maintenance/child support agency debts','Fine','HMRC tax debt','Universal credit advance']
+---
+id: table for debt list
+table: debt.table
+rows: debt
+columns: 
+  - Debt Type:  |
+      row_item.name
+  - Debt Amount:  |
+      currency(row_item.value)
+  - Notes: |
+      row_item.notes
+     
+edit:
+  - name
+  - value
+  - creditor
+  - is_urgent
+  - urgency
+  - delinquent
+  - possession_order
+  - first_miss_date
+  - notes
+minimum_number: 1
+---
+id: .notes for ConsumerDebt
+generic object: ConsumerDebt
+code: |
+   x.notes = "Creditor:" + x.creditor
+---
+id: .creditor for Debt
+generic object: Debt
+question: Creditor
+fields:
+ - Creditor: x.creditor
+---
+id: breathing space description
+section: standard_bs
+question:  |
+  Breathing space for Debt
+subquestion:  |
+  ${ standard_bs }
+continue button field: user_saw_standard_bs
+---
+id: mental health breathing space description
+section: mentalh_bs
+question:  |
+  Mental health Breathing space 
+subquestion:  |
+  ${ mentalh_bs }
+continue button field: user_saw_mentalh_bs
+---
+id: personal finance  signpost 
+section: 
+question: | 
+  Personal finance
+subquestion: | 
+  ${ personal_finance_signpost } 
+---
+id: type of income information selection
+question:  |
+  Do you have any of the following? 
+subquestion:   | 
+  Check all that apply 
+ 
+section: income
+fields:
+  - Employment income: jobs.there_are_any
+    datatype: yesnowide
+    help: | 
+      Pay from full-time and part-time work
+  - Other income: other_income.there_are_any
+    datatype: yesnowide
+    help: | 
+      Income not from employment can include regular maintenance or child support payments,disability benefits, investment income, contributions from household members, occupational or other pensions
+  - Assets: assets.there_are_any
+    datatype: yesnowide
+    help: | 
+      Assets **include** most items you own like cars, boats, buildings or land, or other items of value. Assets **do not** include household equipment like bedding; items you use for your job or buisness. 
+  - Expenses: expenses.want_to_collect
+    datatype: yesnowide
+    help: | 
+      List everything you spend your income on: housing, childcare, fuel, health costs, transport, furniture, hire purchase, fines, laundry, telephone, TV, broadband, toiletries, clothing, food, child support payments, self-employment costs and so on. 
+  - Do you want to start with the average amount spent on expenses?: use_default
+    datatype: yesnoradio
+    show if: expenses.want_to_collect
+---
+id: asks if there is another job
+question: Job Information Summary
+subquestion: |
+  Here is the job information you have entered so far:
+  
+  ${ jobs.table }
+  
+field: jobs.there_is_another
+buttons:
+  - "Add another income from a job": True
+  - "Continue to next section": False
+---
+id: jobs table
+table: jobs.table
+rows: jobs
+columns:
+  - Employer: |
+      row_item.employer
+  - Amount: |
+      currency(row_item.amount())
+     
+edit:
+  - is_hourly 
+minimum_number: 1
+
+---
+id: other income table
+table: other_income.table
+rows: other_income
+columns:
+  - Source of Income: |
+      row_item.type if defined('row_item.type') else ''
+  - Amount: |
+      currency(row_item.amount(), symbol=u'£')
+      
+      
+      
+edit:
+  - type 
+minimum_number: 1
+---
+id: assets table
+table: assets.table
+rows: assets
+columns:
+  - Type: |
+      row_item.type if defined('row_item.type') else ''
+  - Value: |
+      currency(row_item.amount(), symbol=u'£')
+      
+edit:
+  - type 
+minimum_number: 1
+---
+id: income from assets table
+table: income_assets.table
+rows: income_assets
+columns:
+  - Type: |
+      row_item.type if defined('row_item.type') else ''
+  - Amount: |
+      currency(row_item.amount())
+      
+minimum_number: 1
+---
+id: expenses table
+table: expenses.table
+rows: expenses
+columns:
+  - Type: |
+      row_item.type if defined('row_item.type') else ''
+  - Amount: |
+      currency(row_item.amount())
+      
+      
+edit:
+  - type 
+minimum_number: 1
+---
+id: job info collection
+question: |
+  Describe your ${ordinal(i)} job.
+section: income
+fields:
+  - Source of this income?: jobs[i].employer
+    help:  |
+      It can be your job earnings, benifits, pensions, student loans or any other form of income
+  - Is it an hourly job?: jobs[i].is_hourly
+    datatype: yesno
+  - Hourly rate: jobs[i].hourly_rate
+    datatype: currency
+    min: 0
+    currency symbol: £
+    show if: jobs[i].is_hourly
+  - Average hours worked per period: jobs[i].hours_per_period
+    datatype: integer
+    show if: jobs[i].is_hourly
+  - Amount: jobs[i].value 
+    datatype: currency
+    min: 0
+    currency symbol: £
+    show if:
+      variable: jobs[i].is_hourly
+      is: False
+  - 'Select period': jobs[i].period
+    datatype: number
+    code:  |
+     period_list() + [[4,"Per quarter"]]
+
+
+---
+id: other income info collection
+question: |
+  What income do you have that is not from a job?
+section: income
+fields:
+  - What type of income is it?: other_income[i].type
+    code: |
+      income_type_list()
+  - Amount: other_income[i].value 
+    datatype: currency
+    min: 0
+    currency symbol: £
+  - Over what time period: other_income[i].period
+    datatype: number
+    code: |
+      period_list()
+---
+id: other income summary
+question: Other income
+subquestion:
+  
+  ${ other_income.table }
+
+  Your total annual non-wage income is ${ currency(other_income.total()) }
+  
+  Your total monthly non-wage income is ${ currency(other_income.total(period_to_use=12)) }  
+  
+field: other_income.there_is_another
+buttons:
+  - "Add another income source": True
+  - "Continue to next section": False
+
+---
+id: asset info collection
+question: |
+  What assets do you have?
+section: income
+fields:
+  - What type of asset is it?: assets[i].type
+    code: |
+      asset_type_list()
+  - Asset name?:  assets[i].type
+    show if:
+      variable: assets[i].type
+      is: other
+    help:  |
+      Write down anything you think of as valuable, A new TV, laptop etc.
+  - Estimated Value: assets[i].value 
+    datatype: currency
+    min: 0
+    currency symbol: £
+  - Does this asset generate income?: assets[i].generates_income
+    datatype: yesnoradio
+  - Income generated by this asset: assets[i].income
+    datatype: currency
+    min: 0
+    currency symbol: £
+    show if: assets[i].generates_income
+  - Loan amount (if any): assets[i].amount_owed
+    required: False
+    datatype: currency
+    min: 0
+    currency symbol: £
+    show if: assets[i].generates_income
+  - Over what time period: assets[i].period
+    datatype: number
+    code: |
+      period_list()
+    show if: assets[i].generates_income
+  - Vehicle year:  assets[i].vehicle_year
+    required: False
+    show if:
+      variable: assets[i].type
+      is: vehicle
+  - Vehicle make:  assets[i].vehicle_make
+    required: False
+    show if:
+      variable: assets[i].type
+      is: vehicle
+  - Vehicle model:  assets[i].vehicle_model
+    required: False
+    show if:
+      variable: assets[i].type
+      is: vehicle
+reconsider:
+  - income_assets    
+
+---
+id: expense information collection
+question: |
+  What expenses do you have?
+section: expenditure
+fields:
+  - What type of expense is it?: expenses[i].type
+    code: |
+      expense_type_list()
+  - Expense amount: expenses[i].value 
+    datatype: currency
+    min: 0
+    currency symbol: £
+  - Over what time period: expenses[i].period
+    datatype: number
+    code: |
+      period_list()
+---
+id: expense deviation calculation
+code:  |
+  expense_advices =[]
+  for item in expenses:
+    if item.type in average_cost_living.keys():
+       spend_diff = item.value - average_cost_living[item.type] 
+       if spend_diff <0 and abs(spend_diff) >40:
+         expense_advices.append("You spend "+currency(item.value)+" on "+ item.type+ "  which is "+currency(abs(spend_diff))+" less than average expenditure " + currency(average_cost_living[item.type])+" per month.")
+       elif spend_diff >0 and abs(spend_diff) >40:
+         expense_advices.append("You spend "+currency(item.value)+" on "+ item.type+ "  which is "+currency(abs(spend_diff))+" more than average expenditure " + currency(average_cost_living[item.type])+" per month.")  
+---
+id: expenses single page 
+section: expenditure
+question: Expenses
+continue button field: expenses_values
+subquestion: |
+
+  ${ expenses[0].type }: [FIELD expenses[0].value] [FIELD expenses[0].period]
+  
+  Alcohol, tobacco & narcotics: [FIELD expenses[1].value] [FIELD expenses[1].period]
+  
+  ${ expenses[2].type }: [FIELD expenses[2].value] [FIELD expenses[2].period]
+  
+  ${ expenses[3].type }: [FIELD expenses[3].value] [FIELD expenses[3].period]
+  
+  ${ expenses[4].type }: [FIELD expenses[4].value] [FIELD expenses[4].period]
+  
+  ${ expenses[5].type }: [FIELD expenses[5].value] [FIELD expenses[5].period]
+  
+  ${ expenses[6].type }: [FIELD expenses[6].value] [FIELD expenses[6].period]
+  
+  ${ expenses[7].type }: [FIELD expenses[7].value] [FIELD expenses[7].period]
+  
+  ${ expenses[8].type }: [FIELD expenses[8].value] [FIELD expenses[8].period]
+  
+  ${ expenses[9].type }: [FIELD expenses[9].value] [FIELD expenses[9].period]
+  
+fields:
+  - ${ expenses[0].type }: expenses[0].value
+    datatype: currency
+    default: ${ expenses[0].default }
+  	show if: 
+  		code: |
+  			use_default
+    inline width: 2em
+  - ${ expenses[0].type }: expenses[0].value
+    datatype: currency
+    default: 0
+  	hide if: 
+  		code: |
+  			use_default
+    inline width: 2em
+  - For: expenses[0].period
+    datatype: number
+    inline width: 4em
+    default: 12
+    code: |
+      period_list()
+  - ${ expenses[1].type }: expenses[1].value
+    datatype: currency
+    default: ${ expenses[1].default }
+  	show if: 
+  		code: |
+  			use_default
+    inline width: 2em
+  - ${ expenses[1].type }: expenses[1].value
+    datatype: currency
+    default: 0
+  	hide if: 
+  		code: |
+  			use_default
+    inline width: 2em
+  - For: expenses[1].period
+    datatype: number
+    default: 12
+    code: |
+      period_list()
+  - ${ expenses[2].type }: expenses[2].value
+    datatype: currency
+    default: ${ expenses[2].default }
+  	show if: 
+  		code: |
+  			use_default
+    inline width: 2em
+  - ${ expenses[2].type }: expenses[2].value
+    datatype: currency
+    default: 0
+  	hide if: 
+  		code: |
+  			use_default
+    inline width: 2em
+  - ${ expenses[2].type }: expenses[2].value
+    datatype: currency
+    default: 0
+  	hide if: 
+  		code: |
+  			use_default
+    inline width: 2em
+  - For: expenses[2].period
+    datatype: number
+    code: |
+      period_list()
+    default: 12
+  - ${ expenses[3].type }: expenses[3].value
+    datatype: currency
+    default: ${ expenses[3].default }
+  	show if: 
+  		code: |
+  			use_default
+    inline width: 2em
+  - ${ expenses[3].type }: expenses[3].value
+    datatype: currency
+    default: 0
+  	hide if: 
+  		code: |
+  			use_default
+    inline width: 2em
+  - ${ expenses[3].type }: expenses[3].value
+    datatype: currency
+    default: 0
+  	hide if: 
+  		code: |
+  			use_default
+    inline width: 2em
+  - For: expenses[3].period
+    datatype: number
+    code: |
+      period_list()
+    default: 12
+  - ${ expenses[4].type }: expenses[4].value
+    datatype: currency
+    default: ${ expenses[4].default }
+  	show if: 
+  		code: |
+  			use_default
+    inline width: 2em
+  - ${ expenses[4].type }: expenses[4].value
+    datatype: currency
+    default: 0
+  	hide if: 
+  		code: |
+  			use_default
+    inline width: 2em
+  - ${ expenses[4].type }: expenses[4].value
+    datatype: currency
+    default: 0
+  	hide if: 
+  		code: |
+  			use_default
+    inline width: 2em
+  - For: expenses[4].period
+    datatype: number
+    code: |
+      period_list()
+    default: 12
+  - ${ expenses[5].type }: expenses[5].value
+    datatype: currency
+    default: ${ expenses[5].default }
+  	show if: 
+  		code: |
+  			use_default
+    inline width: 2em
+  - ${ expenses[5].type }: expenses[5].value
+    datatype: currency
+    default: 0
+  	hide if: 
+  		code: |
+  			use_default
+    inline width: 2em
+  - ${ expenses[5].type }: expenses[5].value
+    datatype: currency
+    default: 0
+  	hide if: 
+  		code: |
+  			use_default
+    inline width: 2em
+  - For: expenses[5].period
+    datatype: number
+    code: |
+      period_list()
+    default: 12
+  - ${ expenses[6].type }: expenses[6].value
+    datatype: currency
+    default: ${ expenses[6].default }
+  	show if: 
+  		code: |
+  			use_default
+    inline width: 2em
+  - ${ expenses[6].type }: expenses[6].value
+    datatype: currency
+    default: 0
+  	hide if: 
+  		code: |
+  			use_default
+    inline width: 2em
+  - ${ expenses[6].type }: expenses[6].value
+    datatype: currency
+    default: 0
+  	hide if: 
+  		code: |
+  			use_default
+    inline width: 2em
+  - For: expenses[6].period
+    datatype: number
+    code: |
+      period_list()
+    default: 12
+  - ${ expenses[7].type }: expenses[7].value
+    datatype: currency
+    default: ${ expenses[7].default }
+  	show if: 
+  		code: |
+  			use_default
+    inline width: 2em
+  - ${ expenses[7].type }: expenses[7].value
+    datatype: currency
+    default: 0
+  	hide if: 
+  		code: |
+  			use_default
+    inline width: 2em
+  - ${ expenses[7].type }: expenses[7].value
+    datatype: currency
+    default: 0
+  	hide if: 
+  		code: |
+  			use_default
+    inline width: 2em
+  - For: expenses[7].period
+    datatype: number
+    code: |
+      period_list()
+    default: 12    
+  - ${ expenses[8].type }: expenses[8].value
+    datatype: currency
+    default: ${ expenses[8].default }
+  	show if: 
+  		code: |
+  			use_default
+    inline width: 2em
+  - ${ expenses[8].type }: expenses[8].value
+    datatype: currency
+    default: 0
+  	hide if: 
+  		code: |
+  			use_default
+    inline width: 2em
+  - ${ expenses[8].type }: expenses[8].value
+    datatype: currency
+    default: 0
+  	hide if: 
+  	  code: |
+  	  	use_default
+    inline width: 2em
+  - For: expenses[8].period
+    datatype: number
+    code: |
+      period_list()
+    default: 12
+  - ${ expenses[9].type }: expenses[9].value
+    datatype: currency
+    default: ${ expenses[9].default }
+  	show if: 
+  		code: |
+  			use_default
+    inline width: 2em
+  - ${ expenses[9].type }: expenses[9].value
+    datatype: currency
+    default: 0
+  	hide if: 
+  		code: |
+  			use_default
+    inline width: 2em
+  - ${ expenses[9].type }: expenses[9].value
+    datatype: currency
+    default: 0
+  	hide if: 
+  		code: |
+  			use_default
+    inline width: 2em
+  - For: expenses[9].period
+    datatype: number
+    code: |
+      period_list()
+    default: 12
+  - note: |
+      
+  	
+---
+id: average cost of living
+code:  |
+  average_cost_living ={
+          "Food & Non-Alcoholic Drinks": 254.8,
+          "Alcoholic drink, tobacco &carcotics":51.6,
+          "Clothing & Footwear": 93.6,
+          "Fuel & Power":100,
+          "Rent": 210, 
+          "Utilities": 146,
+          "Health": 32.8,
+          "Transport": 326.4,
+          "Communication": 85.6,
+          "Hotels & Restaurants": 211.6,
+          }  
+---
+id: sets categories for expenses
+code: |
+  acl_loop_counter = 0
+  for type_key in average_cost_living.keys():
+    expenses[acl_loop_counter].type = type_key
+    expenses[acl_loop_counter].default = average_cost_living[type_key]
+    expenses[acl_loop_counter].exists = True
+    expenses[acl_loop_counter].exists = True
+    acl_loop_counter += 1
+  collect_expenses = "Enter your monthly expenses."
+---
+id: expenses gathered order
+code: |
+  if expenses.want_to_collect:
+    collect_expenses
+    expenses_values
+  expenses.gathered = True
+---
+
+id: income summary
+question: |
+  Summary of your Income
+subquestion: |
+  **Employment Income**
+  
+  ${ jobs.table }
+
+  Your total annual income from employment is ${ currency(jobs.total()) }
+  
+  Your total monthly income from employment is ${ currency(jobs.total(period_to_use=12)) }  
+
+  ${ jobs.add_action() }
+  
+  **Other Income**
+  
+  ${ other_income.table }
+
+  Your total annual non-wage income is ${ currency(other_income.total()) }
+  
+  Your total monthly non-wage income is ${ currency(other_income.total(period_to_use=12)) }  
+
+  ${ other_income.add_action() }
+  
+  **Income from Assets**
+  
+  ${ income_assets.table }
+  
+  This information can be edited on the next page with information about all of your assets.
+
+  Your total annual income from assets is ${ currency(income_assets.total()) }
+  
+  Your total monthly income from assets is ${ currency(income_assets.total(period_to_use=12)) }  
+
+  ${ assets.add_action() }
+  
+  **Total Income**
+  
+  Your total annual income is ${ currency((jobs.total() + other_income.total() + income_assets.total())) }
+  
+  Your total monthly income is ${ currency((jobs.total(period_to_use=12) + other_income.total(period_to_use=12) + income_assets.total(period_to_use=12))) }  
+  
+continue button field: income_summary
+---
+id: income from assets calculation
+code: |
+  loopcounter = 0
+  for asset in assets:
+    if asset.generates_income:
+      income_assets[loopcounter].type = asset.type
+      income_assets[loopcounter].value = asset.income
+      income_assets[loopcounter].period = asset.period
+      loopcounter =+ 1
+  income_assets.gathered = True
+depends on: 
+  - assets
+---
+id: assets summary
+question: |
+  Assets Information
+subquestion: |
+
+	Assets you have entered so far
+	
+  ${ assets.table }
+  
+  Your total assets value is:  ${ currency(assets.total()) }
+
+ 
+field: assets.there_is_another
+buttons:
+  - "Add another asset": True
+  - "Continue to next section": False
+---
+id: expenses summary 
+question: |
+  Expenses
+subquestion: |
+  ${ expenses.table }
+  
+  The types of expenses include ${ comma_and_list(expenses.types()) }
+  
+   Your total monthly expense is ${ currency(expenses.total(period_to_use=12)) }
+  
+  Your total annual expenses is ${ currency(expenses.total()) }
+  
+  
+  **Expenses Comparison**
+  
+  % for item in expense_advices:
+    ${item} 
+    
+  % endfor
+  
+ 
+field: expenses.there_is_another
+buttons:
+  - "Add another expense": True
+  - "Continue to next section": False
+reconsider:
+  - expense_advices
+---
+id: total summary
+section: summary
+question:  |
+ Here are the summary, you can review and edit 
+subquestion:  |
+  Your family size is **${user.house_num}**
+  
+  Your current house status is: **${user.house_status}**  
+  
+  You have **${currency(debt.total())}** debts in total, you have **${len(debt)}**  debts
+  
+  Your debts  **${is_court_debt}**.
+ 
+  Your monthly income is  **${ currency(jobs.total(period_to_use=12)) }**
+ 
+  Your total assets value is:  **${ currency(assets.total()) }**
+  
+  Your total expenses is **${ currency(expenses.total(period_to_use=12)) }** per month
+  
+  Your monthly disposable income **${currency(month_disposble_income, symbol=u'£')}**
+
+  ####### Revisit and edit your data by clicking on the menu at sections accordingly.
+  
+review:
+  - Update:
+     - month_disposble_income
+     - is_court_debt
+     - is_homeowner
+    button:  |
+        Update to see most recent data by clicking on:
+  
+continue button field: summary
+---
+id: monthly disposable income calculation
+code:  |
+  month_disposble_income = jobs.total(period_to_use=12) + other_income.total(period_to_use=12) + income_assets.total(period_to_use=12)- expenses.total(period_to_use=12)
+---
+id: preferences information collection
+question:  |
+  Preferences and choices
+subquestion: |
+  Some debt solutions will affect your credit rating, prohibit you from undertaking certain jobs and may have impacts on your home. You can move the scale below to indicate which outcomes are important to consider.
+  **click on question mark to see what each scale stands for.**
+  
+fields:
+  - Is your financial situation likely to change in the near future? : financial_change
+    datatype: range
+    min: 0
+    max: 10
+    help:  |
+      for instance, inheritance, promotion with job, move to new house etc. 0 means very unlikely, 10 means very possible change of situation.  
+  - How important is it to limit how much your credit will be affected?: credit_rating1
+    datatype: range
+    min: 0
+    max: 10
+    help:  |
+      When you apply for a loan or other type of credit, the credit provider will search your credit reference file to see how much of a risk it is to lend to you. The level of risk is known as your credit rating. It can be affected by your the debt solution. O means you don't mind an impact to your credit rating, 10 means you want to avoid an impact to your credit rating.. 
+  - How important is it to reduce the cost of the debt solution?: cost_debt 
+    datatype: range
+    min: 0
+    max: 10
+    help:  |
+      Some debt solution are significantly more expensive than others, from 90 pounds to 700 to few thousands. 0 means you don't mind how much the debt solution costs, 10 means you are very sensitive to the cost. 
+  - How important is it to keep your home?: home_owner_pri
+    datatype: range
+    min: 0
+    max: 10
+    help:  |
+      Some debt solution may force you to sell your house. 0 means you don't mind selling your house to pay back debt, 10 means you want to keep the house as much as possible. 
+  
+  - Do you mind dealing with creditors directly?: deal_creditor
+    datatype: range
+    min: 0
+    max: 10
+    help:  |
+      Some debt solution will deal with your creditors for you. 0 means you dont want to have to deal with a creditor, 10 means you don't mind to deal with creditors yourself. 
+      
+  
+---
+id: preferences translation to statements
+code:  |
+  if home_owner_pri<5:
+    home_will=" Don't mind to sell house"
+  else:
+    home_will=" Prefer to keep house"
+  
+  if cost_debt>5:
+    cost_will= "You wish to spend less on the debt solution"
+  else:
+    cost_will= " The cost of the debt solution is not an issue for you"
+  
+  if credit_rating1>5:
+    credit_will="You wish to find a solution without impacting your credit rating"
+  else:
+    credit_will="You don't mind if your credit rating is impacted"
+    
+  if financial_change>5:
+    change_will ="You are likely to change your financial or personal situation"
+  else:
+    change_will ="You are less likely to change your financial or personal situation"
+  
+  if deal_creditor<5:
+    change_creditor="You don't want to deal with creditors"
+  else:  
+    change_creditor="You don't mind to deal with creditors"
+  
+  
+---
+id: debt solutions summary
+section: debt_solutions_section
+event: debt_solutionss
+question: | 
+   Debt Solutions
+subquestion: |
+  ## You can consider the following solutions:
+  
+  **Debt Management Plan** [detail](${ url_action("Debt Management Plan") })
+  % for item in Available_solutions:
+  
+    
+  
+    **${item["name"]}** [detail](${ url_action(item["name"]) }),                            
+  % endfor
+
+  
+  
+  ## The following solutions are not ready for you:
+  
+  
+  % for item in not_available_solution:
+  
+    **${item["name"]}** because
+    ${item['reason']}
+    [detail](${ url_action("not "+item["name"]) }),
+  % endfor
+review:
+  - Re-evaluate:
+     - month_disposble_income
+     - is_court_debt
+     - is_homeowner
+    button:  |
+continue button field: user_saw_debt_solutions
+---
+id: bankruptcy relevant description
+section: debt_solutions_section
+event: Bankruptcy
+question:  |
+  What is Bankruptcy and if it is for you 
+subquestion:  |
+  ${ bankruptcy }
+continue button field: user_saw_intro
+---
+id: debt relief order relevant description
+section:  debt_solutions_section
+event: Debt Relief Order
+question:  |
+  What is Debt relief order and is it for you  
+subquestion:  |
+  ${ debt_relief_order }
+continue button field: user_saw_intro
+---
+id: administration order relevant description
+section:  debt_solutions_section
+event: Administration Order 
+question:  |
+  What is an administration order and is it for you?
+subquestion:  |
+  ${ administration_order }
+continue button field: user_saw_intro  
+---
+id: individual voluntary agreement relevant description
+section:  debt_solutions_section
+event: Individual Voluntary Arrangement 
+question:  |
+  What is Individual Voluntary Arrangement(IVA) and is it for you?
+subquestion:  |
+  ${ individual_voluntary_agreement }
+continue button field: user_saw_intro    
+---
+id: debt management plan relevant description
+section: debt_solutions_section
+event: Debt Management Plan
+question:  |
+  You can apply for Debt Management Plan
+subquestion:  |
+  ${ debt_management_plan }
+continue button field: user_saw_intro
+---
+terms:  
+  unsecured debts:  |
+    An unsecured debt is a debt for which the creditor does not have a security interest in collateral, and the creditor is therefore not entitled to take property from you to satisfy that debt without a judgment.
+    
+    Common types of unsecured debt are credit cards, medical bills, most personal loans, and student loans*. These debts help you do something (buy items, pay your doctor, get an education), but they are not backed by a specific asset.
+  secured debts:  |
+    A secured debt is a debt for which the creditor has a security interest in collateral, meaning the creditor has a right to take property to satisfy the debt.
+    
+---
+id: debt relief order not relevant description
+section:  debt_solutions_section
+event: not Debt Relief Order
+question:  |
+  You cant  apply for Debt relief Order  
+subquestion:  |
+  The following table shows comparison of DRO requirments and your personal situation, ther is one or more Criteria you dont meet. 
+  
+   |Requirment | Your situation|
+   |-----------|----------|
+   |less than £75 monthly disposible income | £${month_disposble_income}
+   | max £30,000 debt       |£${debt.total()}       |
+   | Not a homeowner       |${is_homeowner}      |
+   | Assets no more than £2000| £${assets.total()}|
+   | it's been at least 6 years since your last DRO | not know |
+   | Currently going through another formal insolvency procedure| ${another_debt_solution} |
+   
+   It is also important to give your information truthfully when you apply for a DRO. 
+  
+    
+    The following debts of yours is **included** in a DRO:
+      % for item in Dro_debt:
+        **${item}**
+      % endfor
+      
+      
+      
+  The following debts of yours is **not** included in a DRO:
+      % for item in Dro_debt_not:
+        **${item}**
+      % endfor
+continue button field: user_saw_intro
+---
+id: administration order not relevant description
+section:  debt_solutions_section
+event: not Administration Order
+question:  |
+  You cant apply for Administration Order
+subquestion:  |
+   The following table shows comparison of Administration Order requirments and your personal situation, but there is one or more Criteria you dont meet. 
+   
+   |Requirement | Your situation|
+   |-----------|----------|
+   |at least 2 debts | ${len(debt)} debt     |
+   | max £5,000 debt       |£${debt.total()}       |
+   | one of your debts is a county court or high court judgment       |${is_court_debt}      |
+   |you have a regular income with some spare income each month| £${month_disposble_income } disposable income|
+   | you don't want to have to deal with your creditors directly| ${change_creditor} |
+
+continue button field: user_saw_intro
+---
+id: debt solutions filtering
+code:  |
+  
+  Available_solutions=[]
+  not_available_solution=[]
+  total_assets= assets.total()
+ 
+  formal_solutions = [
+    {
+  "name": "Bankruptcy",
+  "cost": 680,
+  "min_amount":750,
+   "number":0,
+  "credit rating": "Strongly Affected",
+  "duration": "12 months",
+  "amount": 1000000000,
+  "income": 123000,
+  "assets": 1000000,
+  "home": "risk",
+  "homeowner": "Yes",
+  "reason":"none",
+  "court_case": "no"},
+  
+   {
+  'name': "Debt Relief Order",
+   "number":0,
+   "min_amount":0,
+  "cost": 90 ,
+  "credit rating": "affected",
+  "durtion" :"12 months",
+  "amount":30000,
+  "income":75,
+  "assets": 2000,
+  "home": "None",
+   "homeowner": "No",
+   "court_case": "no",
+  "reason":"none"},
+  
+    { 
+  'name': "Administration Order",
+  "cost": 0.1,
+  "min_amount":0,
+  "number":1,
+  "credit rating": "affected",
+  "durtion" :"36 months",
+  "amount":5000,
+  "income":100000,
+  "assets": 100000,
+  "home": "risk",
+   "homeowner": "Yes",
+  "reason":"none",
+  "court_case": "yes"},
+  
+    {
+  'name': "Individual Voluntary Arrangement",
+  "cost": 4000,
+  "min_amount":0,
+  "number":0,
+  "credit rating": "affected",
+  "durtion" :"5 years",
+  "amount":1000000,
+  "income":100000,
+  "assets": 100000,
+  "home": "safe",
+   "homeowner": "Yes",
+   "court_case": "no",
+  "reason":"none"}]
+  
+  for item in formal_solutions:
+    if item['amount']< debt.total():
+      not_available_solution.append(item)
+      
+      item["reason"] = "Your debt amount " + currency(debt.total()) + " exceeded maximum allowance "+ currency(item['amount'] )
+      
+    if debt.total() < item['min_amount']:
+      not_available_solution.append(item)
+      
+      item["reason"] = "Your debt amount " + currency(debt.total()) + " do not meet the minimum requirments "+ currency(item['min_amount'] )
+
+    elif item["homeowner"]=="No" and (user.house_status =="Mortgaged" or user.house_status =="Owns property outright"):
+      not_available_solution.append(item)
+      
+      item["reason"]= "You are a homeowner can not apply "+item["name"]
+      
+    elif month_disposble_income >= item['income']:
+      not_available_solution.append(item)
+      
+      item["reason"]="Your net monthly income " + currency(month_disposble_income) + " exceeded maximum allowance "+ currency(item['income'] )
+   
+    elif len(debt) <=item["number"]:
+      not_available_solution.append(item)
+      item["reason"]= "you need to have more than 1 debts, you currently have: "+ str(len(debt))+" debts"
+    
+    elif item['assets']<= total_assets:
+      not_available_solution.append(item)
+      item["reason"]= "you currently have assets worth "+currency(total_assets)+" which is more than what is required:  "+ currency(item['assets'])
+      
+    
+      
+ 
+  Available_solutions = [x for x in formal_solutions if x not in not_available_solution]
+---
+id: debt relief order relevant debts filtering
+code:  |
+  Dro_notcover_list=['TV license','Court Fine/ Penalty charge','Student Loans','Child maintenance/child support agency debts','Claims against you for damage or personal injury','Criminal fines']
+  Dro_debt_not=["None"]
+  Dro_debt=[]
+   
+  for item in debt:
+    if item.name in Dro_notcover_list:
+      Dro_debt_not.remove("None")
+      Dro_debt_not.append(item.name)
+    else:
+      Dro_debt.append(item.name)
+  
+ 
+---
+id: make pdf
+code: |
+  uploaded_file.make_ocr_pdf() 
+  ocr_finished = True
+---
+id: document upload
+question: |
+  Please Upload supporting files if any. 
+subquestion: |
+  I will convert it to a searchable PDF.
+fields:
+  - File: uploaded_file
+    datatype: files
+    required: False
+section: Income
+continue button field: documents_uploaded
+---
+id: signature collection
+question: |
+  Sign your name
+subquestion: |
+  By signing your name, you agree to
+  our terms and conditions.
+section: Signatures
+signature: your_signature
+continue button field: user_signed
+---
+id: collect variables before docx assembled
+code: |
+  total_annual_income
+  total_assets
+  total_expenses
+  predocx_variables = True
+---
+id: total income calculation
+code: |
+  total_annual_income = currency(jobs.total() + other_income.total() + income_assets.total())
+---
+id: format total assets as currency
+code: |
+  total_assets = currency(assets.total())
+---
+id: format total expenses as currency
+code: |
+  total_expenses = currency(expenses.total())
+---
+id: final document
+section: conclusion 
+event: letter_and_end
+question: |
+  Your documents are ready. Please print and file!
+buttons:
+  - Exit: exit
+  - Restart: restart
+attachment:
+  - name: Personal Debt Advisor
+    filename: Example_Doc
+    valid formats:
+      - docx
+      - pdf
+    docx template file: debt_report.docx
+---
+code: |
+	debt_dict = {
+		'Debt':
+			{
+			 'class_name': Debt,
+			 'label':"Debt",
+				'children':["Loans","Tax","Penalties","Liability","Consumer Debt"]
+			},
+		'Credit Card':
+			{
+			 'class_name': CreditCardDebt,
+			 'label':"Credit card",
+				'children':[]
+			},
+		'Rent arrears':
+			{
+			 'class_name': RentDebt,
+			 'label':"Behind on rent",
+				'children':[]
+			},
+		'TV license':
+			{
+			 'class_name': TVLicenseDebt,
+			 'label':"TV license",
+				'children':[]
+			},
+		'Unsecured loans':
+			{
+			 'class_name': UnsecuredLoansDebt,
+			 'label':"Unsecured loans",
+				'children':["Revolving credit", "Bank overdraft", "Personal loan", "Loan from family member or friend", "Hire purchase", "Payday loans", "other outstanding bills, for example solicitor's costs, invoices for building work and vets bills", "Bill of Sale", "Conditional sale agreement", "Credit sale agreement", "Interest-free credit", "Pawnbroker", "Regulated credit agreements"]
+			},
+		'unpaid parking tickets - these are called Penalty Charge Notices or Parking Charge Notices':
+			{
+			 'class_name': PenaltyChargeDebt,
+			 'label':"Parking tickets",
+				'children':[]
+			},
+		'Mortgage':
+			{
+			 'class_name': MortgageDebt,
+			 'label':"Mortgage",
+				'children':[]
+			},
+		'Revolving credit':
+			{
+			 'class_name': RevolvingCreditDebt,
+			 'label':"Revolving credit",
+				'children':["Credit Card", "store cards\Budget Account", "Charge Card", "Bank overdraft"]
+			},
+		'Secured loans':
+			{
+			 'class_name': SecuredLoansDebt,
+			 'label':"Secured loans",
+				'children':["Bill of Sale", "Regulated credit agreements", "Regulated mortgage contracts", "Unregulated Agreements"]
+			},
+		'Traffic penalties':
+			{
+			 'class_name': TrafficPenaltiesDebt,
+			 'label':"Traffic penalties",
+				'children':["unpaid parking tickets - these are called Penalty Charge Notices or Parking Charge Notices"]
+			},
+		'Loans':
+			{
+			 'class_name': LoansDebt,
+			 'label':"Loans and credit, including credit cards",
+				'children':["Secured loans", "Student Loans", "Loan from family member or friend", "Payday loans", "Revolving credit"]
+			},
+		'Tax':
+			{
+			 'class_name': TaxDebt,
+			 'label':"Taxes",
+				'children':["TV license", "Unpaid income tax, National Insurance or VAT", "Overpayment of benefits", "Non-domestic rates", "Council Tax"]
+			},
+		'Penalties':
+			{
+			 'class_name': PenaltiesDebt,
+			 'label':"Fines and penalties",
+				'children':["Fine", "unpaid parking tickets - these are called Penalty Charge Notices or Parking Charge Notices", "Traffic penalties", "debts from certain orders of the criminal courts, including confiscation orders and", " the criminal courts charge", "compensation/costs orders made under a criminal conviction", "Costs of enforcement, eg, bailliff charges."]
+			},
+		'Liability':
+			{
+			 'class_name': LiabilityDebt,
+			 'label':"Money",
+				'children':["Claims against you for damage or personal injury", "Child maintenance/child support agency debts", "debts incurred from fraud or fraudulent breach of trust", "debts from certain orders of the criminal courts, including confiscation orders and", "Payments ordered by a court as part of family proceedings", "Maintenance payments"]
+			},
+		'Consumer Debt':
+			{
+			 'class_name': ConsumerDebt,
+			 'label':"Bills for rent, utilities and other services",
+				'children':["Rent arrears", "Energy bill arrears", "Water arrears", "Mobile phone arrears", "Home Phone or broadband arrears", "Private parking charges"]
+			}
+		}
+---
