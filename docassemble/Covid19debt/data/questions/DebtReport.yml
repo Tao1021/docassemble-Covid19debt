@@ -121,7 +121,7 @@ sections:
   - finance_info: Your Finances
     subsections: 
     - income: Income
-    - expenditure: Expenditure
+    - expenditure: Expenses
     - summary: Summary 
   - breathing_space: Breathing Space
     subsections:
@@ -718,7 +718,7 @@ subquestion: |
   
 field: debt.there_is_anotherstep
 buttons:
-  - "Add another": True
+  - "Add another debt": True
   - "Continue to next section": False
 ---
 code: |
@@ -827,7 +827,7 @@ subquestion: |
   
 field: jobs.there_is_another
 buttons:
-  - "Add another": True
+  - "Add another income from a job": True
   - "Continue to next section": False
 ---
 id: jobs table
@@ -922,7 +922,7 @@ fields:
     show if:
       variable: jobs[i].is_hourly
       is: False
-  - '': jobs[i].period
+  - 'Select period': jobs[i].period
     datatype: number
     code:  |
      period_list() + [[4,"Per quarter"]]
@@ -957,7 +957,7 @@ subquestion:
   
 field: other_income.there_is_another
 buttons:
-  - "Add another": True
+  - "Add another income source": True
   - "Continue to next section": False
 
 ---
@@ -1045,6 +1045,7 @@ code:  |
          expense_advices.append("You spend "+currency(item.value)+" on "+ item.type+ "  which is "+currency(abs(spend_diff))+" more than average expenditure " + currency(average_cost_living[item.type])+" per month.")  
 ---
 id: expenses single page 
+section: expenditure
 question: Expenses
 continue button field: expenses_values
 subquestion: |
@@ -1424,7 +1425,7 @@ subquestion: |
  
 field: assets.there_is_another
 buttons:
-  - "Add another": True
+  - "Add another asset": True
   - "Continue to next section": False
 ---
 id: expenses summary 
@@ -1450,7 +1451,7 @@ subquestion: |
  
 field: expenses.there_is_another
 buttons:
-  - "Add another": True
+  - "Add another expense": True
   - "Continue to next section": False
 reconsider:
   - expense_advices
@@ -1798,7 +1799,7 @@ code:  |
     
     elif item['assets']<= total_assets:
       not_available_solution.append(item)
-      item["reason"]= "You currently have assets worth"+currency(total_assets)+" which is more than what is required:  "+ currency(item['assets'])
+      item["reason"]= "you currently have assets worth "+currency(total_assets)+" which is more than what is required:  "+ currency(item['assets'])
       
     
       
