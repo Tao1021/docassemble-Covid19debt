@@ -562,18 +562,21 @@ code:
   
   debt_parent_list_popped = True
 ---
-question: Method to select type of debt
+id: debt view selection
+question: | 
+  How do you want to find the debt type?
 subquestion: |
 fields:
-  - How do you want to find the debt type?: debt_type_input_method
+  - Pick how you view the debt types: debt_type_input_method
     datatype: radio
     choices:
-      - Navigate categories: navigate categories
-      - Pick from most common: most common
-      - Pick from all: from all
+      - Sort by categories  : navigate categories
+      - Pick from most common debt types: most common
+      - Pick from the full list of debt types: from all
     default: navigate categories
 ---
-question: Type of Debt Selection
+question: | 
+  Select the type of debt 
 subquestion: |
 #  % if len(debt.complete_elements()) > 0:
 #  ${ debt.complete_elements().table }
@@ -634,8 +637,10 @@ fields:
   		debt_dict[debt_parent_list.complete_elements().last()]['children'] + other_list
 reconsider: other_list
 ---
+id: debt amount
 generic object: Debt
-question: Amount of debt
+question: | 
+  How much is owed on this ${ debt[i].name.lower() } debt
 fields:
   - Amount: x.value
     required: False
@@ -684,14 +689,24 @@ code: |
   x.notes = "First missed payment date: " + format_date(x.first_miss_date)
 ---
 generic object: Debt
-question: Urgency
+question: | 
+  Has the creditor threatened to take immediate action against your fuel supply, property, or threatened you with imprisonment?
+subquestion: | 
+  This can considered an urgent situation. Check the box if any of these apply to this debt. 
 fields:
-#  - Is this debt urgent?: x.is_urgent
-#    datatype: yesnowide
-  - State reason: x.urgency
-#    show if:
-#      variable: x.is_urgent
-#      is: True
+  - The creditor threatened action: x.is_urgent
+    datatype: yesnowide
+  - Explain what happened : x.urgency_reason
+    show if:
+      variable: x.is_urgent
+      is: True
+---
+generic object: Debt
+code: |
+  if x.is_urgent:
+    x.urgency = x.urgency_reason
+  else:
+    x.urgency = "None"
 ---
 id: debt summary  
 section: debt_info
