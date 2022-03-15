@@ -671,27 +671,78 @@ code: |
 ---
 generic object: LoansDebt
 code: |
-  x.name = x.creditor + x.type
+  x.name = x.creditor +" " + x.type
 ---
 generic object: Debt
 question: First Missed Payment
 fields:
-  - When did you first miss payment?: x.first_miss_date
+  - Are you behind on payments?: x.delinquent
+    datatype: yesnowide
+  - When did you first miss payment?: x.first_miss_date1
     datatype: date
+    show if: x.delinquent
 ---
 generic object: Debt
 code: |
-  x.notes = "First missed payment date: " + format_date(x.first_miss_date)
+  if x.delinquent:
+    x.first_miss_date = x.first_miss_date1
+  else:
+    x.first_miss_date = None
+---
+generic object: Debt
+code: |
+  if x.delinquent:
+    x.notes = "First missed payment date: " + format_date(x.first_miss_date)
+  else:
+    x.notes = ""
 ---
 generic object: Debt
 question: Urgency
 fields:
-#  - Is this debt urgent?: x.is_urgent
-#    datatype: yesnowide
-  - State reason: x.urgency
-#    show if:
-#      variable: x.is_urgent
-#      is: True
+  - Is this debt urgent?: x.is_urgent
+    datatype: yesnowide
+  - State reason: x.urgency_reason
+    show if:
+      variable: x.is_urgent
+      is: True
+---
+generic object: Debt
+code: |
+  if x.is_urgent:
+    x.urgency = x.urgency_reason
+  else:
+    x.urgency = "None"
+---
+generic object: CreditCardDebt
+code: |
+  x.urgency = "None"
+---
+generic object: PenaltyChargeDebt
+code: |
+  x.urgency = "None"
+---
+generic object: RentDebt
+question: Urgency of your Rent Debt
+fields:
+  - Has a possession order been granted against you?: x.possession_order
+    datatype: yesnowide
+  - Date the property will be repossessed: x.repossession_date
+    datatype: date
+    show if: x.possession_order
+---
+generic object: RentDebt
+code: |
+  if x.possession_order:
+    if x.repossession_date.minus(days=3) < today():
+      x.urgency = "REPOSSESSION IN LESS THAN 3 DAYS"
+    else:
+      x.urgency = "Possession order has been granted, but reposessession not scheduled for at least 3 days"
+  else:
+    x.urgency = "None"
+---
+generic object: CreditCardDebt
+code: |
+  x.urgency = "None"
 ---
 id: debt summary  
 section: debt_info
