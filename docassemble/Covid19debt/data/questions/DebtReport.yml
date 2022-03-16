@@ -74,7 +74,6 @@ code: |
   user.name.last
   if user.dob.plus(years=18) > today():
     under18_kickout
-  user_contact_nformation
   if not user.uk:
     nonUKresident_kickout
   if not user.uk_debt:
@@ -97,16 +96,11 @@ code: |
     user.house_num
   else: 
     user.house_num = 1 
-    
-
-
-    
-    
-    
-    
-    
-    
   user.marriage
+  if user.house_status == 'Homeless': 
+    user_contact_information_homeless
+  else:
+    user_contact_information
   debt_info_signpost
   current_insolvency
   # user_identified_priority_debts
@@ -139,10 +133,6 @@ sections:
   - introduction: Introduction
   - preparation: Get Ready
   - personal_info: Your Information
-  - debt_types: Debt Type
-    subsections:
-    - priority_debts: Priority Debts
-    - non_priority: Non-priority Debts 
   - debt_info: Debt Information
   - finance_info: Your Finances
     subsections: 
@@ -320,12 +310,36 @@ fields:
     code: |
       countries_list()
     default: United Kingdom
-continue button field: user_contact_nformation 
+continue button field: user_contact_information 
+---
+id: user address homeless
+section: personal_info
+question: | 
+  What is your contact information? 
+fields: 
+  - Email address: user.email
+    required: False
+  - Phone number: user.phone
+    required: False
+  - Street address: user.address.address
+    required: False
+  - City: user.address.city
+    required: False
+  - Postal Code: user.address.zip
+    required: False
+  - Country: user.address.country
+    required: False
+    code: |
+      countries_list()
+    default: United Kingdom
+continue button field: user_contact_information_homeless 
 ---
 id: user work status 
 section: personal_info
 question: |
   What is your work situation?
+subquestion: | 
+  Check all that apply. 
 fields: 
   - Employment status: user.work
     datatype: checkboxes
@@ -372,6 +386,7 @@ question: |
   Since you do not live in the United Kingdom
 subquestion: |
 	Sorry, this debt triage tool is only intended for people who are residents of the United Kingdom.  Look for advice in your jurisdiction
+back button: True
 buttons:
   - Exit: exit
   - Restart: restart
@@ -382,6 +397,7 @@ question: |
   Since your debt is not based in the United Kingdom 
 subquestion: |
 	Sorry, this debt triage tool is not intended for people whose debt is not based in the United Kingdom.  Look for advice in your jurisdiction
+back button: True
 buttons:
   - Exit: exit
   - Restart: restart
@@ -407,6 +423,10 @@ fields:
         help: | 
           Information 
       - Other: Other
+  - Tell us about your housing status: user.house_status_other 
+    show if: 
+      variable: user.house_status
+      is: 'Other'
 ---
 id: renting follow up 1
 section: personal_info
@@ -486,7 +506,7 @@ yesno: share_housing
 id: follow up share household
 section: personal_info 
 question: | 
-  Tell us more about your home
+  Tell us more about the people you live with
 fields: 
   - How many people live in your home, including yourself?: user.house_num
     datatype: integer
