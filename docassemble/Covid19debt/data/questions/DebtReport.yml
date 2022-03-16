@@ -261,13 +261,21 @@ fields:
   - First Name: user.name.first
   - Last Name: user.name.last
   - Date of Birth: user.dob
-    datatype: date
+    datatype: BirthDate
   - Gender: user.gender
     required: False
     choices:
-      - Male
       - Female
-      - Other
+      - Male 
+      - Nonbinary 
+      - Prefer to write something else 
+      - Prefer not to say 
+      - Unknown
+  - Write your gender: user.gender_writein
+    required: false
+    show if: 
+      variable: user.gender
+      is: Prefer to write something else
 ---
 id: user address
 section: personal_info
@@ -302,10 +310,6 @@ fields:
 ##    show if:
 ##      variable: user.ifhealth
 ##      is: True   
-  - What is your occupation?: user.occup1
-    show if: user.work['Full time'] 
-  - What is your occupation?: user.occup2
-    show if: user.work['Part time'] 
 ---
 id: UK questions
 section: personal_info
