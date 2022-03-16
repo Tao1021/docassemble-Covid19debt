@@ -9,6 +9,12 @@ metadata:
       organization: Swansea University 
   revision_data: 2021-06-13
 ---
+default screen parts:
+  pre: |
+    % if get_config('debug'):
+    `id: ${ user_info().question_id }`  
+    % endif
+---
 modules:
   - docassemble.base.util
   - .income
@@ -270,8 +276,6 @@ question: |
 fields: 
   - Email address: user.email
   - Phone number: user.phone
-  - Flat: user.address.unit 
-    required: False
   - Street address: user.address.address
   - City: user.address.city
   - Postal Code: user.address.zip
@@ -287,7 +291,7 @@ question: |
   What is your employment situation?
 fields: 
   - Employment status: user.work
-    datatype: radio
+    datatype: checkboxes
     choices:
       - Full time 
       - Part time 
@@ -298,14 +302,10 @@ fields:
 ##    show if:
 ##      variable: user.ifhealth
 ##      is: True   
-  - What is your occupation? : user.occup1
-    show if:
-      variable: user.work
-      is: Full time 
+  - What is your occupation?: user.occup1
+    show if: user.work['Full time'] 
   - What is your occupation?: user.occup2
-    show if:
-      variable: user.work
-      is: Part time
+    show if: user.work['Part time'] 
 ---
 id: UK questions
 section: personal_info

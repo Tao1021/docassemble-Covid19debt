@@ -3,10 +3,10 @@ Having debt issues is stressful. We are here to help you organize information ab
 This tool will:  
 
 * Help you organize your debt information before you look for help
-* Create a document that details your debts to share with your debt advisor 
 * Encourage you to take actions to address your debts
-* Help you to understand your debt situation
-* Share some options that may be relevant to your personal situation 
+* Create a document that details your debts to share with a debt advisor 
+* Help you understand your debt situation
+* Share options that may be relevant to your personal situation 
   
 Our service is not an alternative to seeking for professional help. 
 
