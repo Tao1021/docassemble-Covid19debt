@@ -84,9 +84,11 @@ code: |
   #user_provided_personal_info
   user.house_status 
   if user.house_status == 'Renting': 
-    user.renting_status
+    if user.renting_status == 'Joint tenants': 
+      user.house_status_rentshare
   if user.house_status == 'Home owner': 
-    user.homeowner_status 
+    if user.homeowner_status == 'Joint Mortgage':
+      user.house_status_mortshare
   if user.house_status == 'Homeless': 
     share_housing = False
     user.house_num = 1 
@@ -95,6 +97,15 @@ code: |
     user.house_num
   else: 
     user.house_num = 1 
+    
+
+
+    
+    
+    
+    
+    
+    
   user.marriage
   debt_info_signpost
   current_insolvency
@@ -467,18 +478,20 @@ fields:
 id: more housing questions
 section: personal_info
 question: | 
-  Do you share your housing with anyone?
+  Do you live with anyone elese? 
+subquestion: | 
+  This includes roommates, family, or children 
 yesno: share_housing
 ---
 id: follow up share household
 section: personal_info 
 question: | 
-  Tell us more about your household
+  Tell us more about your home
 fields: 
-  - How many people are in your household, including yourself?: user.house_num
+  - How many people live in your home, including yourself?: user.house_num
     datatype: integer
     min: 1
-  - Are the people in your household aware of your debt situation?: user.house_aware
+  - Are the people in your home aware of your debt situation?: user.house_aware
     datatype: yesnoradio
     help: |
       Some of the debt solutions require you to declare publicly and might affect your housing situation. 
