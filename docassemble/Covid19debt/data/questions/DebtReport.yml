@@ -239,32 +239,13 @@ code: |
 
     
 ---
-id: priority debt code
+id: nonpriority debt code
 code: |
   for debt_item in debt:
     if not debt_item.name in priority_debt_type_list:
       nonpriority_debts.append(debt_item)
   nonpriority_debts.gathered = True  
     
----
-id: generic debt table
-generic object: DAList
-table: x.table
-rows: x
-columns: 
-  - Debt Type: |
-      row_item.name
-  - Debt Amount: |
-      row_item.amount
-  - Debt Creditor: |
-      row_item.creditor
-  - Debt Urgency: |
-      row_item.urgency
-  - Debt Liability: |
-      row_item.libility
-edit:
-  - name
-minimum_number: 1
 ---
 id: personal information block
 section: personal_info
@@ -289,9 +270,9 @@ question: |
 fields: 
   - Email address: user.email
   - Phone number: user.phone
-  - Street address: user.address.address
-  - Unit: user.address.unit 
+  - Flat: user.address.unit 
     required: False
+  - Street address: user.address.address
   - City: user.address.city
   - Postal Code: user.address.zip
   - Country: user.address.country
@@ -331,7 +312,7 @@ section: personal_info
 question: | 
   Tell us more 
 fields: 
-  - Are you a Welsh Resident?: user.uk
+  - Are you a full-time resident of Wales?: user.uk
     required: True
     datatype: yesnoradio
     help:  |
@@ -444,7 +425,7 @@ fields:
     required: False
     datatype: yesnoradio
     help: |
-      Some of the debt solutions will need you to declare publicly and might affect your housing situation. 
+      Some of the debt solutions require you to declare publicly and might affect your housing situation. 
     
   - Marriage Status: user.marriage
     required: False
@@ -468,7 +449,7 @@ question: |
 subquestion: | 
   Select the insovlency procedure you are going through right now. 
   
-  It is important to know whether you are currently in a formal insolvency procedure as some of the debt solutions may not be available to you. Bring this up with your debt specialist when you consult them. 
+  It is important to know whether you are currently in a formal insolvency procedure as some of the debt solutions may not be available to you. Bring this up with a debt specialist when you consult them. 
 field: another_debt_solution
 choices: 
   - Debt Relief Order: Debt Relief Order 
@@ -640,7 +621,7 @@ code: |
   x.notes
   x.complete = True
 ---
-id: .type for Debt
+id: .name for Debt
 generic object: Debt
 code: |
   if temp_sub_type_exists:
@@ -660,7 +641,8 @@ question: |
    Payment history
 fields:
   - Are you behind on payments?: x.delinquent
-    datatype: yesnowide
+    datatype: yesnoradio
+    default: True
   - When did you first miss payment?: x.first_miss_date1
     datatype: date
     show if: x.delinquent
@@ -689,7 +671,7 @@ subquestion: |
   This can considered an urgent situation. Check the box if any of these apply to this debt. 
 fields:
   - The creditor threatened action: x.is_urgent
-    datatype: yesnowide
+    datatype: yesnoradio
   - Explain what happened : x.urgency_reason
     show if:
       variable: x.is_urgent
@@ -718,7 +700,7 @@ generic object: RentDebt
 question: Urgency of your Rent Debt
 fields:
   - Has a possession order been granted against you?: x.possession_order
-    datatype: yesnowide
+    datatype: yesnoradio
   - Date the property will be repossessed: x.repossession_date
     datatype: date
     show if: x.possession_order
@@ -854,6 +836,7 @@ fields:
       Assets **include** most items you own like cars, boats, buildings or land, or other items of value. Assets **do not** include household equipment like bedding; items you use for your job or buisness. 
   - Expenses: expenses.want_to_collect
     datatype: yesnowide
+    default: True
     help: | 
       List everything you spend your income on: housing, childcare, fuel, health costs, transport, furniture, hire purchase, fines, laundry, telephone, TV, broadband, toiletries, clothing, food, child support payments, self-employment costs and so on. 
   - Do you want to start with the average amount spent on expenses?: use_default
@@ -878,7 +861,7 @@ rows: jobs
 columns:
   - Employer: |
       row_item.employer
-  - Amount: |
+  - Annual Amount: |
       currency(row_item.amount())
      
 edit:
@@ -954,9 +937,6 @@ fields:
     min: 0
     currency symbol: £
     show if: jobs[i].is_hourly
-  - Average hours worked per period: jobs[i].hours_per_period
-    datatype: integer
-    show if: jobs[i].is_hourly
   - Amount: jobs[i].value 
     datatype: currency
     min: 0
@@ -968,6 +948,9 @@ fields:
     datatype: number
     code:  |
      period_list() + [[4,"Per quarter"]]
+  - Average hours worked per period: jobs[i].hours_per_period
+    datatype: integer
+    show if: jobs[i].is_hourly
 
 
 ---
@@ -1506,7 +1489,7 @@ section: summary
 question:  |
  Here are the summary, you can review and edit 
 subquestion:  |
-  Your family size is **${user.house_num}**
+  Your household size is **${user.house_num}**
   
   Your current house status is: **${user.house_status}**  
   
