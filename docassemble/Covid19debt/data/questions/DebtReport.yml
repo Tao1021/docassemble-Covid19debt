@@ -1991,16 +1991,25 @@ code: |
   total_expenses = currency(expenses.total())
 ---
 id: final document
-section: conclusion 
+section: conclusions
+decoration: file-download
 event: letter_and_end
 question: |
-  Your documents are ready. Please print and file!
+  Your document is ready
+subquestion: | 
+  Please print and save for your for your records. 
+  
+ 
+   ${ debt_brief }
 buttons:
   - Exit: exit
   - Restart: restart
+---
+id: debt brief
 attachment:
   - name: Personal Debt Advisor
-    filename: Example_Doc
+    filename: Debt Brief 
+    variable name: debt_brief
     valid formats:
       - docx
       - pdf
