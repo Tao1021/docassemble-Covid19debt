@@ -82,13 +82,22 @@ code: |
   user.work
   user.uk_debt
   #user_provided_personal_info
-  if user.house_status == 'Joint tenants': 
-    user.house_status_rentshare
-  if user.house_status == 'Joint Mortgage':
-    user.house_status_mortshare
-  followup_housing
-  current_insolvency
+  user.house_status 
+  if user.house_status == 'Renting': 
+    user.renting_status
+  if user.house_status == 'Home owner': 
+    user.homeowner_status 
+  if user.house_status == 'Homeless': 
+    share_housing = False
+    user.house_num = 1 
+    user.house_aware = False
+  if share_housing == True: 
+    user.house_num
+  else: 
+    user.house_num = 1 
+  user.marriage
   debt_info_signpost
+  current_insolvency
   # user_identified_priority_debts
   # user_identified_nonpriority_debts
   debt_parent_list[0]
@@ -101,6 +110,7 @@ code: |
   expenses.total()
   # documents_uploaded
   summary
+  signpost_bs_solutions
   user_saw_standard_bs
   user_saw_mentalh_bs
   user_saw_debt_solutions
@@ -123,7 +133,6 @@ sections:
     - priority_debts: Priority Debts
     - non_priority: Non-priority Debts 
   - debt_info: Debt Information
-
   - finance_info: Your Finances
     subsections: 
     - income: Income
@@ -171,6 +180,9 @@ content file: personal_finance_signpost.md
 --- 
 template: personal_information_signpost
 content file: personal_information_signpost.md
+---
+template: bs_solutions_signpost
+content file: solutions_signpost.md
 ---
 #template: 
 #content file: 
@@ -224,6 +236,14 @@ subquestion: |
   ${ personal_information_signpost }
 
 continue button field: debt_signpost
+--- 
+id: breathing space and solutions signpost 
+section: breathing_space
+question: | 
+  Placeholder signpost 
+subquestion: | 
+  ${ bs_solutions_signpost } 
+continue button field: signpost_bs_solutions 
 ---
 id: debt signpost 
 section: finance_info
@@ -241,9 +261,7 @@ code: |
   for debt_item in debt:
     if debt_item.name in priority_debt_type_list:
       priority_debts.append(debt_item)
-  priority_debts.gathered = True
-
-    
+  priority_debts.gathered = True   
 ---
 id: nonpriority debt code
 code: |
@@ -290,13 +308,13 @@ fields:
   - Country: user.address.country
     code: |
       countries_list()
-
+    default: United Kingdom
 continue button field: user_contact_nformation 
 ---
 id: user work status 
 section: personal_info
 question: |
-  What is your employment situation?
+  What is your work situation?
 fields: 
   - Employment status: user.work
     datatype: checkboxes
@@ -357,10 +375,10 @@ buttons:
   - Exit: exit
   - Restart: restart
 ---
-id: household information
+id: housing situation
+section: personal_info
 question:  |
   What is your housing situation?
-section: personal_info
 fields: 
   - Housing stauts: user.house_status
     datatype: radio
@@ -368,19 +386,7 @@ fields:
       - Renting: Renting
         help: | 
           Information 
-      - Renting (social house): Renting, Social house
-        help: | 
-          Information 
-      - Mortgaged: Mortgaged
-        help: | 
-          Information 
-      - Owns property outright: Owns property outright
-        help: | 
-          Information 
-      - Joint tenants: Joint tenants
-        help: | 
-          Information 
-      - Joint Mortgage: Joint Mortgage 
+      - Home owner: Home owner
         help: | 
           Information 
       - Living with family: Living with family
@@ -390,6 +396,28 @@ fields:
         help: | 
           Information 
       - Other: Other
+---
+id: renting follow up 1
+section: personal_info
+question: | 
+  What is your renting situation? 
+fields: 
+  - Renting details: user.renting_status 
+    datatype: radio
+    choices: 
+    - Renting from a private landlord: Private Landlord
+      help: | 
+        Information 
+    - Social housing: Social house
+      help: | 
+        information 
+---
+id: renting follow up 2 
+section: personal_info 
+question: | 
+  Are you joint tenants 
+yesno: Joint tenants
+continue button field: renting_household
 ---
 id: follow up to joint tenants  
 section: personal_info
@@ -404,7 +432,25 @@ fields:
     required: False
     datatype: area
     hint: |
-      E.g., Sharing with family, friends 
+      E.g., Sharing with family, friends
+--- 
+id: mortgage follow up 
+section: personal_info
+question: | 
+  What kind of homeowner are you? 
+fields: 
+  - no label: user.homeowner_status 
+    datatype: radio
+    choices: 
+    - Mortgage : Mortgaged
+      help: | 
+        Information 
+    - Own property outright: Owns property outright
+      help: | 
+        Information 
+    - Joint Mortgage: Joint Mortgage 
+      help: | 
+        Information 
 ---
 id: follow up shared mortgage
 section: personal_information 
@@ -419,21 +465,32 @@ fields:
       E.g., Sharing with partner, family
 ---  
 id: more housing questions
+section: personal_info
 question: | 
-  Tell us more about your household and family 
-fields:    
+  Do you share your housing with anyone?
+yesno: share_housing
+---
+id: follow up share household
+section: personal_info 
+question: | 
+  Tell us more about your household
+fields: 
   - How many people are in your household, including yourself?: user.house_num
-    required: False
     datatype: integer
+    min: 1
   - Are the people in your household aware of your debt situation?: user.house_aware
-    required: False
     datatype: yesnoradio
     help: |
       Some of the debt solutions require you to declare publicly and might affect your housing situation. 
-    
+continue button field: followup_housing 
+---
+id: family 
+section: personal_info
+question: | 
+  Tell us about your family 
+fields: 
   - Marriage Status: user.marriage
-    required: False
-    input type: dropdown
+    input type: radio
     choices:
       - Single 
       - Married
@@ -441,13 +498,10 @@ fields:
       - Separated 
       - Widowed
   - Number of dependents : user.childrenNum
-    required: False
     datatype: integer
-
-
-continue button field: followup_housing 
 ---
 id: personal insolvency 
+section: debt_info
 question: | 
   Are you going through a formal insolvency procedure right now?
 subquestion: | 
@@ -1496,6 +1550,10 @@ subquestion:  |
   Your household size is **${user.house_num}**
   
   Your current house status is: **${user.house_status}**  
+  
+  Your marriage status is: ${ user.marriage} 
+  
+  You have ${ user.childrenNum } dependents. 
   
   You have **${currency(debt.total())}** debts in total, you have **${len(debt)}**  debts
   
