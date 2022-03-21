@@ -90,6 +90,8 @@ code: |
   if user.house_status == 'Home owner': 
     if user.homeowner_status == 'Joint Mortgage':
       user.house_status_mortshare
+  if user.house_status == 'Living with family':
+  	share_housing = True
   if user.house_status == 'Homeless': 
     share_housing = False
     user.house_num = 1 
@@ -741,10 +743,11 @@ fields:
       variable: x.is_urgent
       is: True
 ---
+sets: x.emergency_dict
 if: len(x.emergency_choices) < 1
 generic object: Debt
 code: |
-  x.emergency_dict = DADict.using(auto_gather=False,gathered=True)
+  x.initializeAttribute('emergency_dict', DADict.using(auto_gather=False,gathered=True))
 ---
 if: len(x.emergency_choices) == 1
 generic object: Debt
@@ -765,6 +768,10 @@ fields:
     datatype: checkboxes
     code: |
       x.emergency_choices
+---
+generic object: Debt
+code: |
+  x.emergency_choices = []
 ---
 generic object: BankOverdraft 
 code: |
