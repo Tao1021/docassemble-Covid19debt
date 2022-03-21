@@ -30,6 +30,8 @@ objects:
   - priority_debts: DAList.using(auto_gather=False)
   - nonpriority_debts: DAList.using(auto_gather=False)
   - debt_parent_list: DAList.using(there_are_any=True)
+  - debt_solutions: DADict.using(object_type=DAObject,complete_attribute = "complete")
+  - debt_solutions[i].match_dict: DADict.using(auto_gather=False)
 ---
 #id: enable welcome back screen
 #initial: True
@@ -88,6 +90,8 @@ code: |
   if user.house_status == 'Home owner': 
     if user.homeowner_status == 'Joint Mortgage':
       user.house_status_mortshare
+  if user.house_status == 'Living with family':
+  	share_housing = True
   if user.house_status == 'Homeless': 
     share_housing = False
     user.house_num = 1 
@@ -259,16 +263,12 @@ continue button field: finance_signpost
 ---
 id: priority debt code
 code: |
-  for debt_item in debt:
-    if debt_item.name in priority_debt_type_list:
-      priority_debts.append(debt_item)
+  priority_debts = debt.filter(priority=True)
   priority_debts.gathered = True   
 ---
 id: nonpriority debt code
 code: |
-  for debt_item in debt:
-    if not debt_item.name in priority_debt_type_list:
-      nonpriority_debts.append(debt_item)
+  nonpriority_debts = debt.filter(priority=False)
   nonpriority_debts.gathered = True  
     
 ---
@@ -562,11 +562,13 @@ continue button field: current_insolvency
 id: homeowner code
 code:  |
   is_homeowner = "Not Home Owner"
+  court_case = True
   is_court_debt = "Dont have a Court Action"
   if user.house_status == "Mortgaged" or  user.house_status == "Owns property outright":
     is_homeowner = "Is a Homeowner"
   for item in debt:
     if item.urgency =="Court Action":
+      court_case = False
       is_court_debt ="Have a Court Action"
 ---
 id: debt information signpost
@@ -585,46 +587,22 @@ code: |
 ---
 id: sets there_is_another for debt parent list
 code: |
-	if debt_type_input_method == "most common":
-	  if len(debt_parent_list.complete_elements()) > 1:
-		  debt_parent_list.there_is_another = False
-		else:
-		  debt_parent_list.there_is_another = True
-	if debt_type_input_method == "from all":
-	  if len(debt_parent_list.complete_elements()) > 1:
-			if not debt_parent_list.complete_elements().last() in debt_dict.keys():
-			  temp_other_name_exists = True
-			  temp_other_name = debt_parent_list.pop()
-			debt_parent_list.there_is_another = False
-		else:
-		  debt_parent_list.there_is_another = True
-	if debt_type_input_method == "navigate categories":
-		if not debt_parent_list.complete_elements().last() in debt_dict.keys():
-		  if debt_parent_list.complete_elements().last() == "Other":
-		    temp_other_name_exists = True
-			  temp_other_name = debt_parent_list.pop()
-			  debt_parent_list.there_is_another = False 
-			else:
-			  temp_sub_type_exists = True
-			  temp_sub_type = debt_parent_list.pop()
-				debt_parent_list.there_is_another = False
-		elif len(debt_dict[debt_parent_list.complete_elements().last()]['children']) == 0:
+	if not debt_parent_list.complete_elements().last() in debt_dict.keys():
+	  if debt_parent_list.complete_elements().last() == "Other":
+	    temp_other_name_exists = True
+		  temp_other_name = debt_parent_list.pop()
+		  debt_parent_list.there_is_another = False 
+		elif debt_parent_list.complete_elements().last() == "None":
+			debt_parent_list.pop()
 		  debt_parent_list.there_is_another = False 
 		else:
-		  debt_parent_list.there_is_another = True
----
-id: debt view selection
-question: | 
-  How do you want to find the debt type?
-subquestion: |
-fields:
-  - Pick how you view the debt types: debt_type_input_method
-    datatype: radio
-    choices:
-      - Sort by categories  : navigate categories
-      - Pick from most common debt types: most common
-      - Pick from the full list of debt types: from all
-    default: navigate categories
+		  temp_sub_type_exists = True
+		  temp_sub_type = debt_parent_list.pop()
+			debt_parent_list.there_is_another = False
+	elif len(debt_dict[debt_parent_list.complete_elements().last()]['more_specific']) == 0:
+	  debt_parent_list.there_is_another = False 
+	else:
+	  debt_parent_list.there_is_another = True
 ---
 id: Selection of type of debt
 question: | 
@@ -634,29 +612,32 @@ subquestion: |
 #  ${ debt.complete_elements().table }
 #  % endif
 fields:
-  - Pick the type of debt from this drop-down list of most common debt types: debt_parent_list[i]
-    datatype: dropdown
-    choices:
-      - Credit card: Credit Card
-      - Behind on rent: Rent arrears
-      - Parking tickets: unpaid parking tickets - these are called Penalty Charge Notices or Parking Charge Notices
-    show if:
-      code: |
-      	debt_type_input_method == "most common"
-  - Pick the type of debt from all debt types: debt_parent_list[i]
-    datatype: combobox
-    code: |
-      debt_dict.keys()
-    show if:
-      code: |
-      	debt_type_input_method == "from all"
-  - Pick a subset of ${ debt_parent_list.complete_elements().last() }: debt_parent_list[i]
+  - ${ debt_dict[debt_parent_list.complete_elements().last()]['more_specific_question'] }: debt_parent_list[i]
     datatype: radio
     code: |
-  		debt_dict[debt_parent_list.complete_elements().last()]['children'] + other_list
-    show if:
-      code: |
-      	debt_type_input_method == "navigate categories"
+  		debt_question_code
+reconsider:
+  - debt_question_code
+---
+code: |
+  debt_question_code = list()
+  for dbt in debt_dict[debt_parent_list.complete_elements().last()]['more_specific']:
+    tempdict = dict()
+    tempdict['label'] = debt_dict[dbt]['label']
+    tempdict['value'] = dbt
+    if 'help' in debt_dict[dbt].keys():
+      tempdict['help'] = debt_dict[dbt]['help']
+  	debt_question_code.append(tempdict)
+  if debt_parent_list.complete_elements().last() == "Child maintenance/child support agency debts":
+    tempdict = dict()
+    tempdict['label'] = "Child support"
+    tempdict['value'] = "None"
+  	debt_question_code.append(tempdict)
+  elif debt_parent_list.complete_elements().last() == "Consumer Debt":
+    tempdict = dict()
+    tempdict['label'] = "Other monthly bills"
+    tempdict['value'] = "None"
+  	debt_question_code.append(tempdict)
 ---
 id: other list
 code: |
@@ -679,18 +660,10 @@ code: |
   debt[i].type = temp_type
   undefine('temp_type')
 ---
-question: More debt information
-fields:
-	- Pick a subset of ${ debt_parent_list.complete_elements().last() }: temp_debt_parent
-    datatype: radio
-    code: |
-  		debt_dict[debt_parent_list.complete_elements().last()]['children'] + other_list
-reconsider: other_list
----
 id: debt amount
 generic object: Debt
 question: | 
-  How much is owed on this ${ x.name.lower() } debt
+  How much is owed on this ${ x.name.lower() } debt?
 fields:
   - Amount: x.value
     required: False
@@ -708,6 +681,8 @@ code: |
   if temp_other_name_exists:
     x.other_name = temp_other_name
   x.urgency
+  x.priority
+  x.court_action
   x.first_miss_date
   x.notes
   x.complete = True
@@ -768,11 +743,119 @@ fields:
       variable: x.is_urgent
       is: True
 ---
+sets: x.emergency_dict
+if: len(x.emergency_choices) < 1
+generic object: Debt
+code: |
+  x.initializeAttribute('emergency_dict', DADict.using(auto_gather=False,gathered=True))
+---
+if: len(x.emergency_choices) == 1
+generic object: Debt
+question: Emergency information about ${ x.name }
+subquestion: |
+  Are you at risk of ${ i }?
+fields:
+  - no label: x.emergency_dict[i]
+    datatype: yesnoradio
+---
+sets: x.emergency_dict
+generic object: Debt
+code: |
+  x.initializeAttribute('emergency_dict', DADict.using(auto_gather=False,gathered=True))
+  x.emergency_dict[x.emergency_choices[0]] = x.emergency_dict_temp
+---
+if: number_of_emergency_choices > 1
+generic object: Debt
+question: Emergency information about ${ x.name }
+subquestion: |
+  Are you at risk of any of the following?  Check any that apply.
+fields:
+  - no label: x.emergency_dict
+    datatype: checkboxes
+    code: |
+      x.emergency_choices
+---
+generic object: Debt
+code: |
+  if len(x.emergency_choices) > 1:
+    number_of_emergency_choices = len(x.emergency_choices)
+  elif len(x.emergency_choices) == 1:
+    x.initializeAttribute('emergency_dict', DADict.using(ask_number=True,target_number = 1))
+    number_of_emergency_choices = len(x.emergency_choices)
+  else:
+    x.initializeAttribute('emergency_dict', DADict.using(auto_gather=False,gathered=True))
+    number_of_emergency_choices = len(x.emergency_choices)
+---
+generic object: Debt
+code: |
+  x.emergency_dict.new_item_name = x.emergency_choices[0]
+  
+---
+generic object: Debt
+code: |
+  x.emergency_choices = []
+---
+generic object: BankOverdraft 
+code: |
+  x.emergency_choices = ["money being withdrawn from your account"]
+---
+generic object: RentDebt 
+code: |
+  x.emergency_choices = ["losing your home"]
+---
+generic object: EnergyBillArrears 
+code: |
+  x.emergency_choices = ["a fuel disconnection"]
+---
+generic object: TVLicenseDebt 
+code: |
+  x.emergency_choices = ["imprisonment"]
+---
+generic object: Fine 
+code: |
+  x.emergency_choices = ["your essential personal property being seized","imprisonment"]
+---
+generic object: ChildSupport 
+code: |
+  x.emergency_choices = ["your wages or bank account being garnished","your essential personal property being seized","a charging order","a third-party debt order","imprisonment","a suspension of your driving privileges","a suspension of your passport"]
+---
+generic object: IncomeTax 
+code: |
+  x.emergency_choices = ["imprisonment"]
+---
+generic object: HirePurchase 
+code: |
+  x.emergency_choices = ["your essential personal property being seized"]
+---
+generic object: NationalTax 
+code: |
+  x.emergency_choices = ["your essential personal property being seized"]
+---
+generic object: PaydayLoan 
+code: |
+  x.emergency_choices = ["money being withdrawn from your account"]
+---
+generic object: Maintenance 
+code: |
+  x.emergency_choices = ["your essential personal property being seized","imprisonment"]
+---
+generic object: NationalInsurance 
+code: |
+  x.emergency_choices = ["your entitlements affected"]
+---
+generic object: TrafficPenaltiesDebt 
+code: |
+  x.emergency_choices = ["your essential personal property being seized"]
+---
+generic object: CouncilTax 
+code: |
+  x.emergency_choices = ["your essential personal property being seized","a bankruptcy proceeding for taxes"]    
+---
 id: calculates .urgency from .urgency_reason if appropriate
 generic object: Debt
 code: |
-  if x.is_urgent:
-    x.urgency = x.urgency_reason
+  if len(x.emergency_dict.true_values()) > 0:
+    x.urgency = x.emergency_dict.true_values().comma_and_list()
   else:
     x.urgency = "None"
 ---
@@ -812,6 +895,174 @@ generic object: CreditCardDebt
 code: |
   x.urgency = "None"
 ---
+generic object: Debt
+question: Court Action
+fields:
+  - Is there a court action involving this debt?: x.court_action
+    datatype: yesnoradio
+---
+## PRIORITY SECTION
+generic object: LoansDebt
+code: |
+  x.priority = False
+---
+generic object: HirePurchase
+code: |
+	if x.delinquent and x.for_essential_services:
+		x.priority = True
+	else:
+		x.priority = False
+---
+generic object: MortgageDebt
+code: |
+	if x.delinquent and x.is_current_home:
+		x.priority = True
+	else:
+		x.priority = False
+---
+generic object: Pawnbroker
+code: |
+	if x.delinquent and x.for_essential_services:
+		x.priority = True
+	else:
+		x.priority = False
+---
+generic object: BankOverdraft
+code: |
+	if x.money_in_account:
+		x.priority = True
+	else:
+		x.priority = False
+---
+generic object: Fine
+code: |
+  x.priority = True
+---
+generic object: PenaltyChargeDebt
+code: |
+  x.priority = False
+---
+generic object: TrafficPenaltiesDebt
+code: |
+	if x.creditor == "Traffic Enforcement Centre":
+		x.priority = False
+	else:
+		x.creditor = True
+---
+generic object: TaxDebt
+code: |
+  x.priority = True
+---
+generic object: NonDomesticRates
+code: |
+	if x.court_action and x.risk_of_losing_essential_goods:
+		x.priority = True
+	else:
+		x.priority = False
+---
+generic object: ValueAddedTax
+code: |
+	if x.continue_trading:
+		x.priority = True
+	else:
+		x.priority = False
+---
+generic object: TaxCreditOverpayment
+code: |
+	if x.awarded_or_migrated_to_universal_credit:
+		x.priority = False
+	else:
+		x.priority = True
+---
+generic object: SocialFundLoan
+code: |
+  x.priority = False
+---
+generic object: ChildSupport
+code: |
+  x.priority = True
+---
+generic object: Maintenance
+code: |
+  x.priority = True
+---
+generic object: ShopliftingRecovery
+code: |
+  x.priority = False
+---
+generic object: CivilDamages
+code: |
+  x.priority = False
+---
+generic object: EnergyBillArrears
+code: |
+  x.priority = True
+---
+generic object: WaterArrears
+code: |
+  x.priority = False
+---
+generic object: PrivateParkingCharge
+code: |
+  x.priority = False
+---
+generic object: RentDebt
+code: |
+	if x.delinquent and x.is_current_home:
+		x.priority = True
+	else:
+		x.priority = False
+---
+generic object: ConsumerDebt
+code: |
+	if x.delinquent and x.for_essential_services:
+		x.priority = True
+	else:
+		x.priority = False
+---
+## PRIORITY QUESTIONS
+generic object: Debt
+question: More information about ${ x.name }
+fields:
+  - Is the debt for your current home?: x.is_current_home
+    datatype: yesnoradio
+---
+generic object: Debt
+question: More information about ${ x.name }
+fields:
+  - Is the debt needed to pay essential services?: x.for_essential_services
+    datatype: yesnoradio
+---
+generic object: Debt
+question: More information about ${ x.name }
+fields:
+  - Are you at risk of losing essential goods because of the enforcement of this debt?: x.risk_of_losing_essential_goods
+    datatype: yesnoradio
+---
+generic object: Debt
+question: More information about ${ x.name }
+fields:
+  - What date was the overpayment awarded?: x.date_of_award
+    datatype: date
+---
+generic object: Debt
+question: More information about ${ x.name }
+fields:
+  - Have you been awarded or migrated to universal credit?: x.awarded_or_migrated_to_universal_credit
+    datatype: yesnoradio
+---
+generic object: Debt
+question: More information about ${ x.name }
+fields:
+  - Has the business continued trading?: x.continue_trading
+    datatype: yesnoradio
+---
+generic object: Debt
+question: More information about ${ x.name }
+fields:
+  - Is there money in the account that the bank can take to pay the debt?: x.money_in_account
+    datatype: yesnoradio
+---
 id: debt summary  
 section: debt_info
 question: |
@@ -834,16 +1085,6 @@ code: |
     undefine('debt.there_is_anotherstep')
     debt.there_is_another = False
 ---
-id: debt type list   
-code:  |
-  debt_type_list = [
-    {"ConsumerDebt":"Debt from purchases, rent or services"},
-    {"LiabilityDebt":"Money you owe to others because of court order"},
-    {"LoansDebt":"Loans, including credit cards"},
-    {"PenaltiesDebt":"Fines and Penalties"},
-    {"TaxDebt":"Taxes"}
-    ]
---- 
 id: priority debt type list
 code:  |
   priority_debt_type_list = ['Rent arrears','Mortgage arrears','Council Tax', 'Energy bill arrears','Mobile phone arrears','TV license','Court Fine/ Penalty charge','Child maintenance/child support agency debts','Fine','HMRC tax debt','Universal credit advance']
@@ -930,9 +1171,6 @@ fields:
     default: True
     help: | 
       List everything you spend your income on: housing, childcare, fuel, health costs, transport, furniture, hire purchase, fines, laundry, telephone, TV, broadband, toiletries, clothing, food, child support payments, self-employment costs and so on. 
-  - Do you want to start with the average amount spent on expenses?: use_default
-    datatype: yesnoradio
-    show if: expenses.want_to_collect
 ---
 id: asks if there is another job
 question: Job Information Summary
@@ -1169,7 +1407,7 @@ subquestion: |
 
   ${ expenses[0].type }: [FIELD expenses[0].value] [FIELD expenses[0].period]
   
-  Alcohol, tobacco & narcotics: [FIELD expenses[1].value] [FIELD expenses[1].period]
+  ${ expenses[1].type }: [FIELD expenses[1].value] [FIELD expenses[1].period]
   
   ${ expenses[2].type }: [FIELD expenses[2].value] [FIELD expenses[2].period]
   
@@ -1187,20 +1425,16 @@ subquestion: |
   
   ${ expenses[9].type }: [FIELD expenses[9].value] [FIELD expenses[9].period]
   
+  ${ expenses[10].type }: [FIELD expenses[10].value] [FIELD expenses[10].period]
+  
+  ${ expenses[11].type }: [FIELD expenses[11].value] [FIELD expenses[11].period]
+  
+  ${ expenses[12].type }: [FIELD expenses[12].value] [FIELD expenses[12].period]
+  
 fields:
   - ${ expenses[0].type }: expenses[0].value
     datatype: currency
-    default: ${ expenses[0].default }
-  	show if: 
-  		code: |
-  			use_default
-    inline width: 2em
-  - ${ expenses[0].type }: expenses[0].value
-    datatype: currency
     default: 0
-  	hide if: 
-  		code: |
-  			use_default
     inline width: 2em
   - For: expenses[0].period
     datatype: number
@@ -1210,17 +1444,7 @@ fields:
       period_list()
   - ${ expenses[1].type }: expenses[1].value
     datatype: currency
-    default: ${ expenses[1].default }
-  	show if: 
-  		code: |
-  			use_default
-    inline width: 2em
-  - ${ expenses[1].type }: expenses[1].value
-    datatype: currency
     default: 0
-  	hide if: 
-  		code: |
-  			use_default
     inline width: 2em
   - For: expenses[1].period
     datatype: number
@@ -1229,24 +1453,7 @@ fields:
       period_list()
   - ${ expenses[2].type }: expenses[2].value
     datatype: currency
-    default: ${ expenses[2].default }
-  	show if: 
-  		code: |
-  			use_default
-    inline width: 2em
-  - ${ expenses[2].type }: expenses[2].value
-    datatype: currency
     default: 0
-  	hide if: 
-  		code: |
-  			use_default
-    inline width: 2em
-  - ${ expenses[2].type }: expenses[2].value
-    datatype: currency
-    default: 0
-  	hide if: 
-  		code: |
-  			use_default
     inline width: 2em
   - For: expenses[2].period
     datatype: number
@@ -1255,24 +1462,7 @@ fields:
     default: 12
   - ${ expenses[3].type }: expenses[3].value
     datatype: currency
-    default: ${ expenses[3].default }
-  	show if: 
-  		code: |
-  			use_default
-    inline width: 2em
-  - ${ expenses[3].type }: expenses[3].value
-    datatype: currency
     default: 0
-  	hide if: 
-  		code: |
-  			use_default
-    inline width: 2em
-  - ${ expenses[3].type }: expenses[3].value
-    datatype: currency
-    default: 0
-  	hide if: 
-  		code: |
-  			use_default
     inline width: 2em
   - For: expenses[3].period
     datatype: number
@@ -1281,24 +1471,7 @@ fields:
     default: 12
   - ${ expenses[4].type }: expenses[4].value
     datatype: currency
-    default: ${ expenses[4].default }
-  	show if: 
-  		code: |
-  			use_default
-    inline width: 2em
-  - ${ expenses[4].type }: expenses[4].value
-    datatype: currency
     default: 0
-  	hide if: 
-  		code: |
-  			use_default
-    inline width: 2em
-  - ${ expenses[4].type }: expenses[4].value
-    datatype: currency
-    default: 0
-  	hide if: 
-  		code: |
-  			use_default
     inline width: 2em
   - For: expenses[4].period
     datatype: number
@@ -1307,24 +1480,7 @@ fields:
     default: 12
   - ${ expenses[5].type }: expenses[5].value
     datatype: currency
-    default: ${ expenses[5].default }
-  	show if: 
-  		code: |
-  			use_default
-    inline width: 2em
-  - ${ expenses[5].type }: expenses[5].value
-    datatype: currency
     default: 0
-  	hide if: 
-  		code: |
-  			use_default
-    inline width: 2em
-  - ${ expenses[5].type }: expenses[5].value
-    datatype: currency
-    default: 0
-  	hide if: 
-  		code: |
-  			use_default
     inline width: 2em
   - For: expenses[5].period
     datatype: number
@@ -1333,24 +1489,7 @@ fields:
     default: 12
   - ${ expenses[6].type }: expenses[6].value
     datatype: currency
-    default: ${ expenses[6].default }
-  	show if: 
-  		code: |
-  			use_default
-    inline width: 2em
-  - ${ expenses[6].type }: expenses[6].value
-    datatype: currency
     default: 0
-  	hide if: 
-  		code: |
-  			use_default
-    inline width: 2em
-  - ${ expenses[6].type }: expenses[6].value
-    datatype: currency
-    default: 0
-  	hide if: 
-  		code: |
-  			use_default
     inline width: 2em
   - For: expenses[6].period
     datatype: number
@@ -1359,24 +1498,7 @@ fields:
     default: 12
   - ${ expenses[7].type }: expenses[7].value
     datatype: currency
-    default: ${ expenses[7].default }
-  	show if: 
-  		code: |
-  			use_default
-    inline width: 2em
-  - ${ expenses[7].type }: expenses[7].value
-    datatype: currency
     default: 0
-  	hide if: 
-  		code: |
-  			use_default
-    inline width: 2em
-  - ${ expenses[7].type }: expenses[7].value
-    datatype: currency
-    default: 0
-  	hide if: 
-  		code: |
-  			use_default
     inline width: 2em
   - For: expenses[7].period
     datatype: number
@@ -1385,24 +1507,7 @@ fields:
     default: 12    
   - ${ expenses[8].type }: expenses[8].value
     datatype: currency
-    default: ${ expenses[8].default }
-  	show if: 
-  		code: |
-  			use_default
-    inline width: 2em
-  - ${ expenses[8].type }: expenses[8].value
-    datatype: currency
     default: 0
-  	hide if: 
-  		code: |
-  			use_default
-    inline width: 2em
-  - ${ expenses[8].type }: expenses[8].value
-    datatype: currency
-    default: 0
-  	hide if: 
-  	  code: |
-  	  	use_default
     inline width: 2em
   - For: expenses[8].period
     datatype: number
@@ -1411,26 +1516,36 @@ fields:
     default: 12
   - ${ expenses[9].type }: expenses[9].value
     datatype: currency
-    default: ${ expenses[9].default }
-  	show if: 
-  		code: |
-  			use_default
-    inline width: 2em
-  - ${ expenses[9].type }: expenses[9].value
-    datatype: currency
     default: 0
-  	hide if: 
-  		code: |
-  			use_default
-    inline width: 2em
-  - ${ expenses[9].type }: expenses[9].value
-    datatype: currency
-    default: 0
-  	hide if: 
-  		code: |
-  			use_default
     inline width: 2em
   - For: expenses[9].period
+    datatype: number
+    code: |
+      period_list()
+    default: 12
+  - ${ expenses[10].type }: expenses[10].value
+    datatype: currency
+    default: 0
+    inline width: 2em
+  - For: expenses[10].period
+    datatype: number
+    code: |
+      period_list()
+    default: 12
+  - ${ expenses[11].type }: expenses[11].value
+    datatype: currency
+    default: 0
+    inline width: 2em
+  - For: expenses[11].period
+    datatype: number
+    code: |
+      period_list()
+    default: 12
+  - ${ expenses[12].type }: expenses[12].value
+    datatype: currency
+    default: 0
+    inline width: 2em
+  - For: expenses[12].period
     datatype: number
     code: |
       period_list()
@@ -1442,24 +1557,26 @@ fields:
 id: average cost of living
 code:  |
   average_cost_living ={
-          "Food & Non-Alcoholic Drinks": 254.8,
-          "Alcoholic drink, tobacco &carcotics":51.6,
-          "Clothing & Footwear": 93.6,
-          "Fuel & Power":100,
-          "Rent": 210, 
-          "Utilities": 146,
-          "Health": 32.8,
-          "Transport": 326.4,
-          "Communication": 85.6,
-          "Hotels & Restaurants": 211.6,
-          }  
+          "HOUSING":	"Costs include: • rent/mortgage repayments; • other secured loan repayments (there may be several); • council tax; • water charges; • ground rent; • service charges; • an amount for household repairs and maintenance, based on a full year’s expenditure if possible; • household insurance for both buildings and contents; • any insurance linked to a mortgage, if not already included in mortgage expenses.",
+          "CHILDCARE":"Full-time childcare may cost over £200 a week. Help with these costs may be available. See gov.uk/help-with-childcare-costs.",
+          "FUEL": "Fuel costs include charges for electricity, gas and other fuels. Take an annual cost and divide it into weekly or monthly figures. If payments to fuel suppliers include an amount for items other than fuel (eg, payment for a cooker), these should be deducted and only the fuel expenditure listed here.",
+          "FURNITURE AND BEDDING":"Costs should be separately itemised. This item may require research by the client or discussion with others with whom s/he lives.",
+          "HEALTH COSTS": "Costs include: • prescriptions; • dentistry; • optical charges. These are often high and you should check the client’s entitlement to reduced or free treatment, and free prescriptions.", 
+          "TRANSPORT": "Costs include: • public transport; • the cost of owning a car or motorbike. In this case, the amount spent on tax, insurance, repairs, MOT and petrol should be included. If a car is essential (eg, for travel to work), the cost of its hire purchase (but not any credit sale) agreement should be included, with a note to explain why the item is essential.",
+          "FINES": "Instalments payable on fines should be included. See Chapter 13 for ways of reducing these.",
+          "LAUNDRY AND DRY CLEANING": "Costs should be averaged over the previous couple of months.",
+          "TELEPHONE, TELEVISION AND BROADBAND": "These costs should be converted into weekly or monthly figures.",
+          "OTHER HOUSEHOLD ITEMS, TOILETRIES AND FOOD": "The adviser should ensure that the individual circumstances of the client dictate the amount allowed for these items. Other household items, toiletries and food include: • housekeeping; • cleaning materials; • meals outside the home, such as school lunches or canteen meals; • expenses incurred in children going to school or being given pocket money; • nappies and baby items.",
+          "CLOTHING AND SHOES":	"These are often bought seasonally and so costs must be estimated annually and divided. It is important to include all small items in this category.",
+          "GIFTS, CHARITABLE DONATIONS, AND RELIGIOUS AND CULTURAL ACTIVITIES":	"Costs include: • donations that are an essential part of a person’s membership of a religious community; • classes for children in religious institutions (particularly mosques). This is potentially a sensitive area. If a person is committed to such payments, they should be protected to ensure that debt does not further exclude individuals or families from community life and support.",
+          "OTHER COSTS":	"Other costs include: • maintenance/child support payments; • self-employment costs not taken into account when calculating the client’s net income; • spending for exceptional circumstances – eg, special diets or extra heating because of illness. Apparent ’luxury’ items need to be explained."}  
 ---
 id: sets categories for expenses
 code: |
   acl_loop_counter = 0
   for type_key in average_cost_living.keys():
     expenses[acl_loop_counter].type = type_key
-    expenses[acl_loop_counter].default = average_cost_living[type_key]
+    expenses[acl_loop_counter].HELP = average_cost_living[type_key]
     expenses[acl_loop_counter].exists = True
     expenses[acl_loop_counter].exists = True
     acl_loop_counter += 1
@@ -1700,7 +1817,7 @@ subquestion: |
   
     
   
-    **${item["name"]}** [detail](${ url_action(item["name"]) }),                            
+    **${item}** [detail](${ url_action(item) }),                            
   % endfor
 
   
@@ -1710,9 +1827,7 @@ subquestion: |
   
   % for item in not_available_solution:
   
-    **${item["name"]}** because
-    ${item['reason']}
-    [detail](${ url_action("not "+item["name"]) }),
+		**${item}** [detail](${ url_action("not "+item) }),
   % endfor
 review:
   - Re-evaluate:
@@ -1829,105 +1944,15 @@ continue button field: user_saw_intro
 ---
 id: debt solutions filtering
 code:  |
-  
-  Available_solutions=[]
-  not_available_solution=[]
-  total_assets= assets.total()
- 
-  formal_solutions = [
-    {
-  "name": "Bankruptcy",
-  "cost": 680,
-  "min_amount":750,
-   "number":0,
-  "credit rating": "Strongly Affected",
-  "duration": "12 months",
-  "amount": 1000000000,
-  "income": 123000,
-  "assets": 1000000,
-  "home": "risk",
-  "homeowner": "Yes",
-  "reason":"none",
-  "court_case": "no"},
-  
-   {
-  'name': "Debt Relief Order",
-   "number":0,
-   "min_amount":0,
-  "cost": 90 ,
-  "credit rating": "affected",
-  "durtion" :"12 months",
-  "amount":30000,
-  "income":75,
-  "assets": 2000,
-  "home": "None",
-   "homeowner": "No",
-   "court_case": "no",
-  "reason":"none"},
-  
-    { 
-  'name': "Administration Order",
-  "cost": 0.1,
-  "min_amount":0,
-  "number":1,
-  "credit rating": "affected",
-  "durtion" :"36 months",
-  "amount":5000,
-  "income":100000,
-  "assets": 100000,
-  "home": "risk",
-   "homeowner": "Yes",
-  "reason":"none",
-  "court_case": "yes"},
-  
-    {
-  'name': "Individual Voluntary Arrangement",
-  "cost": 4000,
-  "min_amount":0,
-  "number":0,
-  "credit rating": "affected",
-  "durtion" :"5 years",
-  "amount":1000000,
-  "income":100000,
-  "assets": 100000,
-  "home": "safe",
-   "homeowner": "Yes",
-   "court_case": "no",
-  "reason":"none"}]
-  
-  for item in formal_solutions:
-    if item['amount']< debt.total():
-      not_available_solution.append(item)
-      
-      item["reason"] = "Your debt amount " + currency(debt.total()) + " exceeded maximum allowance "+ currency(item['amount'] )
-      
-    if debt.total() < item['min_amount']:
-      not_available_solution.append(item)
-      
-      item["reason"] = "Your debt amount " + currency(debt.total()) + " do not meet the minimum requirments "+ currency(item['min_amount'] )
-
-    elif item["homeowner"]=="No" and (user.house_status =="Mortgaged" or user.house_status =="Owns property outright"):
-      not_available_solution.append(item)
-      
-      item["reason"]= "You are a homeowner can not apply "+item["name"]
-      
-    elif month_disposble_income >= item['income']:
-      not_available_solution.append(item)
-      
-      item["reason"]="Your net monthly income " + currency(month_disposble_income) + " exceeded maximum allowance "+ currency(item['income'] )
-   
-    elif len(debt) <=item["number"]:
-      not_available_solution.append(item)
-      item["reason"]= "you need to have more than 1 debts, you currently have: "+ str(len(debt))+" debts"
-    
-    elif item['assets']<= total_assets:
-      not_available_solution.append(item)
-      item["reason"]= "you currently have assets worth "+currency(total_assets)+" which is more than what is required:  "+ currency(item['assets'])
-      
-    
-      
- 
-  Available_solutions = [x for x in formal_solutions if x not in not_available_solution]
+  Available_solutions = debt_solutions.slice(lambda y: y.match_dict.all_false())
+---
+code: |
+  not_available_solution = debt_solutions.slice(lambda y: y.match_dict.any_true())
+---
+code: |
+  for req in debt_solutions[i]['requirements']:
+   debt_solutions[i].match_dict[req] = debt_solutions[i]['requirements'][req]['formula']
+  debt_solutions[i].match_dict.gathered = True
 ---
 id: debt relief order relevant debts filtering
 code:  |
@@ -2021,91 +2046,477 @@ code: |
 			{
 			 'class_name': Debt,
 			 'label':"Debt",
-				'children':["Loans","Tax","Penalties","Liability","Consumer Debt"]
+			 'more_specific_question':"What type of debt would you like to add?",
+				'more_specific':["Credit Card", "Student Loans", "Payday loans", "Mortgage", "Bank overdraft", "Loans", "Rent arrears", "Consumer Debt", "Tax", "Penalties", "Child maintenance/child support agency debts", "Liability"]
 			},
-		'Credit Card':
+		'Consumer Debt':
 			{
-			 'class_name': CreditCardDebt,
-			 'label':"Credit card",
-				'children':[]
-			},
-		'Rent arrears':
-			{
-			 'class_name': RentDebt,
-			 'label':"Behind on rent",
-				'children':[]
-			},
-		'TV license':
-			{
-			 'class_name': TVLicenseDebt,
-			 'label':"TV license",
-				'children':[]
-			},
-		'Unsecured loans':
-			{
-			 'class_name': UnsecuredLoansDebt,
-			 'label':"Unsecured loans",
-				'children':["Revolving credit", "Bank overdraft", "Personal loan", "Loan from family member or friend", "Hire purchase", "Payday loans", "other outstanding bills, for example solicitor's costs, invoices for building work and vets bills", "Bill of Sale", "Conditional sale agreement", "Credit sale agreement", "Interest-free credit", "Pawnbroker", "Regulated credit agreements"]
-			},
-		'unpaid parking tickets - these are called Penalty Charge Notices or Parking Charge Notices':
-			{
-			 'class_name': PenaltyChargeDebt,
-			 'label':"Parking tickets",
-				'children':[]
-			},
-		'Mortgage':
-			{
-			 'class_name': MortgageDebt,
-			 'label':"Mortgage",
-				'children':[]
-			},
-		'Revolving credit':
-			{
-			 'class_name': RevolvingCreditDebt,
-			 'label':"Revolving credit",
-				'children':["Credit Card", "store cards\Budget Account", "Charge Card", "Bank overdraft"]
-			},
-		'Secured loans':
-			{
-			 'class_name': SecuredLoansDebt,
-			 'label':"Secured loans",
-				'children':["Bill of Sale", "Regulated credit agreements", "Regulated mortgage contracts", "Unregulated Agreements"]
-			},
-		'Traffic penalties':
-			{
-			 'class_name': TrafficPenaltiesDebt,
-			 'label':"Traffic penalties",
-				'children':["unpaid parking tickets - these are called Penalty Charge Notices or Parking Charge Notices"]
-			},
-		'Loans':
-			{
-			 'class_name': LoansDebt,
-			 'label':"Loans and credit, including credit cards",
-				'children':["Secured loans", "Student Loans", "Loan from family member or friend", "Payday loans", "Revolving credit"]
+			 'class_name': ConsumerDebt,
+			 'label':"Other bills",
+			 'more_specific_question':"What kind of bills?",
+				'more_specific':["Water arrears", "Energy bill arrears", "Catalogue spending", "Private parking charges", "other outstanding bills, for example solicitors costs, invoices for building work and vets bills"]
 			},
 		'Tax':
 			{
 			 'class_name': TaxDebt,
 			 'label':"Taxes",
-				'children':["TV license", "Unpaid income tax, National Insurance or VAT", "Overpayment of benefits", "Non-domestic rates", "Council Tax"]
+			 'more_specific_question':"What kind of taxes?",
+				'more_specific':["Unpaid income tax, National Insurance or VAT", "TV license", "Non-domestic rates", "Council Tax", "Overpayment of benefits"]
+			},
+		'Overpayment of benefits':
+			{
+			 'class_name': OverpaymentOfBenefits,
+			 'label':"Overpayment of benefits",
+			 'more_specific_question':"What type of benefits were overpaid?",
+				'more_specific':["Universal credit advance", "Tax credit overpayments", "Social fund loan"]
 			},
 		'Penalties':
 			{
 			 'class_name': PenaltiesDebt,
 			 'label':"Fines and penalties",
-				'children':["Fine", "unpaid parking tickets - these are called Penalty Charge Notices or Parking Charge Notices", "Traffic penalties", "debts from certain orders of the criminal courts, including confiscation orders and", " the criminal courts charge", "compensation/costs orders made under a criminal conviction", "Costs of enforcement, eg, bailliff charges."]
+			 'more_specific_question':"What type of penalties?",
+				'more_specific':["Shoplifting recovery", "Fine", "unpaid parking tickets - these are called Penalty Charge Notices or Parking Charge Notices", "Traffic penalties"]
 			},
 		'Liability':
 			{
 			 'class_name': LiabilityDebt,
-			 'label':"Money",
-				'children':["Claims against you for damage or personal injury", "Child maintenance/child support agency debts", "debts incurred from fraud or fraudulent breach of trust", "debts from certain orders of the criminal courts, including confiscation orders and", "Payments ordered by a court as part of family proceedings", "Maintenance payments"]
+			 'label':"Lawsuits against you",
+			 'more_specific_question':"What kind of lawsuit?",
+				'more_specific':["Shoplifting recovery", "Claims against you for damage or personal injury"]
 			},
-		'Consumer Debt':
+		'Loans':
 			{
-			 'class_name': ConsumerDebt,
-			 'label':"Bills for rent, utilities and other services",
-				'children':["Rent arrears", "Energy bill arrears", "Water arrears", "Mobile phone arrears", "Home Phone or broadband arrears", "Private parking charges"]
-			}
+			 'class_name': LoansDebt,
+			 'label':"Other loans",
+			 'more_specific_question':"What kind of loan?",
+				'more_specific':["Loan from family member or friend", "store cards\Budget Account", "Charge Card", "Personal loan", "Hire purchase", "Bill of Sale", "Credit sale agreement", "Interest-free credit", "Pawnbroker", "Trading cheque or voucher"]
+			},
+		'Unpaid income tax, National Insurance or VAT':
+			{
+			 'class_name': NationalTax,
+			 'label':"Unpaid income tax, National Insurance or VAT",
+			 'more_specific_question':"Which kind of national tax?",
+				'more_specific':["HMRC tax debt", "National insurance contributions", "Value added tax"]
+			},
+		'Credit Card':
+			{
+			 'class_name': CreditCardDebt,
+			 'label':"Credit card",
+				'more_specific':[]
+			},
+		'Rent arrears':
+			{
+			 'class_name': RentDebt,
+			 'label':"Rent arrears",
+			 'help':"Rent is payable by tenants to landlords in exchange for the use of their property. A landlord may be either a private individual or a property company, or a public sector landlord, such as a local authority or housing association.",
+				'more_specific':[]
+			},
+		'Bank overdraft':
+			{
+			 'class_name': BankOverdraft,
+			 'label':"Bank overdraft",
+				'more_specific':[]
+			},
+		'Water arrears':
+			{
+			 'class_name': WaterArrears,
+			 'label':"Water arrears",
+			 'help':"Water companies charge for water, sewerage and environmental services on the basis of either a meter or the old rating system, which was abolished as the basis of a local tax in April 1990 in England and Wales. Under the rating system, every dwelling was given a rateable value. Each year, water companies set a ’rate in the pound’, which converts this rateable value into an annual charge. For example, a rate of 20p in the pound converts a rateable value of £300 to an amount of water rates payable of £60. If a water meter is installed, a client pays for the actual amount of water used. Charges are per cubic metre at a rate set by the water company. A standing charge is also payable. There may also be installation and inspection charges. Separate charges are levied for sewerage and environmental services. These charges are based either on the rateable value of the property or on the amount of water used as recorded by the meter.",
+				'more_specific':[]
+			},
+		'Loan from family member or friend':
+			{
+			 'class_name': InformalLoan,
+			 'label':"Loan from family member or friend",
+				'more_specific':[]
+			},
+		'Social fund loan':
+			{
+			 'class_name': SocialFundLoan,
+			 'label':"Social fund loan",
+				'more_specific':[]
+			},
+		'Universal credit advance':
+			{
+			 'class_name': UniversalCreditAdvance,
+			 'label':"Universal credit advance",
+				'more_specific':[]
+			},
+		'Energy bill arrears':
+			{
+			 'class_name': EnergyBillArrears,
+			 'label':"Energy bill arrears",
+			 'help':"Gas and electricity suppliers charge for their fuel in a number of ways. Pre-payment meters, quarterly accounts, direct debit and online schemes are common payment methods. Clients have a choice of supplier, although a supplier to whom arrears are owed can object to a transfer in certain circumstances. The industry is regulated by Ofgem. Suppliers are required to operate codes of practice on the payment of bills and disconnection, including guidance for customers who may have difficulty in paying. You should obtain copies of the codes of practice of your clients’ suppliers. Suppliers are required to take into account clients’ ‘ability to pay’ when recovering debts.",
+				'more_specific':[]
+			},
+		'Claims against you for damage or personal injury':
+			{
+			 'class_name': CivilDamages,
+			 'label':"Claims against you for damage or personal injury",
+				'more_specific':[]
+			},
+		'HMRC tax debt':
+			{
+			 'class_name': IncomeTax,
+			 'label':"HMRC tax debt",
+			 'help':"Most income above certain fixed limits is taxable. Employees are taxed by direct deduction from their income by their employer (the pay as you earn (PAYE) scheme). PAYE taxpayers rarely owe tax on their earned income unless mistakes have been made in the amounts deducted. Self-employed people receive their earnings before tax is deducted and are responsible for paying their own tax directly to HM Revenue and Customs (HMRC). Arrears are, therefore, more likely to occur with self-employment. See Chapter 16 for more information.",
+				'more_specific':[]
+			},
+		'TV license':
+			{
+			 'class_name': TVLicenseDebt,
+			 'label':"TV license",
+				'more_specific':[]
+			},
+		'Child maintenance/child support agency debts':
+			{
+			 'class_name': ChildSupport,
+			 'label':"Child support and maintenance",
+			 'help':"The term ‘child support’ is used here to describe child maintenance paid by parents under the statutory scheme run by the Child Maintenance Service, which is part of the DWP. Some clients may have historic arrears from a previous scheme run by the Child Support Agency. All Child Support Agency cases have now been closed and ongoing arrangements ended. Parents needing ongoing child support have been encouraged to make a ‘family-based arrangement’. If a family-based arrangement is not possible, they can apply to the Child Maintenance Service under the ‘2012 scheme’.",
+			 'more_specific_question':"Is the debt based on child support or spousal maintance?",
+				'more_specific':["Maintenance payments"]
+			},
+		'Fine':
+			{
+			 'class_name': Fine,
+			 'label':"Fine",
+				'more_specific':[]
+			},
+		'Catalogue spending':
+			{
+			 'class_name': CatalogueSpending,
+			 'label':"Catalogue spending",
+			 'help':"Mail order catalogues offer a way of buying goods by post and usually spread payment over a period of weeks by instalments. Payments are sometimes collected by an agent – often a friend or neighbour of the client. The arrangement is usually an ongoing one.",
+				'more_specific':[]
+			},
+		'Student Loans':
+			{
+			 'class_name': StudentLoans,
+			 'label':"Student Loans",
+				'more_specific':[]
+			},
+		'Personal loan':
+			{
+			 'class_name': PersonalLoan,
+			 'label':"Personal loan",
+			 'help':"A personal loan is a loan offered at a fixed or variable rate of interest over a set period.",
+				'more_specific':[]
+			},
+		'unpaid parking tickets - these are called Penalty Charge Notices or Parking Charge Notices':
+			{
+			 'class_name': PenaltyChargeDebt,
+			 'label':"Parking tickets",
+				'more_specific':[]
+			},
+		'Hire purchase':
+			{
+			 'class_name': HirePurchase,
+			 'label':"Hire purchase",
+			 'help':"A hire purchase agreement hires goods to the client for an agreed period. At the end of this period the client has the option to buy them (usually for a nominal amount). Hire purchase is predominantly used for motor vehicles and household goods. The creditor (who is the hirer) owns the goods, generally having bought them from the supplier who introduced the client to the hirer.",
+				'more_specific':[]
+			},
+		'Tax credit overpayments':
+			{
+			 'class_name': TaxCreditOverpayment,
+			 'label':"Tax credit overpayments",
+			 'help':"Child tax credit and working tax credit are means-tested tax credits administered by HM Revenue and Customs (HMRC). Overpayments of tax credits can arise, for example, if someone does not tell HMRC about a change in her/his circumstances, if s/he gives it incorrect infomation, or if her/his income falls or rises by more than £2,500 in the current year compared with the previous tax year. Some changes in circumstances must be reported immediately and are taken into account. However, changes in income do not have to be reported immediately and can be notified at the end of the tax year when the award is finalised. Clients faced with this choice may need specialist advice. For further information about tax credits, see Chapter 7 and CPAG’s Welfare Benefits and Tax Credits Handbook.1",
+				'more_specific':[]
+			},
+		'Payday loans':
+			{
+			 'class_name': PaydayLoan,
+			 'label':"Payday loans",
+				'more_specific':[]
+			},
+		'store cards\Budget Account':
+			{
+			 'class_name': BudgetAccount,
+			 'label':"store cards\Budget Account",
+			 'help':"A budget account is a type of revolving credit (see here) provided by shops. The client can spend up to an agreed credit limit and makes regular repayments.",
+				'more_specific':[]
+			},
+		'other outstanding bills, for example solicitors costs, invoices for building work and vets bills':
+			{
+			 'class_name': NonRegularBill,
+			 'label':"other outstanding bills, for example solicitor's costs, invoices for building work and vets bills",
+				'more_specific':[]
+			},
+		'Bill of Sale':
+			{
+			 'class_name': BillOfSale,
+			 'label':"Bill of Sale",
+				'more_specific':[]
+			},
+		'Charge Card':
+			{
+			 'class_name': ChargeCard,
+			 'label':"Charge Card",
+			 'help':"A charge card (eg, American Express) is not a credit card. Purchases are made and the amount is charged to the account, but the balance must be cleared in full at the end of each charging period (usually monthly).",
+				'more_specific':[]
+			},
+		'Credit sale agreement':
+			{
+			 'class_name': CreditSaleAgreement,
+			 'label':"Credit sale agreement",
+			 'help':"Goods bought on credit sale are owned immediately by the client. Regular payments are due in accordance with the agreement. The creditor is often the supplier of the goods and this type of credit is used extensively to sell furniture and cars.",
+				'more_specific':[]
+			},
+		'Interest-free credit':
+			{
+			 'class_name': InterestFreeCredit,
+			 'label':"Interest-free credit",
+			 'help':"This is a type of credit sale agreement in which money is loaned to buy goods without any interest being charged. It is usually offered by larger stores. Some agreements offer interest-free credit provided the total balance is paid off within a specified period and, thereafter, become ordinary credit sale agreements.",
+				'more_specific':[]
+			},
+		'Maintenance payments':
+			{
+			 'class_name': Maintenance,
+			 'label':"Spousal maintenance",
+			 'help':"Before April 1993, either the magistrates’ court or county court made orders to require a parent or ex-spouse to make maintenance payments to the other partner for her/himself and/or any children. From April 1993, child maintenance payment powers passed to the Child Support Agency (the predecessor of the Child Maintenance Service – see here). The only new court orders made after this date are for applications not covered by the child support scheme (eg, for additional maintenance) and for spousal maintenance. ",
+				'more_specific':[]
+			},
+		'Mortgage':
+			{
+			 'class_name': MortgageDebt,
+			 'label':"Mortgage",
+				'more_specific':[]
+			},
+		'National insurance contributions':
+			{
+			 'class_name': NationalInsurance,
+			 'label':"National insurance contributions",
+			 'help':"National insurance (NI) contributions are a compulsory tax on earnings and profits above certain levels (set annually).",
+				'more_specific':[]
+			},
+		'Non-domestic rates':
+			{
+			 'class_name': NonDomesticRates,
+			 'label':"Non-domestic rates",
+				'more_specific':[]
+			},
+		'Pawnbroker':
+			{
+			 'class_name': Pawnbroker,
+			 'label':"Pawnbroker",
+			 'help':"Money is lent against an article(s) (pawn) left with the pawnbroker as security – a pledge. The goods can only be reclaimed (redeemed) if the loan is repaid with interest. If the loan is not repaid, the pawnbroker can sell the goods.",
+				'more_specific':[]
+			},
+		'Private parking charges':
+			{
+			 'class_name': PrivateParkingCharge,
+			 'label':"Private parking charges",
+			 'help':"Many private landowners, including retail parks and supermarkets, allow customer parking on their land subject to terms and conditions, and impose charges on motorists who contravene these terms and conditions. Many landowners employ and authorise agents to manage parking and enforce terms and conditions on the land in question (known as ‘car park operators’). Since 1 October 2012, it has been illegal to clamp or remove a motor vehicle without lawful authority – eg, by the police, a government agency or local authority.1",
+				'more_specific':[]
+			},
+		'Revolving credit':
+			{
+			 'class_name': RevolvingCreditDebt,
+			 'label':"Revolving credit",
+			 'help':"Revolving credit is a type of personal borrowing in which the creditor agrees to a credit limit and the client can borrow up to that limit, provided s/he maintains certain agreed minimum payments. Revolving credit takes a number of different forms – eg, credit cards, budget accounts, catalogues and store cards (see under the individual headings for more information about each type of credit).",
+				'more_specific':[]
+			},
+		'Trading cheque or voucher':
+			{
+			 'class_name': TradingCheque,
+			 'label':"Trading cheque or voucher",
+			 'help':"Finance companies may supply a voucher or cheque to the client to be used at specified shops in exchange for goods. Repayments, which include a charge for the credit, are then made by instalments to the finance company. The shop is paid by the credit company.",
+				'more_specific':[]
+			},
+		'Traffic penalties':
+			{
+			 'class_name': TrafficPenaltiesDebt,
+			 'label':"Traffic penalties",
+			 'help':"A number of traffic penalties, particularly parking charges and certain other fixed penalty notices such as bus lane contraventions and the London congestion charge, are recovered by local authorities using the county court under Part 75 of the Civil Procedure Rules.",
+				'more_specific':[]
+			},
+		'Value added tax':
+			{
+			 'class_name': ValueAddedTax,
+			 'label':"Value added tax",
+			 'help':"Value added tax (VAT) is a tax charged by HMRC on most transactions of businesses with an annual taxable turnover of more than a certain limit, set annually. A business must be registered for VAT unless its turnover is below the limit.",
+				'more_specific':[]
+			},
+		'Council Tax':
+			{
+			 'class_name': CouncilTax,
+			 'label':"Council Tax",
+				'more_specific':[]
+			},
+		'Shoplifting recovery':
+			{
+			 'class_name': ShopliftingRecovery,
+			 'label':"Shoplifting recovery",
+			 'help':"Over the past few years, many people have been threatened with county court action by civil recovery agents for the recovery of losses allegedly incurred by retailers following allegations either of theft by employees or shoplifting by customers, in many cases involving goods of relatively low value. Although in some cases the person has been charged and prosecuted for a criminal offence, in many cases there has been no police involvement and, in most shoplifting cases, the goods have been recovered undamaged and able to be resold by the retailer.",
+				'more_specific':[]
+			},
 		}
 ---
+variable name: debt_solutions
+use objects: True
+data from code:
+  Bankruptcy:
+    cost: 680
+    credit rating: |
+      "Strongly Affected"
+    duration in months: 12
+    home: | 
+      "risk"
+    requirements:
+	    Minimum Amount:
+	      formula: |
+	        (debt.total() < 750)
+	      formula_value: 750
+	      sample_formula: |
+	        "(debt.total() < formula_value)"
+	      formula_field: |
+          "min_amount" 
+	  		reason: |
+	  			"Your debt amount " + currency(debt.total()) + " do not meet the minimum requirments "+ currency(750)
+#	  		sample_reason: |
+#	  			'"Your debt amount " + currency(debt.total()) + " do not meet the minimum requirments "+ currency(formula_value)'
+	  	Maximum Assets:
+	  		formula: |
+	  			1000000 <= assets.total()
+	  		formula_value: 1000000
+	  		sample_formula: |
+	  			"formula_value <= assets.total()"
+	  		formula_field: |
+          "assets"
+	  		reason: |
+	  			"you currently have assets worth "+currency(assets.total())+" which is more than what is required:  "+ currency(1000000)
+#	  		sample_reason: |
+#	  			'"you currently have assets worth "+currency(assets.total())+" which is more than what is required:  "+ currency(formula_value)'
+  Debt Relief Order:
+    cost: 90
+    credit rating: |
+      "affected"
+    duration in months: 12
+    home: |
+      "safe"
+    requirements:
+	    Maximum Income:
+	      formula: |
+	        month_disposble_income >= 75
+	      formula_value: 75
+	      sample_formula: |
+	        "month_disposble_income >= formula_value"
+	      formula_field: |
+          "income"
+	  		reason: |
+	  			"Your net monthly income " + currency(month_disposble_income) + " exceeded maximum allowance "+ currency(75)
+	  		sample_reason: |
+	  			'"Your net monthly income " + currency(month_disposble_income) + " exceeded maximum allowance "+ currency(formula_value)'
+	  	Maximum Assets:
+	  		formula: |
+	  			2000 <= assets.total()
+	  		formula_value: 2000
+	  		sample_formula: |
+	  			"formula_value <= assets.total()"
+	  		formula_field: |
+          "assets"
+	  		reason: |
+	  			"you currently have assets worth "+currency(assets.total())+" which is more than what is required:  "+ currency(2000)
+#	  		sample_reason: |
+#	  			'"you currently have assets worth "+currency(assets.total())+" which is more than what is required:  "+ currency(formula_value)'
+      Nonhomeowner:
+        formula: |
+          (user.house_status =="Mortgaged" or user.house_status =="Owns property outright")
+        formula_field: |
+            "homeowner"
+    		reason: |
+    			"Homeowners are not eligilbe for a Debt Relief Order"
+      Maximum Amount:
+        formula: |
+          30000 < debt.total()
+        formula_value: 30000
+        sample_formula: |
+          "formula_value < debt.total()"
+        formula_field: |
+          "amount"
+    		reason: |
+    			"Your debt amount " + currency(debt.total()) + " exceeded maximum allowance "+ currency(30000)
+#    		sample_reason: |
+#    			'"Your debt amount " + currency(debt.total()) + " exceeded maximum allowance "+ currency(formula_value )'
+  Administration Order:
+    cost: .1
+    credit rating: |
+      "affected"
+    duration in months: 36
+    home: |
+      "risk"
+    requirements:
+      Maximum Amount: 
+        formula: |
+          5000 < debt.total()
+        formula_value: 5000
+        sample_formula: |
+          "formula_value < debt.total()"
+        formula_field: |
+          "amount"
+    		reason: |
+    			"Your debt amount " + currency(debt.total()) + " exceeded maximum allowance "+ currency(5000)
+#    		sample_reason: |
+#    			'"Your debt amount " + currency(debt.total()) + " exceeded maximum allowance "+ currency(formula_value )'
+    	Minimum Number of Debts:
+    		formula: |
+    			len(debt) <=1
+    		formula_value: 1 
+    		sample_formula: |
+    			"len(debt) <=formula_value"
+    		formula_field: |
+          "number"
+    		reason: |
+    		  "you need to have more than 1 debts, you currently have: "+ str(len(debt))+" debts"
+    	Maximum Assets:
+    		formula: |
+    			100000<= assets.total()
+    		formula_value: 100000
+    		sample_formula: |
+    			"formula_value<= assets.total()"
+    		formula_field: |
+          "assets"
+    		reason: |
+    			"you currently have assets worth "+currency(assets.total())+" which is more than what is required:  "+ currency(100000)
+#    		sample_reason: |
+#    			'"you currently have assets worth "+currency(assets.total())+" which is more than what is required:  "+ currency(formula_value)'
+    	Court Case Required:
+    		formula: |
+    		  court_case
+    		formula_field: |
+          "court_case"
+    		reason: |
+    		  "An Administration Order is not applicable unless the debt is related to a court case."
+  Individual Voluntary Agreement:
+    cost: 4000
+    credit rating: |
+      "affected"
+    duration in months: 60
+    home: |
+      "safe"
+    requirements:
+      Maximum Amount:  
+        formula: |
+          1000000 < debt.total()
+        formula_value: 1000000
+        sample_formula: |
+          "formula_value < debt.total()"
+        formula_field: |
+          "amount"
+    		reason: |
+    			"Your debt amount " + currency(debt.total()) + " exceeded maximum allowance "+ currency(1000000 )
+#    		sample_reason: |
+#    			'"Your debt amount " + currency(debt.total()) + " exceeded maximum allowance "+ currency(formula_value )'
+    	Maximum Assets:
+    		formula: |
+    			100000<= assets.total()
+    		formula_value: 100000
+    		sample_formula: |
+    			"formula_value<= assets.total()"
+    		formula_field: |
+          "assets"
+    		reason: |
+    			"you currently have assets worth "+currency(assets.total())+" which is more than what is required:  "+ currency(100000)
+#    		sample_reason: |
+#    			'"you currently have assets worth "+currency(assets.total())+" which is more than what is required:  "+ currency(formula_value)'
+---
+
