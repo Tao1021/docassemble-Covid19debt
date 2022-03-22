@@ -99,14 +99,16 @@ code: |
   if share_housing == True: 
     user.house_num
   else: 
-    user.house_num = 1 
-  user.marriage
+    user.house_num = 1
   if user.house_status == 'Homeless': 
     user_contact_information_homeless
   else:
     user_contact_information
-  debt_info_signpost
+  user.marriage
+
   current_insolvency
+  debt_info_signpost
+  
   # user_identified_priority_debts
   # user_identified_nonpriority_debts
   debt_parent_list[0]
@@ -235,7 +237,7 @@ id: personal info signpost
 section: personal_info
 decoration: address-card
 question: | 
-  Tell us about yourself 
+  Personal information
 subquestion: | 
 
   ${ personal_information_signpost }
@@ -304,12 +306,12 @@ fields:
   - Email address: user.email
   - Phone number: user.phone
   - Street address: user.address.address
+    address autocomplete: True
   - City: user.address.city
+  - State: user.address.state
+    code: | 
+      states_list(country_code="gb")
   - Postal Code: user.address.zip
-  - Country: user.address.country
-    code: |
-      countries_list()
-    default: United Kingdom
 continue button field: user_contact_information 
 ---
 id: user address homeless
@@ -357,7 +359,7 @@ fields:
 id: UK questions
 section: personal_info
 question: | 
-  Tell us more 
+  Let's make sure you are in the right place
 fields: 
   - Are you a full-time resident of Wales?: user.uk
     required: True
@@ -534,7 +536,7 @@ fields:
     datatype: integer
 ---
 id: personal insolvency 
-section: debt_info
+section: personal_info
 question: | 
   Are you going through a formal insolvency procedure right now?
 subquestion: | 
@@ -548,14 +550,17 @@ choices:
       A Debt Relief Order (DRO) are 12-month moratorium, during which time creditors cannot in force you to pay the debts included in the DRO.
   - Bankruptcy: Bankruptcy
     help: |
-      Bankruptcy info  
+       Bankruptcy is a legal proceeding involving a person or business that is unable to repay their outstanding debts.
   - Individual Voluntary Arrangement: Individual Voluntary Arrangement
     help: |
-      This is a formal arrangement made between you and the creditor that creates a legally binding agreement. This agreement allows the client to defer payment of your debts and/or the creditors to accept less than 100 per cent of the debts. 
+      An Individual Voluntary Arrangement is a formal arrangement made between you and the creditor that creates a legally binding agreement. This agreement allows you to defer payment of your debts and/or the creditors to accept less than 100 per cent of the debts. 
   - Administration Order: Administration Order  
     help: |
-      Administration Order  
+       An administration order is a county court order that prevents individual creditors from taking enforcement action without permission from the court and  requires that all your debts be dealt with together. An administration order can include a composition under which you are required to pay less than 10 pence in the pound in satisfaction of your debts
   - None: None 
+terms:
+  formal insolvency procedure: | 
+    Someone is said to be ‘insolvent’ if s/he is unable to pay her/his debts as they fall due. There are four ways in which you can reach a formal arrangement with your creditors to resolve your financial problems. 
 continue button field: current_insolvency    
 
 ---
@@ -575,7 +580,7 @@ id: debt information signpost
 section: debt_info
 decoration: wallet
 question: | 
-  Next, we will ask questions about your debt 
+  Debt information
 subquestion: | 
   ${ debt_information_signpost } 
 continue button field: debt_info_signpost 
@@ -606,7 +611,7 @@ code: |
 ---
 id: Selection of type of debt
 question: | 
-  Select the type of debt 
+  What is the ${ ordinal(i) } debt you want to tell us about
 subquestion: |
 #  % if len(debt.complete_elements()) > 0:
 #  ${ debt.complete_elements().table }
