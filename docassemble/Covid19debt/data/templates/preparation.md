@@ -2,6 +2,7 @@
 
 Find debt contracts, emails, letters, and any written documents that may give you the following information:
 
+* The type of debt 
 * Amount of your debts
 * First missed payment date
 * The person or organization that you own debt to (Creditor) 
