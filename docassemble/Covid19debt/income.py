@@ -199,15 +199,7 @@ class LiabilityDebt(Debt):
 class LoansDebt(Debt):
 	def init(self, *pargs, **kwargs):
 		super(LoansDebt, self).init(*pargs, **kwargs)
-		
-class SecuredLoansDebt(LoansDebt):
-	def init(self, *pargs, **kwargs):
-		super(SecuredLoansDebt, self).init(*pargs, **kwargs)
 
-class UnsecuredLoansDebt(LoansDebt):
-	def init(self, *pargs, **kwargs):
-		super(UnsecuredLoansDebt, self).init(*pargs, **kwargs)
-		
 class PenaltiesDebt(Debt):
 	def init(self, *pargs, **kwargs):
 		super(PenaltiesDebt, self).init(*pargs, **kwargs)
@@ -224,25 +216,157 @@ class CreditCardDebt(RevolvingCreditDebt):
 	def init(self, *pargs, **kwargs):
 		super(CreditCardDebt, self).init(*pargs, **kwargs)
 
+class ChargeCard(RevolvingCreditDebt):
+	def init(self, *pargs, **kwargs):
+		super(ChargeCard, self).init(*pargs, **kwargs)
+
+class BankOverdraft(RevolvingCreditDebt):
+	def init(self, *pargs, **kwargs):
+		super(BankOverdraft, self).init(*pargs, **kwargs)
+
+class BudgetAccount(RevolvingCreditDebt):
+	def init(self, *pargs, **kwargs):
+		super(BudgetAccount, self).init(*pargs, **kwargs)
+
+class MortgageDebt(LoansDebt):
+	def init(self, *pargs, **kwargs):
+		super(MortgageDebt, self).init(*pargs, **kwargs)
+
+class PersonalLoan(LoansDebt):
+	def init(self, *pargs, **kwargs):
+		super(PersonalLoan, self).init(*pargs, **kwargs)
+
+class StudentLoans(LoansDebt):
+	def init(self, *pargs, **kwargs):
+		super(StudentLoans, self).init(*pargs, **kwargs)
+
+class InformalLoan(LoansDebt):
+	def init(self, *pargs, **kwargs):
+		super(InformalLoan, self).init(*pargs, **kwargs)
+
+class HirePurchase(LoansDebt):
+	def init(self, *pargs, **kwargs):
+		super(HirePurchase, self).init(*pargs, **kwargs)
+
+class PaydayLoan(LoansDebt):
+	def init(self, *pargs, **kwargs):
+		super(PaydayLoan, self).init(*pargs, **kwargs)
+
+class BillOfSale(LoansDebt):
+	def init(self, *pargs, **kwargs):
+		super(BillOfSale, self).init(*pargs, **kwargs)
+
+class Pawnbroker(LoansDebt):
+	def init(self, *pargs, **kwargs):
+		super(Pawnbroker, self).init(*pargs, **kwargs)
+
+class TradingCheque(LoansDebt):
+	def init(self, *pargs, **kwargs):
+		super(TradingCheque, self).init(*pargs, **kwargs)
+
+class CreditSaleAgreement(LoansDebt):
+	def init(self, *pargs, **kwargs):
+		super(CreditSaleAgreement, self).init(*pargs, **kwargs)
+
+class InterestFreeCredit(LoansDebt):
+	def init(self, *pargs, **kwargs):
+		super(InterestFreeCredit, self).init(*pargs, **kwargs)
+
+class CatalogueSpending(LoansDebt):
+	def init(self, *pargs, **kwargs):
+		super(CatalogueSpending, self).init(*pargs, **kwargs)
+
 class RentDebt(ConsumerDebt):
 	def init(self, *pargs, **kwargs):
 		super(RentDebt, self).init(*pargs, **kwargs)
+
+class EnergyBillArrears(ConsumerDebt):
+	def init(self, *pargs, **kwargs):
+		super(EnergyBillArrears, self).init(*pargs, **kwargs)
+
+class WaterArrears(ConsumerDebt):
+	def init(self, *pargs, **kwargs):
+		super(WaterArrears, self).init(*pargs, **kwargs)
+
+class NonRegularBill(ConsumerDebt):
+	def init(self, *pargs, **kwargs):
+		super(NonRegularBill, self).init(*pargs, **kwargs)
+
+class PrivateParkingCharge(ConsumerDebt):
+	def init(self, *pargs, **kwargs):
+		super(PrivateParkingCharge, self).init(*pargs, **kwargs)
 
 class TVLicenseDebt(TaxDebt):
 	def init(self, *pargs, **kwargs):
 		super(TVLicenseDebt, self).init(*pargs, **kwargs)
 
+class NationalTax(TaxDebt):
+	def init(self, *pargs, **kwargs):
+		super(NationalTax, self).init(*pargs, **kwargs)
+
+class IncomeTax(NationalTax):
+	def init(self, *pargs, **kwargs):
+		super(IncomeTax, self).init(*pargs, **kwargs)
+
+class NationalInsurance(NationalTax):
+	def init(self, *pargs, **kwargs):
+		super(NationalInsurance, self).init(*pargs, **kwargs)
+
+class ValueAddedTax(NationalTax):
+	def init(self, *pargs, **kwargs):
+		super(ValueAddedTax, self).init(*pargs, **kwargs)
+
+class NonDomesticRates(TaxDebt):
+	def init(self, *pargs, **kwargs):
+		super(NonDomesticRates, self).init(*pargs, **kwargs)
+
+class CouncilTax(TaxDebt):
+	def init(self, *pargs, **kwargs):
+		super(CouncilTax, self).init(*pargs, **kwargs)
+
+class OverpaymentOfBenefits(TaxDebt):
+	def init(self, *pargs, **kwargs):
+		super(OverpaymentOfBenefits, self).init(*pargs, **kwargs)
+
+class SocialFundLoan(OverpaymentOfBenefits):
+	def init(self, *pargs, **kwargs):
+		super(SocialFundLoan, self).init(*pargs, **kwargs)
+
+class UniversalCreditAdvance(OverpaymentOfBenefits):
+	def init(self, *pargs, **kwargs):
+		super(UniversalCreditAdvance, self).init(*pargs, **kwargs)
+
+class TaxCreditOverpayment(OverpaymentOfBenefits):
+	def init(self, *pargs, **kwargs):
+		super(TaxCreditOverpayment, self).init(*pargs, **kwargs)
+
+class Fine(PenaltiesDebt):
+	def init(self, *pargs, **kwargs):
+		super(Fine, self).init(*pargs, **kwargs)
+
 class PenaltyChargeDebt(PenaltiesDebt):
 	def init(self, *pargs, **kwargs):
 		super(PenaltyChargeDebt, self).init(*pargs, **kwargs)
 
-class MortgageDebt(SecuredLoansDebt):
-	def init(self, *pargs, **kwargs):
-		super(MortgageDebt, self).init(*pargs, **kwargs)
-
 class TrafficPenaltiesDebt(PenaltiesDebt):
 	def init(self, *pargs, **kwargs):
 		super(TrafficPenaltiesDebt, self).init(*pargs, **kwargs)
+
+class ChildSupport(LiabilityDebt):
+	def init(self, *pargs, **kwargs):
+		super(ChildSupport, self).init(*pargs, **kwargs)
+
+class CivilDamages(LiabilityDebt):
+	def init(self, *pargs, **kwargs):
+		super(CivilDamages, self).init(*pargs, **kwargs)
+
+class Maintenance(LiabilityDebt):
+	def init(self, *pargs, **kwargs):
+		super(Maintenance, self).init(*pargs, **kwargs)
+
+class ShopliftingRecovery(LiabilityDebt):
+	def init(self, *pargs, **kwargs):
+		super(ShopliftingRecovery, self).init(*pargs, **kwargs)
 		
 class Vehicle(SimpleValue):
 	"""Vehicles have a method year_make_model() """
