@@ -753,12 +753,18 @@ if: len(x.emergency_choices) == 1
 generic object: Debt
 question: Emergency information about ${ x.name }
 subquestion: |
-  Are you at risk of ${ x.emergency_choices[0] }
+  Are you at risk of ${ i }?
 fields:
-  - no label: x.emergency_dict[x.emergency_choices[0]]
+  - no label: x.emergency_dict[i]
     datatype: yesnoradio
 ---
-if: len(x.emergency_choices) > 1
+sets: x.emergency_dict
+generic object: Debt
+code: |
+  x.initializeAttribute('emergency_dict', DADict.using(auto_gather=False,gathered=True))
+  x.emergency_dict[x.emergency_choices[0]] = x.emergency_dict_temp
+---
+if: number_of_emergency_choices > 1
 generic object: Debt
 question: Emergency information about ${ x.name }
 subquestion: |
@@ -768,6 +774,22 @@ fields:
     datatype: checkboxes
     code: |
       x.emergency_choices
+---
+generic object: Debt
+code: |
+  if len(x.emergency_choices) > 1:
+    number_of_emergency_choices = len(x.emergency_choices)
+  elif len(x.emergency_choices) == 1:
+    x.initializeAttribute('emergency_dict', DADict.using(ask_number=True,target_number = 1))
+    number_of_emergency_choices = len(x.emergency_choices)
+  else:
+    x.initializeAttribute('emergency_dict', DADict.using(auto_gather=False,gathered=True))
+    number_of_emergency_choices = len(x.emergency_choices)
+---
+generic object: Debt
+code: |
+  x.emergency_dict.new_item_name = x.emergency_choices[0]
+  
 ---
 generic object: Debt
 code: |
