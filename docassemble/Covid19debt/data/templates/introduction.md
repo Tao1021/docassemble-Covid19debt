@@ -8,6 +8,6 @@ This tool will:
 * Help you understand your debt situation
 * Share options that may be relevant to your personal situation 
   
-Our service is not an alternative to seeking for professional help. 
+Our service is not an alternative to seeking for professional help. You must seek help from a debt advisor. 
 
  All your data is **confidential** and will not be stored or used elsewhere. We do not store identifying information such as a name, an identification number, or specific location data of an individual.
