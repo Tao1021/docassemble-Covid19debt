@@ -247,7 +247,7 @@ continue button field: debt_signpost
 id: breathing space and solutions signpost 
 section: breathing_space
 question: | 
-  Placeholder signpost 
+  Great job, ${ user.name.first } 
 subquestion: | 
   ${ bs_solutions_signpost } 
 continue button field: signpost_bs_solutions 
@@ -325,15 +325,15 @@ fields:
     required: False
   - Street address: user.address.address
     required: False
+    address autocomplete: True
   - City: user.address.city
     required: False
+  - State: user.address.state
+    required: False
+    code: | 
+      states_list(country_code="gb")
   - Postal Code: user.address.zip
     required: False
-  - Country: user.address.country
-    required: False
-    code: |
-      countries_list()
-    default: United Kingdom
 continue button field: user_contact_information_homeless 
 ---
 id: user work status 
@@ -359,7 +359,7 @@ fields:
 id: UK questions
 section: personal_info
 question: | 
-  Let's make sure you are in the right place
+  Let's make sure this is the right tool for you
 fields: 
   - Are you a full-time resident of Wales?: user.uk
     required: True
@@ -383,6 +383,7 @@ buttons:
   - Restart: restart
 ---
 id: non UK resident kickout
+decoration: hand
 event: nonUKresident_kickout
 question: | 
   Since you do not live in the United Kingdom
@@ -394,6 +395,7 @@ buttons:
   - Restart: restart
 ---
 id: non UK debt kickout
+decoration: hand
 event: nonUKdebt_kickout
 question: | 
   Since your debt is not based in the United Kingdom 
@@ -409,7 +411,7 @@ section: personal_info
 question:  |
   What is your housing situation?
 fields: 
-  - Housing stauts: user.house_status
+  - Housing: user.house_status
     datatype: radio
     choices: 
       - Renting: Renting
@@ -568,7 +570,7 @@ id: homeowner code
 code:  |
   is_homeowner = "Not Home Owner"
   court_case = True
-  is_court_debt = "Dont have a Court Action"
+  is_court_debt = "do not have a court action"
   if user.house_status == "Mortgaged" or  user.house_status == "Owns property outright":
     is_homeowner = "Is a Homeowner"
   for item in debt:
@@ -611,7 +613,11 @@ code: |
 ---
 id: Selection of type of debt
 question: | 
-  What is the ${ ordinal(i) } debt you want to tell us about
+  % if len(debt.complete_elements()) > 0:
+  What is the ${ ordinal(i) } debt you can tell us about
+  % else:
+  What is the first debt you can tell us about?
+  % endif
 subquestion: |
 #  % if len(debt.complete_elements()) > 0:
 #  ${ debt.complete_elements().table }
@@ -671,7 +677,6 @@ question: |
   How much is owed on this ${ x.name.lower() } debt?
 fields:
   - Amount: x.value
-    required: False
     datatype: currency 
     min: 0
     currency symbol: £
@@ -709,7 +714,7 @@ code: |
 id: question to get you to first_miss_date for Debt
 generic object: Debt
 question: | 
-   Payment history
+   Payment history for ${ x.name.lower() }
 fields:
   - Are you behind on payments?: x.delinquent
     datatype: yesnoradio
@@ -756,9 +761,9 @@ code: |
 ---
 if: len(x.emergency_choices) == 1
 generic object: Debt
-question: Emergency information about ${ x.name }
+question: Are you at risk of ${ i } for ${ x.name }?
 subquestion: |
-  Are you at risk of ${ i }?
+  
 fields:
   - no label: x.emergency_dict[i]
     datatype: yesnoradio
@@ -771,9 +776,10 @@ code: |
 ---
 if: number_of_emergency_choices > 1
 generic object: Debt
-question: Emergency information about ${ x.name }
+question: Are you at risk of any of the following relating to ${ x.name }? 
 subquestion: |
-  Are you at risk of any of the following?  Check any that apply.
+  Check all that apply
+  
 fields:
   - no label: x.emergency_dict
     datatype: checkboxes
@@ -876,9 +882,9 @@ code: |
 ---
 id: gets to .urgency for RentDebt
 generic object: RentDebt
-question: Urgency of your Rent Debt
+question: Has a possession order been granted against you?
 fields:
-  - Has a possession order been granted against you?: x.possession_order
+  - : x.possession_order
     datatype: yesnoradio
   - Date the property will be repossessed: x.repossession_date
     datatype: date
@@ -901,9 +907,9 @@ code: |
   x.urgency = "None"
 ---
 generic object: Debt
-question: Court Action
+question: Is there a court action involving this debt?
 fields:
-  - Is there a court action involving this debt?: x.court_action
+  - : x.court_action
     datatype: yesnoradio
 ---
 ## PRIORITY SECTION
@@ -1026,10 +1032,11 @@ code: |
 		x.priority = False
 ---
 ## PRIORITY QUESTIONS
+id: priority debt for home
 generic object: Debt
-question: More information about ${ x.name }
+question: Is the ${ x.name.lower() } for your current home?
 fields:
-  - Is the debt for your current home?: x.is_current_home
+  - Debt is for current home?: x.is_current_home
     datatype: yesnoradio
 ---
 generic object: Debt
@@ -1063,9 +1070,9 @@ fields:
     datatype: yesnoradio
 ---
 generic object: Debt
-question: More information about ${ x.name }
+question: Is there money in the account that the bank can take to pay the debt? 
 fields:
-  - Is there money in the account that the bank can take to pay the debt?: x.money_in_account
+  - : x.money_in_account
     datatype: yesnoradio
 ---
 id: debt summary  
@@ -1124,14 +1131,17 @@ code: |
 ---
 id: .creditor for Debt
 generic object: Debt
-question: Creditor
+question: | 
+  What is the name of the creditor for this debt?
+subquestion: | 
+  The credior is the person or company you owe money to. 
 fields:
- - Creditor: x.creditor
+ - Creditor name: x.creditor
 ---
 id: breathing space description
 section: standard_bs
 question:  |
-  Breathing space for Debt
+  Breathing space 
 subquestion:  |
   ${ standard_bs }
 continue button field: user_saw_standard_bs
@@ -1406,41 +1416,43 @@ code:  |
 ---
 id: expenses single page 
 section: expenditure
-question: Expenses
+question:  Enter your expenses for each cateogry 
 continue button field: expenses_values
 subquestion: |
 
-  ${ expenses[0].type }: [FIELD expenses[0].value] [FIELD expenses[0].period]
+  ${ expenses[0].type.capitalize()}: [FIELD expenses[0].value] [FIELD expenses[0].period]
   
-  ${ expenses[1].type }: [FIELD expenses[1].value] [FIELD expenses[1].period]
+  ${ expenses[1].type.capitalize() }: [FIELD expenses[1].value] [FIELD expenses[1].period]
   
-  ${ expenses[2].type }: [FIELD expenses[2].value] [FIELD expenses[2].period]
+  ${ expenses[2].type.capitalize()}: [FIELD expenses[2].value] [FIELD expenses[2].period]
   
-  ${ expenses[3].type }: [FIELD expenses[3].value] [FIELD expenses[3].period]
+  ${ expenses[3].type.capitalize() }: [FIELD expenses[3].value] [FIELD expenses[3].period]
   
-  ${ expenses[4].type }: [FIELD expenses[4].value] [FIELD expenses[4].period]
+  ${ expenses[4].type.capitalize() }: [FIELD expenses[4].value] [FIELD expenses[4].period]
   
-  ${ expenses[5].type }: [FIELD expenses[5].value] [FIELD expenses[5].period]
+  ${ expenses[5].type.capitalize() }: [FIELD expenses[5].value] [FIELD expenses[5].period]
   
-  ${ expenses[6].type }: [FIELD expenses[6].value] [FIELD expenses[6].period]
+  ${ expenses[6].type.capitalize() }: [FIELD expenses[6].value] [FIELD expenses[6].period]
   
-  ${ expenses[7].type }: [FIELD expenses[7].value] [FIELD expenses[7].period]
+  ${ expenses[7].type.capitalize() }: [FIELD expenses[7].value] [FIELD expenses[7].period]
   
-  ${ expenses[8].type }: [FIELD expenses[8].value] [FIELD expenses[8].period]
+  ${ expenses[8].type.capitalize() }: [FIELD expenses[8].value] [FIELD expenses[8].period]
   
-  ${ expenses[9].type }: [FIELD expenses[9].value] [FIELD expenses[9].period]
+  ${ expenses[9].type.capitalize() }: [FIELD expenses[9].value] [FIELD expenses[9].period]
   
-  ${ expenses[10].type }: [FIELD expenses[10].value] [FIELD expenses[10].period]
+  ${ expenses[10].type.capitalize() }: [FIELD expenses[10].value] [FIELD expenses[10].period]
   
-  ${ expenses[11].type }: [FIELD expenses[11].value] [FIELD expenses[11].period]
+  ${ expenses[11].type.capitalize() }: [FIELD expenses[11].value] [FIELD expenses[11].period]
   
-  ${ expenses[12].type }: [FIELD expenses[12].value] [FIELD expenses[12].period]
+  ${ expenses[12].type.capitalize() }: [FIELD expenses[12].value] [FIELD expenses[12].period]
   
 fields:
   - ${ expenses[0].type }: expenses[0].value
     datatype: currency
     default: 0
     inline width: 2em
+    help: | 
+      
   - For: expenses[0].period
     datatype: number
     inline width: 4em
@@ -1556,8 +1568,8 @@ fields:
       period_list()
     default: 12
   - note: |
-      
-  	
+     
+
 ---
 id: average cost of living
 code:  |
@@ -1700,37 +1712,32 @@ reconsider:
 id: total summary
 section: summary
 question:  |
- Here are the summary, you can review and edit 
+ Summary of your income, assets, and expenses 
 subquestion:  |
-  Your household size is **${user.house_num}**
-  
-  Your current house status is: **${user.house_status}**  
-  
-  Your marriage status is: ${ user.marriage} 
-  
-  You have ${ user.childrenNum } dependents. 
-  
-  You have **${currency(debt.total())}** debts in total, you have **${len(debt)}**  debts
-  
-  Your debts  **${is_court_debt}**.
- 
-  Your monthly income is  **${ currency(jobs.total(period_to_use=12)) }**
- 
-  Your total assets value is:  **${ currency(assets.total()) }**
-  
-  Your total expenses is **${ currency(expenses.total(period_to_use=12)) }** per month
-  
-  Your monthly disposable income **${currency(month_disposble_income, symbol=u'£')}**
 
-  ####### Revisit and edit your data by clicking on the menu at sections accordingly.
+  Great job ${ user.name }. 
   
-review:
-  - Update:
-     - month_disposble_income
-     - is_court_debt
-     - is_homeowner
-    button:  |
-        Update to see most recent data by clicking on:
+  From the information you shared we know: 
+   
+  Your monthly income is ${ currency(jobs.total(period_to_use=12)) }
+  
+  Your total assets value is ${ currency(assets.total()) } 
+  
+  Your total expenses is ${ currency(expenses.total(period_to_use=12)) } each month. 
+  
+    Your monthly disposable income is ${currency(month_disposble_income, symbol=u'£')}
+  
+  You told us about ${len(debt)} debts. In total you have  ${currency(debt.total())} debt. 
+
+
+#  ####### Revisit and edit your data by clicking on the menu at sections accordingly.
+#review:
+#  - Update:
+#     - month_disposble_income
+#     - is_court_debt
+#     - is_homeowner
+#    button:  |
+#       Update to see most recent data by clicking on:
   
 continue button field: summary
 ---
@@ -1740,72 +1747,78 @@ code:  |
 ---
 id: preferences information collection
 question:  |
-  Preferences and choices
+  First, tell us about your preferences 
 subquestion: |
-  Some debt solutions will affect your credit rating, prohibit you from undertaking certain jobs and may have impacts on your home. You can move the scale below to indicate which outcomes are important to consider.
-  **click on question mark to see what each scale stands for.**
+
+  Some debt solutions will affect your credit rating, prohibit you from undertaking certain jobs and may have impacts on your home. 
+  
+  Use the below questions to indicate which outcomes are important to consider.
   
 fields:
-  - Is your financial situation likely to change in the near future? : financial_change
-    datatype: range
-    min: 0
-    max: 10
+  - My financial situation likely to change in the near future? : financial_change
+    input type: radio
+    choices:
+      - Agree 
+      - Disagree
     help:  |
-      for instance, inheritance, promotion with job, move to new house etc. 0 means very unlikely, 10 means very possible change of situation.  
-  - How important is it to limit how much your credit will be affected?: credit_rating1
-    datatype: range
-    min: 0
-    max: 10
+      Example: inheritance, promotion with job, move to new house etc.
+  - It is important to limit how much the effect on my credit: credit_rating1
+    input type: radio
+    choices:
+      - Agree 
+      - Disagree
     help:  |
-      When you apply for a loan or other type of credit, the credit provider will search your credit reference file to see how much of a risk it is to lend to you. The level of risk is known as your credit rating. It can be affected by your the debt solution. O means you don't mind an impact to your credit rating, 10 means you want to avoid an impact to your credit rating.. 
-  - How important is it to reduce the cost of the debt solution?: cost_debt 
-    datatype: range
-    min: 0
-    max: 10
+      When you apply for a loan or other type of credit, the credit provider will search your credit reference file to see how much of a risk it is to lend to you. The level of risk is known as your credit rating. It can be affected by your the debt solution.
+  - It is important to reduce the cost of the debt solution: cost_debt 
+    input type: radio
+    choices:
+      - Agree 
+      - Disagree
     help:  |
-      Some debt solution are significantly more expensive than others, from 90 pounds to 700 to few thousands. 0 means you don't mind how much the debt solution costs, 10 means you are very sensitive to the cost. 
-  - How important is it to keep your home?: home_owner_pri
-    datatype: range
-    min: 0
-    max: 10
+      Some debt solution are significantly more expensive than others, from 90 pounds to 700 to few thousands.
+  - It is important to me to keep my home: home_owner_pri
+    input type: radio
+    choices:
+      - Agree 
+      - Disagree
     help:  |
-      Some debt solution may force you to sell your house. 0 means you don't mind selling your house to pay back debt, 10 means you want to keep the house as much as possible. 
+      Some debt solution may force you to sell your house.
   
-  - Do you mind dealing with creditors directly?: deal_creditor
-    datatype: range
-    min: 0
-    max: 10
+  - I am okay with speaking to creditors directly: deal_creditor
+    input type: radio
+    choices:
+      - Agree 
+      - Disagree
     help:  |
-      Some debt solution will deal with your creditors for you. 0 means you dont want to have to deal with a creditor, 10 means you don't mind to deal with creditors yourself. 
-      
+      Some debt solution will deal with your creditors for you.
   
 ---
 id: preferences translation to statements
 code:  |
-  if home_owner_pri<5:
-    home_will=" Don't mind to sell house"
+  if home_owner_pri == 'Disagree':
+    home_will="might be okay with selling your house."
   else:
-    home_will=" Prefer to keep house"
+    home_will="want to keep your house."
   
-  if cost_debt>5:
-    cost_will= "You wish to spend less on the debt solution"
+  if cost_debt == 'Agree':
+    cost_will= "you want to spend less on the debt solution."
   else:
-    cost_will= " The cost of the debt solution is not an issue for you"
+    cost_will= "the cost of the debt solution is not an issue for you."
   
-  if credit_rating1>5:
-    credit_will="You wish to find a solution without impacting your credit rating"
+  if credit_rating1 == 'Agree':
+    credit_will="you want to find a solution without impacting your credit rating."
   else:
-    credit_will="You don't mind if your credit rating is impacted"
+    credit_will="you do not mind if your credit rating is impacted."
     
-  if financial_change>5:
-    change_will ="You are likely to change your financial or personal situation"
+  if financial_change == 'Agree':
+    change_will ="you are likely to change your financial or personal situation."
   else:
-    change_will ="You are less likely to change your financial or personal situation"
+    change_will ="you are less likely to change your financial or personal situation."
   
-  if deal_creditor<5:
-    change_creditor="You don't want to deal with creditors"
+  if deal_creditor == 'Disagree':
+    change_creditor="you do not want to deal with creditors."
   else:  
-    change_creditor="You don't mind to deal with creditors"
+    change_creditor="you do not mind to deal with creditors."
   
   
 ---
@@ -1813,40 +1826,35 @@ id: debt solutions summary
 section: debt_solutions_section
 event: debt_solutionss
 question: | 
-   Debt Solutions
+  You might consider the following solutions with a debt advisor
 subquestion: |
-  ## You can consider the following solutions:
-  
   **Debt Management Plan** [detail](${ url_action("Debt Management Plan") })
+  
+  A debt management plan (DMP) helps you to manage your debts and pay them off at a more affordable rate by making reduced monthly payments. 
   % for item in Available_solutions:
   
-    
-  
-    **${item}** [detail](${ url_action(item) }),                            
+    **${item}** [Learn more about ${item} here](${ url_action(item) })                           
   % endfor
 
+# The following solutions are not ready for you:
   
-  
-  ## The following solutions are not ready for you:
-  
-  
-  % for item in not_available_solution:
-  
-		**${item}** [detail](${ url_action("not "+item) }),
-  % endfor
-review:
-  - Re-evaluate:
-     - month_disposble_income
-     - is_court_debt
-     - is_homeowner
-    button:  |
+#  % for item in not_available_solution:
+#  
+#		**${item}** [detail](${ url_action("not "+item) }),
+#  % endfor
+#review:
+#  - Re-evaluate:
+#     - month_disposble_income
+#     - is_court_debt
+#     - is_homeowner
+#    button:  |
 continue button field: user_saw_debt_solutions
 ---
 id: bankruptcy relevant description
 section: debt_solutions_section
 event: Bankruptcy
 question:  |
-  What is Bankruptcy and if it is for you 
+  About Bankruptcy  
 subquestion:  |
   ${ bankruptcy }
 continue button field: user_saw_intro
@@ -1855,7 +1863,7 @@ id: debt relief order relevant description
 section:  debt_solutions_section
 event: Debt Relief Order
 question:  |
-  What is Debt relief order and is it for you  
+  Debt Relief Order
 subquestion:  |
   ${ debt_relief_order }
 continue button field: user_saw_intro
@@ -1864,16 +1872,16 @@ id: administration order relevant description
 section:  debt_solutions_section
 event: Administration Order 
 question:  |
-  What is an administration order and is it for you?
+  Administration Order 
 subquestion:  |
   ${ administration_order }
 continue button field: user_saw_intro  
 ---
 id: individual voluntary agreement relevant description
-section:  debt_solutions_section
+section: debt_solutions_section
 event: Individual Voluntary Arrangement 
 question:  |
-  What is Individual Voluntary Arrangement(IVA) and is it for you?
+  Individual Voluntary Arrangement 
 subquestion:  |
   ${ individual_voluntary_agreement }
 continue button field: user_saw_intro    
@@ -1882,7 +1890,7 @@ id: debt management plan relevant description
 section: debt_solutions_section
 event: Debt Management Plan
 question:  |
-  You can apply for Debt Management Plan
+  Debt Management Plan
 subquestion:  |
   ${ debt_management_plan }
 continue button field: user_saw_intro
@@ -1895,6 +1903,9 @@ terms:
   secured debts:  |
     A secured debt is a debt for which the creditor has a security interest in collateral, meaning the creditor has a right to take property to satisfy the debt.
     
+  disposable income: | 
+    Disposable income is the amount of money you have left to spend from your income after meeting your expenses for your needs 
+  
 ---
 id: debt relief order not relevant description
 section:  debt_solutions_section
@@ -2028,7 +2039,6 @@ question: |
   Your document is ready
 subquestion: | 
   Please print and save for your for your records. 
-  
  
    ${ debt_brief }
 buttons:
