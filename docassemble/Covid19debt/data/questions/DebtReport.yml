@@ -411,7 +411,7 @@ section: personal_info
 question:  |
   What is your housing situation?
 fields: 
-  - Housing stauts: user.house_status
+  - Housing: user.house_status
     datatype: radio
     choices: 
       - Renting: Renting
@@ -909,7 +909,7 @@ code: |
 generic object: Debt
 question: Is there a court action involving this debt?
 fields:
-  - There is a court action: x.court_action
+  - : x.court_action
     datatype: yesnoradio
 ---
 ## PRIORITY SECTION
