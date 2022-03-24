@@ -768,11 +768,11 @@ fields:
   - no label: x.emergency_dict[i]
     datatype: yesnoradio
 ---
-sets: x.emergency_dict
-generic object: Debt
-code: |
-  x.initializeAttribute('emergency_dict', DADict.using(auto_gather=False,gathered=True))
-  x.emergency_dict[x.emergency_choices[0]] = x.emergency_dict_temp
+#sets: x.emergency_dict
+#generic object: Debt
+#code: |
+#  x.initializeAttribute('emergency_dict', DADict.using(auto_gather=False,gathered=True))
+#  x.emergency_dict[x.emergency_choices[0]] = x.emergency_dict_temp
 ---
 if: number_of_emergency_choices > 1
 generic object: Debt
@@ -797,9 +797,9 @@ code: |
     x.initializeAttribute('emergency_dict', DADict.using(auto_gather=False,gathered=True))
     number_of_emergency_choices = len(x.emergency_choices)
 ---
-generic object: Debt
-code: |
-  x.emergency_dict.new_item_name = x.emergency_choices[0]
+#generic object: Debt
+#code: |
+#  x.emergency_dict.new_item_name = x.emergency_choices[0]
   
 ---
 generic object: Debt
