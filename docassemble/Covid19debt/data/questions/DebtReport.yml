@@ -754,12 +754,12 @@ fields:
       is: True
 ---
 sets: x.emergency_dict
-if: len(x.emergency_choices) < 1
+if: number_of_emergency_choices < 1
 generic object: Debt
 code: |
   x.initializeAttribute('emergency_dict', DADict.using(auto_gather=False,gathered=True))
 ---
-if: len(x.emergency_choices) == 1
+if: number_of_emergency_choices == 1
 generic object: Debt
 question: Are you at risk of ${ i } for ${ x.name }?
 subquestion: |
