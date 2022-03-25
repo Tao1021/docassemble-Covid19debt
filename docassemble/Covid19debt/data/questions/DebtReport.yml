@@ -100,6 +100,7 @@ code: |
     user.house_num
   else: 
     user.house_num = 1
+    user.house_aware = False
   if user.house_status == 'Homeless': 
     user_contact_information_homeless
   else:
