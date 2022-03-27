@@ -232,6 +232,7 @@ question:  |
   Get your information and documents ready  
 subquestion:  |
   ${ preparation }
+back button: True
 continue button field: user_saw_preparation  
 ---
 id: personal info signpost
@@ -242,7 +243,7 @@ question: |
 subquestion: | 
 
   ${ personal_information_signpost }
-
+back button: True
 continue button field: debt_signpost
 --- 
 id: breathing space and solutions signpost 
@@ -251,6 +252,7 @@ question: |
   Great job, ${ user.name.first } 
 subquestion: | 
   ${ bs_solutions_signpost } 
+back button: True
 continue button field: signpost_bs_solutions 
 ---
 id: debt signpost 
@@ -263,6 +265,7 @@ subquestion: |
   ${ personal_finance_signpost }
 
 continue button field: finance_signpost 
+back button: True
 ---
 id: priority debt code
 code: |
@@ -298,6 +301,7 @@ fields:
     show if: 
       variable: user.gender
       is: Prefer to write something else
+back button: True
 ---
 id: user address
 section: personal_info
@@ -313,6 +317,7 @@ fields:
     code: | 
       states_list(country_code="gb")
   - Postal Code: user.address.zip
+back button: True
 continue button field: user_contact_information 
 ---
 id: user address homeless
@@ -355,21 +360,30 @@ fields:
 ##  - What is your condition: user.mentalcondition
 ##    show if:
 ##      variable: user.ifhealth
-##      is: True   
+##      is: True 
+back button: True
 ---
-id: UK questions
+id: UK question
 section: personal_info
 question: | 
-  Let's make sure this is the right tool for you
+  Are you a full-time resident of Wales?
 fields: 
-  - Are you a full-time resident of Wales?: user.uk
+  - Resident of Wales: user.uk
     required: True
     datatype: yesnoradio
     help:  |
       Different regions within UK have different rules for debts. If you are holding a visa to work and live in Wales, make sure it is known when you look for perfessonal help, as some of the the debt solutions might affect your visa application. 
-  - Is your debt based in the UK?: user.uk_debt
+back button: True
+---
+id: debt UK 
+section: personal_info
+question: | 
+  Is your debt based in the UK?
+fields: 
+  - Debt UK based: user.uk_debt
     required: True
     datatype: yesnoradio
+back button: True
 ---
 id: under 18 contact
 event: under18_kickout
@@ -417,21 +431,22 @@ fields:
     choices: 
       - Renting: Renting
         help: | 
-          Information 
-      - Home owner: Home owner
+          You rent if you pay someone who owns the home to live in your house or apartment
+      - Home owner: Homeowner
         help: | 
-          Information 
-      - Living with family: Living with family
+           If you own your house or apartment, with a mortgage, joint mortgage, or you own it outright 
+      - Living with family or friends: Living with family
         help: | 
-          Information 
+          If you are living with family or friends and do not pay to live there
       - Homeless: Homeless
         help: | 
-          Information 
+          If you are without adequate housing or do not have a right to the place you are staying
       - Other: Other
   - Tell us about your housing status: user.house_status_other 
     show if: 
       variable: user.house_status
       is: 'Other'
+back button: True
 ---
 id: renting follow up 1
 section: personal_info
@@ -443,16 +458,18 @@ fields:
     choices: 
     - Renting from a private landlord: Private Landlord
       help: | 
-        Information 
+        A private landlord is a property owner who chooses to rent out their property themselves.
     - Social housing: Social house
       help: | 
-        information 
+        Social homes are provided by housing associations (not-for-profit organisations that own, let, and manage rented housing) or a local council.
+back button: True
 ---
 id: renting follow up 2 
 section: personal_info 
 question: | 
   Are you joint tenants 
 yesno: Joint tenants
+back button: True
 continue button field: renting_household
 ---
 id: follow up to joint tenants  
@@ -487,6 +504,7 @@ fields:
     - Joint Mortgage: Joint Mortgage 
       help: | 
         Information 
+back button: True
 ---
 id: follow up shared mortgage
 section: personal_information 
@@ -499,14 +517,16 @@ fields:
     datatype: area
     hint: |
       E.g., Sharing with partner, family
+back button: True
 ---  
 id: more housing questions
 section: personal_info
 question: | 
   Do you live with anyone elese? 
 subquestion: | 
-  This includes roommates, family, or children 
+  This includes roommates, family, or children. 
 yesno: share_housing
+back button: True
 ---
 id: follow up share household
 section: personal_info 
@@ -515,11 +535,13 @@ question: |
 fields: 
   - How many people live in your home, including yourself?: user.house_num
     datatype: integer
+    default: 1
     min: 1
   - Are the people in your home aware of your debt situation?: user.house_aware
     datatype: yesnoradio
     help: |
       Some of the debt solutions require you to declare publicly and might affect your housing situation. 
+back button: True
 continue button field: followup_housing 
 ---
 id: family 
@@ -536,12 +558,14 @@ fields:
       - Separated 
       - Widowed
   - Number of dependents : user.childrenNum
+    default: 0 
     datatype: integer
+back button: True
 ---
 id: personal insolvency 
 section: personal_info
 question: | 
-  Are you going through a formal insolvency procedure right now?
+  Are you going through a {formal insolvency procedure} right now?
 subquestion: | 
   Select the insovlency procedure you are going through right now. 
   
@@ -561,11 +585,8 @@ choices:
     help: |
        An administration order is a county court order that prevents individual creditors from taking enforcement action without permission from the court and  requires that all your debts be dealt with together. An administration order can include a composition under which you are required to pay less than 10 pence in the pound in satisfaction of your debts
   - None: None 
-terms:
-  formal insolvency procedure: | 
-    Someone is said to be ‘insolvent’ if s/he is unable to pay her/his debts as they fall due. There are four ways in which you can reach a formal arrangement with your creditors to resolve your financial problems. 
+back button: True
 continue button field: current_insolvency    
-
 ---
 id: homeowner code
 code:  |
@@ -586,6 +607,7 @@ question: |
   Debt information
 subquestion: | 
   ${ debt_information_signpost } 
+back button: True
 continue button field: debt_info_signpost 
 ---
 id: set new object type to last item in debt parent list
@@ -630,6 +652,7 @@ fields:
   		debt_question_code
 reconsider:
   - debt_question_code
+back button: True
 ---
 code: |
   debt_question_code = list()
@@ -681,6 +704,7 @@ fields:
     datatype: currency 
     min: 0
     currency symbol: £
+back button: True
 ---
 id: Debt complete order
 generic object: Debt
@@ -723,6 +747,7 @@ fields:
   - When did you first miss payment?: x.first_miss_date1
     datatype: date
     show if: x.delinquent
+back button: True
 ---
 id: first_miss_date calculated and set as none if not appropriate
 generic object: Debt
@@ -907,11 +932,13 @@ generic object: CreditCardDebt
 code: |
   x.urgency = "None"
 ---
+id: court action
 generic object: Debt
 question: Is there a court action involving this debt?
 fields:
   - : x.court_action
     datatype: yesnoradio
+back button: True
 ---
 ## PRIORITY SECTION
 generic object: LoansDebt
@@ -1088,6 +1115,7 @@ field: debt.there_is_anotherstep
 buttons:
   - "Add another debt": True
   - "Continue to next section": False
+back button: True
 ---
 id: sets debt.there_is_another and undefines
 code: |
@@ -1138,6 +1166,7 @@ subquestion: |
   The credior is the person or company you owe money to. 
 fields:
  - Creditor name: x.creditor
+back button: True
 ---
 id: breathing space description
 section: standard_bs
@@ -1145,6 +1174,7 @@ question:  |
   Breathing space 
 subquestion:  |
   ${ standard_bs }
+back button: True
 continue button field: user_saw_standard_bs
 ---
 id: mental health breathing space description
@@ -1153,6 +1183,7 @@ question:  |
   Mental health Breathing space 
 subquestion:  |
   ${ mentalh_bs }
+back button: True
 continue button field: user_saw_mentalh_bs
 ---
 id: personal finance  signpost 
@@ -1182,11 +1213,12 @@ fields:
     datatype: yesnowide
     help: | 
       Assets **include** most items you own like cars, boats, buildings or land, or other items of value. Assets **do not** include household equipment like bedding; items you use for your job or buisness. 
-  - Expenses: expenses.want_to_collect
-    datatype: yesnowide
-    default: True
-    help: | 
-      List everything you spend your income on: housing, childcare, fuel, health costs, transport, furniture, hire purchase, fines, laundry, telephone, TV, broadband, toiletries, clothing, food, child support payments, self-employment costs and so on. 
+#  - Expenses: expenses.want_to_collect
+#    datatype: yesnowide
+#    default: True
+#    help: | 
+#     List everything you spend your income on: housing, childcare, fuel, health costs, transport, furniture, hire purchase, fines, laundry, telephone, TV, broadband, toiletries, clothing, food, child support payments, self-employment costs and so on. 
+back button: True
 ---
 id: asks if there is another job
 question: Job Information Summary
@@ -1418,7 +1450,7 @@ code:  |
 id: expenses single page 
 section: expenditure
 question:  Enter your expenses for each cateogry 
-continue button field: expenses_values
+
 subquestion: |
 
   ${ expenses[0].type.capitalize()}: [FIELD expenses[0].value] [FIELD expenses[0].period]
@@ -1452,7 +1484,6 @@ fields:
     datatype: currency
     default: 0
     inline width: 2em
-    help: | 
       
   - For: expenses[0].period
     datatype: number
@@ -1568,9 +1599,8 @@ fields:
     code: |
       period_list()
     default: 12
-  - note: |
-     
-
+back button: True     
+continue button field: expenses_values
 ---
 id: average cost of living
 code:  |
@@ -1602,9 +1632,8 @@ code: |
 ---
 id: expenses gathered order
 code: |
-  if expenses.want_to_collect:
-    collect_expenses
-    expenses_values
+  collect_expenses
+  expenses_values
   expenses.gathered = True
 ---
 
@@ -1739,7 +1768,7 @@ subquestion:  |
 #     - is_homeowner
 #    button:  |
 #       Update to see most recent data by clicking on:
-  
+back button: True
 continue button field: summary
 ---
 id: monthly disposable income calculation
@@ -1849,6 +1878,7 @@ subquestion: |
 #     - is_court_debt
 #     - is_homeowner
 #    button:  |
+back button: True
 continue button field: user_saw_debt_solutions
 ---
 id: bankruptcy relevant description
@@ -1906,7 +1936,12 @@ terms:
     
   disposable income: | 
     Disposable income is the amount of money you have left to spend from your income after meeting your expenses for your needs 
+
+  formal insolvency procedure: | 
+    Someone is said to be ‘insolvent’ if they are unable to pay their debts as they fall due. There are four ways in which you can reach a formal arrangement with your creditors to resolve your financial problems. 
+
   
+
 ---
 id: debt relief order not relevant description
 section:  debt_solutions_section
@@ -2039,12 +2074,23 @@ event: letter_and_end
 question: |
   Your document is ready
 subquestion: | 
-  Please print and save for your for your records. 
+  Print and save for your for your records. 
  
    ${ debt_brief }
+attachment:
+  - name: Personal Debt Advisor
+    filename: Debt Brief 
+    variable name: debt_brief
+    valid formats:
+      - docx
+      - pdf
+    docx template file: debt_report.docx
+   
+   
 buttons:
   - Exit: exit
   - Restart: restart
+back button: True
 ---
 id: debt brief
 attachment:
@@ -2069,13 +2115,15 @@ code: |
 			{
 			 'class_name': ConsumerDebt,
 			 'label':"Other bills",
+       'help': " Other bills includes: [BR] Water arrears, [BR] Energy bill arrears, [BR] catalogue spending, [BR] Private parking charges [BR] Other outstanding invoices or bills, or monthly bills",
 			 'more_specific_question':"What kind of bills?",
-				'more_specific':["Water arrears", "Energy bill arrears", "Catalogue spending", "Private parking charges", "other outstanding bills, for example solicitors costs, invoices for building work and vets bills"]
+				'more_specific':["Water arrears", "Energy bill arrears", "Catalogue spending", "Private parking charges", "Other outstanding bills, for example solicitors costs, invoices for building work and vets bills"]
 			},
 		'Tax':
 			{
 			 'class_name': TaxDebt,
 			 'label':"Taxes",
+       'help': "Taxes includes: [BR] Unpaid income tax [BR] National Insurance[BR] Value added tax (VAT) [BR] TV license [BR] Non-domestic rates [BR] Council tax [BR] Overpayment of benefits",
 			 'more_specific_question':"What kind of taxes?",
 				'more_specific':["Unpaid income tax, National Insurance or VAT", "TV license", "Non-domestic rates", "Council Tax", "Overpayment of benefits"]
 			},
@@ -2083,6 +2131,7 @@ code: |
 			{
 			 'class_name': OverpaymentOfBenefits,
 			 'label':"Overpayment of benefits",
+       'help': "Overpayments of tax credits can arise, for example, if someone does not tell HMRC about a change in her/his circumstances, if s/he gives it incorrect infomation, or if her/his income falls or rises by more than £2,500 in the current year compared with the previous tax year.",
 			 'more_specific_question':"What type of benefits were overpaid?",
 				'more_specific':["Universal credit advance", "Tax credit overpayments", "Social fund loan"]
 			},
@@ -2090,6 +2139,7 @@ code: |
 			{
 			 'class_name': PenaltiesDebt,
 			 'label':"Fines and penalties",
+       'help': "Fines and penalties includes: [BR] Shoplifting recovery [BR] Fines [BR] Parking tickets [BR] Traffi penalties",
 			 'more_specific_question':"What type of penalties?",
 				'more_specific':["Shoplifting recovery", "Fine", "unpaid parking tickets - these are called Penalty Charge Notices or Parking Charge Notices", "Traffic penalties"]
 			},
@@ -2097,6 +2147,7 @@ code: |
 			{
 			 'class_name': LiabilityDebt,
 			 'label':"Lawsuits against you",
+       'help': "Lawsuits against you includes: [BR] Shoplifting recover [BR] Clams against you for damage or personal injury",
 			 'more_specific_question':"What kind of lawsuit?",
 				'more_specific':["Shoplifting recovery", "Claims against you for damage or personal injury"]
 			},
@@ -2104,6 +2155,7 @@ code: |
 			{
 			 'class_name': LoansDebt,
 			 'label':"Other loans",
+       'help': "Other loans include:[BR] Loan from family member or friend [BR] store cards\Budget Account [BR] Charge Card [BR] Personal loan [BR] Hire purchase [BR] Bill of Sale [BR] Credit sale agreement [BR] Interest-free credit [BR] Pawnbroker [BR] Trading cheque or voucher",
 			 'more_specific_question':"What kind of loan?",
 				'more_specific':["Loan from family member or friend", "store cards\Budget Account", "Charge Card", "Personal loan", "Hire purchase", "Bill of Sale", "Credit sale agreement", "Interest-free credit", "Pawnbroker", "Trading cheque or voucher"]
 			},
@@ -2118,6 +2170,7 @@ code: |
 			{
 			 'class_name': CreditCardDebt,
 			 'label':"Credit card",
+       'help': "A credit card (eg, Mastercard, Visa) is a form of revolving credit (see here) and allows you to buy goods or services from a trader. The trader invoices the credit card company and you receives a monthly account showing all transactions made during that period. A minimum monthly repayment is required – often covering at least interest, fees and charges plus 1 per cent of the capital outstanding.",
 				'more_specific':[]
 			},
 		'Rent arrears':
@@ -2131,6 +2184,7 @@ code: |
 			{
 			 'class_name': BankOverdraft,
 			 'label':"Bank overdraft",
+       'help': "The bank allows a customer with a current account to overdraw on the account up to a certain amount. Repayment of the overdraft is made as money is paid into the account.",
 				'more_specific':[]
 			},
 		'Water arrears':
@@ -2144,6 +2198,7 @@ code: |
 			{
 			 'class_name': InformalLoan,
 			 'label':"Loan from family member or friend",
+       'help': "Money that a friend or family loans you for personal or buisness use",
 				'more_specific':[]
 			},
 		'Social fund loan':
@@ -2182,6 +2237,7 @@ code: |
 			{
 			 'class_name': TVLicenseDebt,
 			 'label':"TV license",
+       'help': "A TV licnese is required to use a television",
 				'more_specific':[]
 			},
 		'Child maintenance/child support agency debts':
@@ -2196,6 +2252,7 @@ code: |
 			{
 			 'class_name': Fine,
 			 'label':"Fine",
+       'help': "Fines are the most common form of punishment imposed by the magistrates’ or Crown Court for criminal offences.",
 				'more_specific':[]
 			},
 		'Catalogue spending':
@@ -2209,6 +2266,7 @@ code: |
 			{
 			 'class_name': StudentLoans,
 			 'label':"Student Loans",
+       'help': "Loans is used to pay for a student's education",
 				'more_specific':[]
 			},
 		'Personal loan':
@@ -2222,6 +2280,7 @@ code: |
 			{
 			 'class_name': PenaltyChargeDebt,
 			 'label':"Parking tickets",
+       'help': "Many private landowners, including retail parks and supermarkets, allow customer parking on their land subject to terms and conditions, and impose charges on motorists who contravene these terms and condition",
 				'more_specific':[]
 			},
 		'Hire purchase':
@@ -2242,6 +2301,7 @@ code: |
 			{
 			 'class_name': PaydayLoan,
 			 'label':"Payday loans",
+       'help': "These are small (generally between £50 and £800) loans intended to cover short-term financial difficulties such as an unexpected bill or an emergency. They are repayable in full on your next payday.",
 				'more_specific':[]
 			},
 		'store cards\Budget Account':
@@ -2251,16 +2311,17 @@ code: |
 			 'help':"A budget account is a type of revolving credit (see here) provided by shops. The client can spend up to an agreed credit limit and makes regular repayments.",
 				'more_specific':[]
 			},
-		'other outstanding bills, for example solicitors costs, invoices for building work and vets bills':
+		'Other outstanding bills, for example solicitors costs, invoices for building work and vets bills':
 			{
 			 'class_name': NonRegularBill,
-			 'label':"other outstanding bills, for example solicitor's costs, invoices for building work and vets bills",
+			 'label':"Other outstanding bills, for example solicitor's costs, invoices for building work and vets bills",
 				'more_specific':[]
 			},
 		'Bill of Sale':
 			{
 			 'class_name': BillOfSale,
 			 'label':"Bill of Sale",
+       'help': "A bill of sale is a way of raising money by offering an item of personal property (commonly, a car) as security for a loan. The essential feature of a bill of sale is that the goods remain in your possession and use  but ownership is transferred to the creditor, so they can be repossessed and sold if the debt is not repaid.",
 				'more_specific':[]
 			},
 		'Charge Card':
@@ -2288,13 +2349,14 @@ code: |
 			{
 			 'class_name': Maintenance,
 			 'label':"Spousal maintenance",
-			 'help':"Before April 1993, either the magistrates’ court or county court made orders to require a parent or ex-spouse to make maintenance payments to the other partner for her/himself and/or any children. From April 1993, child maintenance payment powers passed to the Child Support Agency (the predecessor of the Child Maintenance Service – see here). The only new court orders made after this date are for applications not covered by the child support scheme (eg, for additional maintenance) and for spousal maintenance. ",
+			 'help':"Court or county court orders that require ex-spouse to make maintenance payments to the other partner for her/himself and/or any children.",
 				'more_specific':[]
 			},
 		'Mortgage':
 			{
 			 'class_name': MortgageDebt,
 			 'label':"Mortgage",
+       'help':"The term ’mortgage’ is used to describe a loan to buy a house or flat. If repayments are not maintained, the lender can recover the money lent by repossessing the property and selling it",
 				'more_specific':[]
 			},
 		'National insurance contributions':
@@ -2308,6 +2370,7 @@ code: |
 			{
 			 'class_name': NonDomesticRates,
 			 'label':"Non-domestic rates",
+       'help': "Non-domestic rates (business rates) are charged on most commercial property by local authorities. They are based on a national valuation and fixed amounts are charged across England and Wales in proportion to this.",
 				'more_specific':[]
 			},
 		'Pawnbroker':
@@ -2356,13 +2419,14 @@ code: |
 			{
 			 'class_name': CouncilTax,
 			 'label':"Council Tax",
+       'help': "Council tax is a tax administered by local authorities, comprising two equal elements – a ’property’ element and a ’people’ element.",
 				'more_specific':[]
 			},
 		'Shoplifting recovery':
 			{
 			 'class_name': ShopliftingRecovery,
 			 'label':"Shoplifting recovery",
-			 'help':"Over the past few years, many people have been threatened with county court action by civil recovery agents for the recovery of losses allegedly incurred by retailers following allegations either of theft by employees or shoplifting by customers, in many cases involving goods of relatively low value. Although in some cases the person has been charged and prosecuted for a criminal offence, in many cases there has been no police involvement and, in most shoplifting cases, the goods have been recovered undamaged and able to be resold by the retailer.",
+			 'help':"Many people have been threatened with county court action by civil recovery agents for the recovery of losses allegedly incurred by retailers following allegations either of theft by employees or  shoplifting  by customers, in many cases involving goods of relatively low value." ,
 				'more_specific':[]
 			},
 		}
