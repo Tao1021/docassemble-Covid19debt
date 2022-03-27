@@ -255,7 +255,7 @@ subquestion: |
 back button: True
 continue button field: signpost_bs_solutions 
 ---
-id: debt signpost 
+id: personal finance signpost 
 section: finance_info
 #decoration: 
 question: |  
@@ -823,10 +823,9 @@ code: |
     x.initializeAttribute('emergency_dict', DADict.using(auto_gather=False,gathered=True))
     number_of_emergency_choices = len(x.emergency_choices)
 ---
-#generic object: Debt
-#code: |
-#  x.emergency_dict.new_item_name = x.emergency_choices[0]
-  
+generic object: Debt
+code: |
+  x.emergency_dict.new_item_name = x.emergency_choices[0]
 ---
 generic object: Debt
 code: |
@@ -908,7 +907,7 @@ code: |
 ---
 id: gets to .urgency for RentDebt
 generic object: RentDebt
-question: Has a possession order been granted against you?
+question: Has a {possession order} been granted against you?
 fields:
   - : x.possession_order
     datatype: yesnoradio
@@ -1940,6 +1939,8 @@ terms:
   formal insolvency procedure: | 
     Someone is said to be ‘insolvent’ if they are unable to pay their debts as they fall due. There are four ways in which you can reach a formal arrangement with your creditors to resolve your financial problems. 
 
+  possession order: | 
+    Possession orders is a court order that requires a tenant to leave the property by a given date.
   
 
 ---
