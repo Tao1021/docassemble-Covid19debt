@@ -823,9 +823,9 @@ code: |
     x.initializeAttribute('emergency_dict', DADict.using(auto_gather=False,gathered=True))
     number_of_emergency_choices = len(x.emergency_choices)
 ---
-#generic object: Debt
-#code: |
-#  x.emergency_dict.new_item_name = x.emergency_choices[0]
+generic object: Debt
+code: |
+  x.emergency_dict.new_item_name = x.emergency_choices[0]
   
 ---
 generic object: Debt
