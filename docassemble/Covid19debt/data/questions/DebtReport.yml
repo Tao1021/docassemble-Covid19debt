@@ -60,7 +60,7 @@ code: |
   set_locale(currency_symbol='£')
 ---
 id: enable review answers menu item
-initial: add_review_to_menu
+initial: True
 code: |
   menu_items = [ action_menu_item('Review Answers', 'review_answers') ]
 comment: |
@@ -1147,7 +1147,7 @@ comment: |
 id: details order, default for debt
 generic object: Debt
 code: |
-	x.first_miss_date
+	x.delinquent
   x.details = True
 ---
 id: question to get you to first_miss_date for Debt
@@ -1158,17 +1158,9 @@ fields:
   - Are you behind on payments?: x.delinquent
     datatype: yesnoradio
     default: True
-  - When did you first miss payment?: x.first_miss_date1
+  - When did you first miss payment?: x.first_miss_date
     datatype: date
     show if: x.delinquent
----
-id: first_miss_date calculated and set as none if not appropriate
-generic object: Debt
-code: |
-  if x.delinquent:
-    x.first_miss_date = x.first_miss_date1
-  else:
-    x.first_miss_date = None
 ---
 id: goods as described
 generic object: Debt
@@ -1183,6 +1175,9 @@ fields:
 comment: |
 	Priority
 ---
+depends on:
+  - x.delinquent
+  - x.first_miss_date
 id: notes for Debt
 generic object: Debt
 code: |
@@ -1193,6 +1188,9 @@ code: |
   else:
     x.notes += "NOT DELINQUENT"
 ---
+depends on:
+  - x.delinquent
+  - x.for_essential_services
 id: notes for Pawnbroker
 generic object: Pawnbroker
 code: |
@@ -1205,6 +1203,9 @@ code: |
   else:
   	x.notes += "Fon non-essential goods."
 ---
+depends on:
+  - x.delinquent
+  - x.for_essential_services
 id: notes for HirePurchase
 generic object: HirePurchase
 code: |
@@ -1217,6 +1218,10 @@ code: |
   else:
   	x.notes += "For non-essential goods."
 ---
+depends on:
+  - x.delinquent
+  - x.goods_as_described
+  - x.goods_satisfactory_quality
 id: notes for CreditCardDebt
 generic object: CreditCardDebt
 code: |
@@ -1230,6 +1235,9 @@ code: |
   	x.notes += "Includes payments for shoddy goods.  "
 
 ---
+depends on:
+  - x.delinquent
+  - x.is_current_home
 id: notes for Mortgage
 generic object: Mortgage
 code: |
@@ -1242,6 +1250,9 @@ code: |
   else:
   	x.notes += "Not for current home."
 ---
+depends on:
+  - x.delinquent
+  - x.continue_trading
 id: notes for ConsumerDebt
 generic object: ConsumerDebt
 code: |
@@ -1254,6 +1265,9 @@ code: |
 	else:
 		x.notes += "NOT DELINQUENT"
 ---
+depends on:
+  - x.date_of_award
+  - x.awarded_or_migrated_to_universal_credit
 id: notes for TaxCreditOverpayment
 generic object: TaxCreditOverpayment
 code: |		
@@ -1263,6 +1277,8 @@ code: |
 	else:
 		x.notes += user.name.full() + " has not been awarded or migrated to universal credit."
 ---
+depends on:
+  - x.money_in_account
 id: notes for BankOverdraft
 generic object: BankOverdraft
 code: |		
@@ -1270,9 +1286,10 @@ code: |
 		x.notes = "Currently money in account at risk."
 	else:
 		x.notes = "No money currently in account."
-depends on:
-  - x.money_in_account
 ---
+depends on:
+  - x.court_action
+  - x.risk_of_losing_essential_goods
 id: notes for NonDomesticRates
 generic object: NonDomesticRates
 code: |		
@@ -1283,6 +1300,12 @@ code: |
 	else:
 		x.notes = "No court action."
 ---
+depends on:
+  - x.possession_order
+  - x.repossession_date
+  - x.delinquent
+  - x.first_miss_date
+  - x.is_current_home
 id: notes for RentDebt
 generic object: RentDebt
 code: |
@@ -1341,15 +1364,166 @@ columns:
       row_item.notes
 require gathered: False     
 edit:
-  - name
-  - value
-  - creditor
-  - urgency
-  - delinquent
-  - possession_order
-  - first_miss_date
-  - money_in_account
-minimum_number: 1
+	- review_variable
+---
+event: debt[i].review_variable
+question: |
+	Review ${ debt[i].name }
+review:
+	- Edit: debt[i].value
+		button: |
+			Value: ${ debt[i].value }
+	- Edit: debt[i].creditor
+		button: |
+			Creditor: ${ debt[i].creditor }
+	- Edit: debt[i].delinquent
+		button: |
+			Debt is delinquent: ${ debt[i].delinquent }
+	- Edit: debt[i].first_miss_date
+		button: |
+			First date of missed payment: ${ debt[i].first_miss_date }
+	- Edit: debt[i].is_current_home
+		button: |
+			The debt is for current home.: ${ debt[i].is_current_home }
+	- Edit: debt[i].debt[i].for_essential_services
+		button: |
+			The debt is for essential services: ${ debt[i].debt[i].for_essential_services }
+	- Edit: debt[i].court_action
+		button: |
+			There is a court action: ${ debt[i].court_action }
+	- Edit: debt[i].risk_of_losing_essential_goods
+		button: |
+			There is a risk of losing essential goods: ${ debt[i].risk_of_losing_essential_goods }
+	- Edit: debt[i].awarded_or_migrated_to_universal_credit
+		button: |
+			Awarded or migrated to universal credit: ${ debt[i].awarded_or_migrated_to_universal_credit }
+	- Edit: debt[i].continue_trading
+		button: |
+			The business has continued trading: ${ debt[i].continue_trading }
+	- Edit: debt[i].money_in_account
+		button: |
+			There is money in the bank account.: ${ debt[i].money_in_account }
+	- Edit: debt[i].possession_order
+		button: |
+			There is a possession order.: ${ debt[i].possession_order }
+	- Edit: debt[i].repossession_date
+		button: |
+			Repossession Date: ${ format_date(debt[i].repossession_date) }
+---
+event: review_answers
+question: |
+	Review 
+review:
+  - Edit: user.name.first
+    button: |
+      First name: **${ user.name.first }**
+  - Edit: user.name.last
+    button: |
+      Last name: **${ user.name.last }**
+  - Edit: user.uk
+    button: |
+      Resident of Wales: **${ user.uk }**
+  - Edit: user.uk_debt
+    button: |
+      UK Based Debt: **${ user.uk_debt }**
+  - Edit: user.address.address
+    button: |
+      Street: **${ user.address.address }**
+  - Edit: user.address.city
+    button: |
+      City: **${ user.address.city }**
+  - Edit: user.address.country
+    button: |
+      State: **${ user.address.country }**
+  - Edit: user.address.zip
+    button: |
+      Zip: **${ user.address.zip }**
+  - Edit: user.phone
+    button: |
+      Phone: **${ user.phone }**
+  - Edit: user.email
+    button: |
+      Email: **${ user.email }**
+  - Edit: user.dob
+    button: |
+      Date of Birth: **${ user.dob }**
+  - Edit: user.gender
+    button: |
+      Gender: **${ user.gender }**
+  - Edit: user.gender_writein
+    button: |
+      Gender write-in: **${ user.gender_writein }**
+  - Edit: user.marriage
+    button: |
+      Marriage Status: **${ user.marriage }**
+  - Edit: user.childrenNum
+    button: |
+      Number of Children: **${ user.childrenNum }**
+  - Edit: user.work
+    button: |
+      Employment Status: **${ user.work.true_values() }**
+  - Edit: user.house_status
+    button: |
+      Housing Status: **${ user.house_status }**
+  - Edit: user.house_status_other
+    button: |
+      Housing Status Other: **${ user.house_status_other }**
+  - Edit: share_housing
+    button: |
+      Shares housing with others: **${ share_housing }**
+  - Edit: user.house_status_mortshare
+    button: |
+      Joint mortgage: **${ user.house_status_mortshare }**
+  - Edit: user.house_status_rentshare
+    button: |
+      Joint Tenancy: **${ user.house_status_rentshare }**
+  - Edit: user.renting_status
+    button: |
+      Renting Status: **${ user.renting_status }**
+  - Edit: user.homeowner_status
+    button: |
+      Homeowner Status: **${ user.homeowner_status }**
+  - Edit: user.house_num
+    button: |
+      Number in Household: **${ user.house_num }**
+  - Edit: user.house_aware
+    button: |
+      Others in Household Aware of Debt Situation: **${ user.house_aware }**
+  - Edit: another_debt_solution
+    button: |
+      Existing Debt Solution: **${ another_debt_solution }**
+  - Edit: court_case
+    button: |
+      Court Case: **${ court_case }**
+under: |
+	
+	Debts
+	
+	${ debt.table }
+	
+	${ debt.add_action() }
+	
+	Employment Income
+	
+	${ jobs.table }
+	
+	${ jobs.add_action() }
+	
+	Other Income
+	
+	${ other_income.table }
+	
+	${ other_income.add_action() }
+	
+	Assets
+	
+	${ assets.table }
+	
+	${ assets.add_action() }
+	
+	Expenses
+	
+	${ expenses.table }
 ---
 id: breathing space description
 section: standard_bs
@@ -1423,7 +1597,6 @@ columns:
      
 edit:
   - is_hourly 
-minimum_number: 1
 
 ---
 id: other income table
@@ -1439,7 +1612,6 @@ columns:
       
 edit:
   - type 
-minimum_number: 1
 ---
 id: assets table
 table: assets.table
@@ -1452,7 +1624,6 @@ columns:
       
 edit:
   - type 
-minimum_number: 1
 ---
 id: income from assets table
 table: income_assets.table
@@ -1463,7 +1634,6 @@ columns:
   - Amount: |
       currency(row_item.amount())
       
-minimum_number: 1
 ---
 id: expenses table
 table: expenses.table
@@ -1474,10 +1644,9 @@ columns:
   - Amount: |
       currency(row_item.amount())
       
-      
+delete buttons: False
 edit:
   - type 
-minimum_number: 1
 ---
 id: job info collection
 question: |
@@ -1943,14 +2112,8 @@ subquestion:  |
   You told us about ${len(debt)} debts. In total you have  ${currency(debt.total())} debt. 
 
 
-#  ####### Revisit and edit your data by clicking on the menu at sections accordingly.
-#review:
-#  - Update:
-#     - month_disposble_income
-#     - is_court_debt
-#     - is_homeowner
-#    button:  |
-#       Update to see most recent data by clicking on:
+  [Edit your answers](${ url_action('review_answers') })
+
   
 continue button field: summary
 ---
@@ -2044,9 +2207,9 @@ subquestion: |
   **Debt Management Plan** [detail](${ url_action("Debt Management Plan") })
   
   A debt management plan (DMP) helps you to manage your debts and pay them off at a more affordable rate by making reduced monthly payments. 
-  % for item in Available_solutions:
+  % for key in Available_solutions.keys():
   
-    **${item}** [Learn more about ${item} here](${ url_action(item) })                           
+    **${key}** [Learn more about ${key} here](${ url_action(key) })                           
   % endfor
 
 # The following solutions are not ready for you:
@@ -2178,6 +2341,9 @@ code:  |
 code: |
   not_available_solution = debt_solutions.slice(lambda y: y.match_dict.any_true())
 ---
+id: 
+comment: |
+  This block loops through each debt solutions list of requirements
 code: |
   for req in debt_solutions[i]['requirements']:
    debt_solutions[i].match_dict[req] = debt_solutions[i]['requirements'][req]['formula']
@@ -2195,7 +2361,6 @@ code:  |
       Dro_debt_not.append(item.name)
     else:
       Dro_debt.append(item.name)
-  
  
 ---
 id: make pdf
