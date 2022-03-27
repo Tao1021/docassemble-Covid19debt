@@ -1,4 +1,4 @@
-**What is IVA?**
+**What is an IVA?**
 
   An individual voluntary arrangement (IVA) is a formal and legally binding agreement between you and your creditors to pay back your debts over a period of time. This means it’s approved by the court and your creditors have to stick to it.
   
