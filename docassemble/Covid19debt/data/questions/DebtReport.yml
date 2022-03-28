@@ -60,7 +60,7 @@ code: |
   set_locale(currency_symbol='£')
 ---
 id: enable review answers menu item
-initial: add_review_to_menu
+initial: True
 code: |
   menu_items = [ action_menu_item('Review Answers', 'review_answers') ]
 comment: |
@@ -235,7 +235,6 @@ question:  |
   Get your information and documents ready  
 subquestion:  |
   ${ preparation }
-back button: True
 continue button field: user_saw_preparation  
 ---
 id: personal info signpost
@@ -246,7 +245,7 @@ question: |
 subquestion: | 
 
   ${ personal_information_signpost }
-back button: True
+
 continue button field: debt_signpost
 --- 
 id: breathing space and solutions signpost 
@@ -255,7 +254,6 @@ question: |
   Great job, ${ user.name.first } 
 subquestion: | 
   ${ bs_solutions_signpost } 
-back button: True
 continue button field: signpost_bs_solutions 
 ---
 id: personal finance signpost 
@@ -268,7 +266,6 @@ subquestion: |
   ${ personal_finance_signpost }
 
 continue button field: finance_signpost 
-back button: True
 ---
 id: priority debt code
 code: |
@@ -305,7 +302,6 @@ fields:
     show if: 
       variable: user.gender
       is: Prefer to write something else
-back button: True
 ---
 id: user address
 section: personal_info
@@ -321,7 +317,6 @@ fields:
     code: | 
       states_list(country_code="gb")
   - Postal Code: user.address.zip
-back button: True
 continue button field: user_contact_information 
 ---
 id: user address homeless
@@ -365,30 +360,21 @@ fields:
 ##  - What is your condition: user.mentalcondition
 ##    show if:
 ##      variable: user.ifhealth
-##      is: True 
-back button: True
+##      is: True   
 ---
-id: UK question
+id: UK questions
 section: personal_info
 question: | 
-  Are you a full-time resident of Wales?
+  Let's make sure this is the right tool for you
 fields: 
-  - Resident of Wales: user.uk
+  - Are you a full-time resident of Wales?: user.uk
     required: True
     datatype: yesnoradio
     help:  |
       Different regions within UK have different rules for debts. If you are holding a visa to work and live in Wales, make sure it is known when you look for perfessonal help, as some of the the debt solutions might affect your visa application. 
-back button: True
----
-id: debt UK 
-section: personal_info
-question: | 
-  Is your debt based in the UK?
-fields: 
-  - Debt UK based: user.uk_debt
+  - Is your debt based in the UK?: user.uk_debt
     required: True
     datatype: yesnoradio
-back button: True
 ---
 id: under 18 contact
 event: under18_kickout
@@ -436,22 +422,21 @@ fields:
     choices: 
       - Renting: Renting
         help: | 
-          You rent if you pay someone who owns the home to live in your house or apartment
-      - Home owner: Homeowner
+          Information 
+      - Home owner: Home owner
         help: | 
-           If you own your house or apartment, with a mortgage, joint mortgage, or you own it outright 
-      - Living with family or friends: Living with family
+          Information 
+      - Living with family: Living with family
         help: | 
-          If you are living with family or friends and do not pay to live there
+          Information 
       - Homeless: Homeless
         help: | 
-          If you are without adequate housing or do not have a right to the place you are staying
+          Information 
       - Other: Other
   - Tell us about your housing status: user.house_status_other 
     show if: 
       variable: user.house_status
       is: 'Other'
-back button: True
 ---
 id: renting follow up 1
 section: personal_info
@@ -463,11 +448,10 @@ fields:
     choices: 
     - Renting from a private landlord: Private Landlord
       help: | 
-        A private landlord is a property owner who chooses to rent out their property themselves.
+        Information 
     - Social housing: Social house
       help: | 
-        Social homes are provided by housing associations (not-for-profit organisations that own, let, and manage rented housing) or a local council.
-back button: True
+        information 
 ---
 id:  follow up 2 
 section: personal_info 
@@ -477,7 +461,6 @@ subquestion: |
     If you have a joint tenancy, you are liable for the rent both jointly and individually. This means that one or all of you can be held responsible for the whole rent. 
 yesno: renting_household
 back button: True
-
 ---
 id: follow up to joint tenants  
 section: personal_info
@@ -526,16 +509,14 @@ fields:
     datatype: area
     hint: |
       E.g., Sharing with partner, family
-back button: True
 ---  
 id: more housing questions
 section: personal_info
 question: | 
   Do you live with anyone elese? 
 subquestion: | 
-  This includes roommates, family, or children. 
+  This includes roommates, family, or children 
 yesno: share_housing
-back button: True
 ---
 id: follow up share household
 section: personal_info 
@@ -544,13 +525,11 @@ question: |
 fields: 
   - How many people live in your home, including yourself?: user.house_num
     datatype: integer
-    default: 1
     min: 1
   - Are the people in your home aware of your debt situation?: user.house_aware
     datatype: yesnoradio
     help: |
       Some of the debt solutions require you to declare publicly and might affect your housing situation. 
-back button: True
 continue button field: followup_housing 
 ---
 id: family 
@@ -567,14 +546,12 @@ fields:
       - Separated 
       - Widowed
   - Number of dependents : user.childrenNum
-    default: 0 
     datatype: integer
-back button: True
 ---
 id: personal insolvency 
 section: personal_info
 question: | 
-  Are you going through a {formal insolvency procedure} right now?
+  Are you going through a formal insolvency procedure right now?
 subquestion: | 
   Select the insovlency procedure you are going through right now. 
   
@@ -594,8 +571,11 @@ choices:
     help: |
        An administration order is a county court order that prevents individual creditors from taking enforcement action without permission from the court and  requires that all your debts be dealt with together. An administration order can include a composition under which you are required to pay less than 10 pence in the pound in satisfaction of your debts
   - None: None 
-back button: True
+terms:
+  formal insolvency procedure: | 
+    Someone is said to be ‘insolvent’ if s/he is unable to pay her/his debts as they fall due. There are four ways in which you can reach a formal arrangement with your creditors to resolve your financial problems. 
 continue button field: current_insolvency    
+
 ---
 id: homeowner code
 code:  |
@@ -616,8 +596,10 @@ question: |
   Debt information
 subquestion: | 
   ${ debt_information_signpost } 
-back button: True
 continue button field: debt_info_signpost 
+---
+################# SELECTING DEBT TYPE ####################
+comment: |
 ---
 id: set new object type to last item in debt parent list
 code: |
@@ -661,7 +643,6 @@ fields:
   		debt_question_code
 reconsider:
   - debt_question_code
-back button: True
 ---
 code: |
   debt_question_code = list()
@@ -699,21 +680,9 @@ id: tracks whether there should be sub_type attribute
 code: |
   temp_sub_type_exists = False
 ---
-id: sets the debt .type attribute to last in debt parent list 
-code: |
-  debt[i].type = temp_type
-  undefine('temp_type')
----
-id: debt amount
-generic object: Debt
-question: | 
-  How much is owed on this ${ x.name.lower() } debt?
-fields:
-  - Amount: x.value
-    datatype: currency 
-    min: 0
-    currency symbol: £
-back button: True
+################ COMPLETING DEBT ##################
+comment: |
+  The Debt list uses the "complete_attribute" feature for lists, where the interview will seek to define .complete gor each debt.  
 ---
 id: Debt complete order
 generic object: Debt
@@ -724,12 +693,59 @@ code: |
   x.name
   if temp_other_name_exists:
     x.other_name = temp_other_name
+  x.court_action
   x.urgency
   x.priority
-  x.court_action
-  x.first_miss_date
+  x.details
   x.notes
   x.complete = True
+---
+################ X.TYPE ##################
+comment: |
+  The Debt list uses the "complete_attribute" feature for lists, where the interview will seek to define .complete gor each debt.  
+---
+id: sets the debt .type attribute to last in debt parent list 
+code: |
+  debt[i].type = temp_type
+  undefine('temp_type')
+---
+generic object: LoansDebt
+code: |
+  x.top_type = "Loans"
+---
+generic object: TaxDebt
+code: |
+  x.top_type = "Tax"
+---
+generic object: PenaltiesDebt
+code: |
+  x.top_type = "Fines"
+---
+generic object: LiabilityDebt
+code: |
+  x.top_type = "Liabilities"
+---
+generic object: ConsumerDebt
+code: |
+  x.top_type = "Monthly Bills"
+---
+################ X.VALUE ##################
+comment: |
+  The Debt list uses the "complete_attribute" feature for lists, where the interview will seek to define .complete gor each debt.  
+---
+id: debt amount
+generic object: Debt
+question: | 
+  How much is owed on this ${ x.name.lower() } debt?
+fields:
+  - Amount: x.value
+    datatype: currency 
+    min: 0
+    currency symbol: £
+---
+################ X.NAME ##################
+comment: |
+  The Debt list uses the "complete_attribute" feature for lists, where the interview will seek to define .complete gor each debt.  
 ---
 id: .name for Debt
 generic object: Debt
@@ -745,34 +761,51 @@ generic object: LoansDebt
 code: |
   x.name = x.creditor +" " + x.type
 ---
-id: question to get you to first_miss_date for Debt
+######################### X.CREDITOR ##########################
+---
+id: .creditor for Debt
 generic object: Debt
 question: | 
-   Payment history for ${ x.name.lower() }
+	What is the name of the creditor for this debt?
+subquestion: | 
+	The credior is the person or company you owe money to. 
 fields:
-  - Are you behind on payments?: x.delinquent
+	- Creditor name: x.creditor
+---
+id: .creditor for Student loans
+generic object: StudentLoans
+question: | 
+  What is the name of the creditor for this debt?
+subquestion: | 
+  The credior is the person or company you owe money to. 
+fields:
+	- Creditor name: x.creditor
+		default: Student Loans Company
+---
+id: .creditor for Traffic Fines
+generic object: TrafficPenaltiesDebt
+question: | 
+  Who is enforcing the traffic fine?
+fields:
+	- Creditor name: x.creditor
+	  datatype: dropdown
+	  choices:
+	  	- Traffic Enforcement Centre
+	  	- A magistrate's court
+---
+######################### X.COURT_ACTION ##########################
+comment: |
+	Priority
+---
+generic object: Debt
+question: Is there a court action involving this debt?
+fields:
+  - : x.court_action
     datatype: yesnoradio
-    default: True
-  - When did you first miss payment?: x.first_miss_date1
-    datatype: date
-    show if: x.delinquent
-back button: True
 ---
-id: first_miss_date calculated and set as none if not appropriate
-generic object: Debt
-code: |
-  if x.delinquent:
-    x.first_miss_date = x.first_miss_date1
-  else:
-    x.first_miss_date = None
----
-id: notes for Debt
-generic object: Debt
-code: |
-  if x.delinquent:
-    x.notes = "First missed payment date: " + format_date(x.first_miss_date)
-  else:
-    x.notes = ""
+################ X.URGENCY ##################
+comment: |
+  The Debt list uses the "complete_attribute" feature for lists, where the interview will seek to define .complete gor each debt.  
 ---
 id: gets to urgency for Debt
 generic object: Debt
@@ -832,10 +865,24 @@ code: |
     x.initializeAttribute('emergency_dict', DADict.using(auto_gather=False,gathered=True))
     number_of_emergency_choices = len(x.emergency_choices)
 ---
+comment: |
+	After the user completes the .emergency_dict checkboxes, this box determines if any of the reasons were checked and sets x.urgency to a string of all the checked boxes.
+id: calculates .urgency from .urgency_reason if appropriate
 generic object: Debt
 code: |
-  x.emergency_dict.new_item_name = x.emergency_choices[0]
+  if len(x.emergency_dict.true_values()) > 0:
+    x.urgency = x.emergency_dict.true_values().comma_and_list()
+  else:
+    x.urgency = "None"
+depends on: x.emergency_dict
 ---
+comment: |
+  The only time that the interview will look for x.emergency_dict.new_item_name is when number of emergency choices is 1.
+generic object: Debt
+code: |
+  x.emergency_dict.new_item_name = x.emergency_choices[0]  
+---
+################### EMERGENCY CHOICES FOR X.URGENCY #####################
 generic object: Debt
 code: |
   x.emergency_choices = []
@@ -896,14 +943,9 @@ generic object: CouncilTax
 code: |
   x.emergency_choices = ["your essential personal property being seized","a bankruptcy proceeding for taxes"]    
 ---
-id: calculates .urgency from .urgency_reason if appropriate
-generic object: Debt
-code: |
-  if len(x.emergency_dict.true_values()) > 0:
-    x.urgency = x.emergency_dict.true_values().comma_and_list()
-  else:
-    x.urgency = "None"
----
+################# END OF EMERGENCY CHOICES ###################
+comment: |
+  These blocks below override the .emergency_choices method to determine urgency.
 id: .urgency for CreditCardDebt
 generic object: CreditCardDebt
 code: |
@@ -914,6 +956,7 @@ generic object: PenaltyChargeDebt
 code: |
   x.urgency = "None"
 ---
+################## URGENCY VARIABLES #######################
 id: gets to .urgency for RentDebt
 generic object: RentDebt
 question: Has a {possession order} been granted against you?
@@ -935,20 +978,10 @@ code: |
   else:
     x.urgency = "None"
 ---
-id: .urgency for CreditCardDebt
-generic object: CreditCardDebt
-code: |
-  x.urgency = "None"
+######################### X.PRIORITY FORMULAS ##########################
+comment: |
+	Priority
 ---
-id: court action
-generic object: Debt
-question: Is there a court action involving this debt?
-fields:
-  - : x.court_action
-    datatype: yesnoradio
-back button: True
----
-## PRIORITY SECTION
 generic object: LoansDebt
 code: |
   x.priority = False
@@ -994,7 +1027,7 @@ code: |
 	if x.creditor == "Traffic Enforcement Centre":
 		x.priority = False
 	else:
-		x.creditor = True
+		x.priority = True
 ---
 generic object: TaxDebt
 code: |
@@ -1067,7 +1100,7 @@ code: |
 	else:
 		x.priority = False
 ---
-## PRIORITY QUESTIONS
+######################### BEGINNING OF PRIORITY VARIABLES ##########################
 id: priority debt for home
 generic object: Debt
 question: Is the ${ x.name.lower() } for your current home?
@@ -1111,6 +1144,198 @@ fields:
   - : x.money_in_account
     datatype: yesnoradio
 ---
+########################## END OF PRIORITY VARIABLES ##########################
+comment: |
+	This dictionary of debt solutions can be created with Airtable.
+	
+	
+---
+######################### X.DETAILS ##########################
+comment: |
+	Priority
+---
+id: details order, default for debt
+generic object: Debt
+code: |
+	x.delinquent
+  x.details = True
+---
+id: question to get you to first_miss_date for Debt
+generic object: Debt
+question: | 
+   Payment history for ${ x.name.lower() }
+fields:
+  - Are you behind on payments?: x.delinquent
+    datatype: yesnoradio
+    default: True
+  - When did you first miss payment?: x.first_miss_date
+    datatype: date
+    show if: x.delinquent
+---
+id: goods as described
+generic object: Debt
+question:
+fields:
+  - Were the goods purchased as described?: x.goods_as_described
+    datatype: yesnoradio
+  - Were the goods purchased of satisfactory quality?: x.goods_satisfactory_quality
+    datatype: yesnoradio
+---
+######################### X.NOTES ##########################
+comment: |
+	Priority
+---
+depends on:
+  - x.delinquent
+  - x.first_miss_date
+id: notes for Debt
+generic object: Debt
+code: |
+  if not defined('x.notes'):
+    x.notes = ""
+  if x.delinquent:
+    x.notes += "DELINQUENT. First missed payment date: " + format_date(x.first_miss_date)
+  else:
+    x.notes += "NOT DELINQUENT"
+---
+depends on:
+  - x.delinquent
+  - x.for_essential_services
+id: notes for Pawnbroker
+generic object: Pawnbroker
+code: |
+  if x.delinquent:
+    x.notes = "DELINQUENT. First missed payment date: " + format_date(x.first_miss_date)
+  else:
+    x.notes = "NOT DELINQUENT  "
+  if x.for_essential_services:
+  	x.notes += "For essential goods."
+  else:
+  	x.notes += "Fon non-essential goods."
+---
+depends on:
+  - x.delinquent
+  - x.for_essential_services
+id: notes for HirePurchase
+generic object: HirePurchase
+code: |
+  if x.delinquent:
+    x.notes = "DELINQUENT. First missed payment date: " + format_date(x.first_miss_date)
+  else:
+    x.notes = "NOT DELINQUENT  "
+  if x.for_essential_services:
+  	x.notes += "For essential goods."
+  else:
+  	x.notes += "For non-essential goods."
+---
+depends on:
+  - x.delinquent
+  - x.goods_as_described
+  - x.goods_satisfactory_quality
+id: notes for CreditCardDebt
+generic object: CreditCardDebt
+code: |
+  if x.delinquent:
+    x.notes = "DELINQUENT. First missed payment date: " + format_date(x.first_miss_date)
+  else:
+    x.notes = "NOT DELINQUENT  "
+  if x.goods_as_described:
+  	x.notes += "Includes payments for misrepresented goods.  "
+  if x.goods_satisfactory_quality:
+  	x.notes += "Includes payments for shoddy goods.  "
+
+---
+depends on:
+  - x.delinquent
+  - x.is_current_home
+id: notes for Mortgage
+generic object: Mortgage
+code: |
+  if x.delinquent:
+    x.notes = "DELINQUENT. First missed payment date: " + format_date(x.first_miss_date)
+  else:
+    x.notes = "NOT DELINQUENT  "
+  if x.is_current_home:
+  	x.notes += "For current home."
+  else:
+  	x.notes += "Not for current home."
+---
+depends on:
+  - x.delinquent
+  - x.continue_trading
+id: notes for ConsumerDebt
+generic object: ConsumerDebt
+code: |
+	if x.continue_trading:
+	  x.notes = "Business continues to trade.  "
+	else:
+		x.notes = "Business no longer trades.  "
+	if x.delinquent:
+		x.notes += "DELINQUENT. First missed payment date: " + format_date(x.first_miss_date)
+	else:
+		x.notes += "NOT DELINQUENT"
+---
+depends on:
+  - x.date_of_award
+  - x.awarded_or_migrated_to_universal_credit
+id: notes for TaxCreditOverpayment
+generic object: TaxCreditOverpayment
+code: |		
+	x.notes = "Overpayment awarded on " + format_date(x.date_of_award) + ".  "
+	if x.awarded_or_migrated_to_universal_credit:
+		x.notes += user.name.full() + " has been awarded or migrated to universal credit."
+	else:
+		x.notes += user.name.full() + " has not been awarded or migrated to universal credit."
+---
+depends on:
+  - x.money_in_account
+id: notes for BankOverdraft
+generic object: BankOverdraft
+code: |		
+	if x.money_in_account:
+		x.notes = "Currently money in account at risk."
+	else:
+		x.notes = "No money currently in account."
+---
+depends on:
+  - x.court_action
+  - x.risk_of_losing_essential_goods
+id: notes for NonDomesticRates
+generic object: NonDomesticRates
+code: |		
+	if x.court_action:
+		x.notes = "Court action.  "
+		if x.risk_of_losing_essential_goods:
+		  x.notes += "Risk of losing essential goods."
+	else:
+		x.notes = "No court action."
+---
+depends on:
+  - x.possession_order
+  - x.repossession_date
+  - x.delinquent
+  - x.first_miss_date
+  - x.is_current_home
+id: notes for RentDebt
+generic object: RentDebt
+code: |
+  if x.possession_order:
+  	"REPOSSESSION scheduled for " + format_date(x.repossession_date) + ",  "
+  else:
+  	"No repossession scheduled.  "
+  if x.delinquent:
+    x.notes += "DELINQUENT. First missed payment date: " + format_date(x.first_miss_date)
+  else:
+    x.notes += "NOT DELINQUENT  "
+  if x.is_current_home:
+  	x.notes += "For current home."
+  else:
+  	x.notes += "Not for current home."
+---
+######################### DEBT SUMMARY ##########################
+comment: |
+	Priority
+---
 id: debt summary  
 section: debt_info
 question: |
@@ -1123,12 +1348,11 @@ field: debt.there_is_anotherstep
 buttons:
   - "Add another debt": True
   - "Continue to next section": False
-back button: True
 ---
 id: sets debt.there_is_another and undefines
 code: |
   if debt.there_is_anotherstep:
-    undefine('debt.there_is_anotherstep','debt_parent_list','debt_type_input_method')
+    undefine('debt.there_is_anotherstep','debt_parent_list','debt_type_input_method','number_of_emergency_choices')
     debt.there_is_another = True
   else:
     undefine('debt.there_is_anotherstep')
@@ -1148,33 +1372,168 @@ columns:
       currency(row_item.value)
   - Notes: |
       row_item.notes
-     
+require gathered: False     
 edit:
-  - name
-  - value
-  - creditor
-  - is_urgent
-  - urgency
-  - delinquent
-  - possession_order
-  - first_miss_date
-  - notes
-minimum_number: 1
+	- review_variable
 ---
-id: .notes for ConsumerDebt
-generic object: ConsumerDebt
-code: |
-   x.notes = "Creditor:" + x.creditor
+event: debt[i].review_variable
+question: |
+	Review ${ debt[i].name }
+review:
+	- Edit: debt[i].value
+		button: |
+			Value: ${ debt[i].value }
+	- Edit: debt[i].creditor
+		button: |
+			Creditor: ${ debt[i].creditor }
+	- Edit: debt[i].delinquent
+		button: |
+			Debt is delinquent: ${ debt[i].delinquent }
+	- Edit: debt[i].first_miss_date
+		button: |
+			First date of missed payment: ${ debt[i].first_miss_date }
+	- Edit: debt[i].is_current_home
+		button: |
+			The debt is for current home.: ${ debt[i].is_current_home }
+	- Edit: debt[i].debt[i].for_essential_services
+		button: |
+			The debt is for essential services: ${ debt[i].debt[i].for_essential_services }
+	- Edit: debt[i].court_action
+		button: |
+			There is a court action: ${ debt[i].court_action }
+	- Edit: debt[i].risk_of_losing_essential_goods
+		button: |
+			There is a risk of losing essential goods: ${ debt[i].risk_of_losing_essential_goods }
+	- Edit: debt[i].awarded_or_migrated_to_universal_credit
+		button: |
+			Awarded or migrated to universal credit: ${ debt[i].awarded_or_migrated_to_universal_credit }
+	- Edit: debt[i].continue_trading
+		button: |
+			The business has continued trading: ${ debt[i].continue_trading }
+	- Edit: debt[i].money_in_account
+		button: |
+			There is money in the bank account.: ${ debt[i].money_in_account }
+	- Edit: debt[i].possession_order
+		button: |
+			There is a possession order.: ${ debt[i].possession_order }
+	- Edit: debt[i].repossession_date
+		button: |
+			Repossession Date: ${ format_date(debt[i].repossession_date) }
 ---
-id: .creditor for Debt
-generic object: Debt
-question: | 
-  What is the name of the creditor for this debt?
-subquestion: | 
-  The credior is the person or company you owe money to. 
-fields:
- - Creditor name: x.creditor
-back button: True
+event: review_answers
+question: |
+	Review 
+review:
+  - Edit: user.name.first
+    button: |
+      First name: **${ user.name.first }**
+  - Edit: user.name.last
+    button: |
+      Last name: **${ user.name.last }**
+  - Edit: user.uk
+    button: |
+      Resident of Wales: **${ user.uk }**
+  - Edit: user.uk_debt
+    button: |
+      UK Based Debt: **${ user.uk_debt }**
+  - Edit: user.address.address
+    button: |
+      Street: **${ user.address.address }**
+  - Edit: user.address.city
+    button: |
+      City: **${ user.address.city }**
+  - Edit: user.address.country
+    button: |
+      State: **${ user.address.country }**
+  - Edit: user.address.zip
+    button: |
+      Zip: **${ user.address.zip }**
+  - Edit: user.phone
+    button: |
+      Phone: **${ user.phone }**
+  - Edit: user.email
+    button: |
+      Email: **${ user.email }**
+  - Edit: user.dob
+    button: |
+      Date of Birth: **${ user.dob }**
+  - Edit: user.gender
+    button: |
+      Gender: **${ user.gender }**
+  - Edit: user.gender_writein
+    button: |
+      Gender write-in: **${ user.gender_writein }**
+  - Edit: user.marriage
+    button: |
+      Marriage Status: **${ user.marriage }**
+  - Edit: user.childrenNum
+    button: |
+      Number of Children: **${ user.childrenNum }**
+  - Edit: user.work
+    button: |
+      Employment Status: **${ user.work.true_values() }**
+  - Edit: user.house_status
+    button: |
+      Housing Status: **${ user.house_status }**
+  - Edit: user.house_status_other
+    button: |
+      Housing Status Other: **${ user.house_status_other }**
+  - Edit: share_housing
+    button: |
+      Shares housing with others: **${ share_housing }**
+  - Edit: user.house_status_mortshare
+    button: |
+      Joint mortgage: **${ user.house_status_mortshare }**
+  - Edit: user.house_status_rentshare
+    button: |
+      Joint Tenancy: **${ user.house_status_rentshare }**
+  - Edit: user.renting_status
+    button: |
+      Renting Status: **${ user.renting_status }**
+  - Edit: user.homeowner_status
+    button: |
+      Homeowner Status: **${ user.homeowner_status }**
+  - Edit: user.house_num
+    button: |
+      Number in Household: **${ user.house_num }**
+  - Edit: user.house_aware
+    button: |
+      Others in Household Aware of Debt Situation: **${ user.house_aware }**
+  - Edit: another_debt_solution
+    button: |
+      Existing Debt Solution: **${ another_debt_solution }**
+  - Edit: court_case
+    button: |
+      Court Case: **${ court_case }**
+under: |
+	
+	Debts
+	
+	${ debt.table }
+	
+	${ debt.add_action() }
+	
+	Employment Income
+	
+	${ jobs.table }
+	
+	${ jobs.add_action() }
+	
+	Other Income
+	
+	${ other_income.table }
+	
+	${ other_income.add_action() }
+	
+	Assets
+	
+	${ assets.table }
+	
+	${ assets.add_action() }
+	
+	Expenses
+	
+	${ expenses.table }
 ---
 id: breathing space description
 section: standard_bs
@@ -1182,7 +1541,6 @@ question:  |
   Breathing space 
 subquestion:  |
   ${ standard_bs }
-back button: True
 continue button field: user_saw_standard_bs
 ---
 id: mental health breathing space description
@@ -1191,7 +1549,6 @@ question:  |
   Mental health breathing space 
 subquestion:  |
   ${ mentalh_bs }
-back button: True
 continue button field: user_saw_mentalh_bs
 ---
 id: personal finance  signpost 
@@ -1221,12 +1578,11 @@ fields:
     datatype: yesnowide
     help: | 
       Assets **include** most items you own like cars, boats, buildings or land, or other items of value. Assets **do not** include household equipment like bedding; items you use for your job or buisness. 
-#  - Expenses: expenses.want_to_collect
-#    datatype: yesnowide
-#    default: True
-#    help: | 
-#     List everything you spend your income on: housing, childcare, fuel, health costs, transport, furniture, hire purchase, fines, laundry, telephone, TV, broadband, toiletries, clothing, food, child support payments, self-employment costs and so on. 
-back button: True
+  - Expenses: expenses.want_to_collect
+    datatype: yesnowide
+    default: True
+    help: | 
+      List everything you spend your income on: housing, childcare, fuel, health costs, transport, furniture, hire purchase, fines, laundry, telephone, TV, broadband, toiletries, clothing, food, child support payments, self-employment costs and so on. 
 ---
 id: asks if there is another job
 question: Job Information Summary
@@ -1251,7 +1607,6 @@ columns:
      
 edit:
   - is_hourly 
-minimum_number: 1
 
 ---
 id: other income table
@@ -1267,7 +1622,6 @@ columns:
       
 edit:
   - type 
-minimum_number: 1
 ---
 id: assets table
 table: assets.table
@@ -1280,7 +1634,6 @@ columns:
       
 edit:
   - type 
-minimum_number: 1
 ---
 id: income from assets table
 table: income_assets.table
@@ -1291,7 +1644,6 @@ columns:
   - Amount: |
       currency(row_item.amount())
       
-minimum_number: 1
 ---
 id: expenses table
 table: expenses.table
@@ -1302,10 +1654,9 @@ columns:
   - Amount: |
       currency(row_item.amount())
       
-      
+delete buttons: False
 edit:
   - type 
-minimum_number: 1
 ---
 id: job info collection
 question: |
@@ -1458,7 +1809,7 @@ code:  |
 id: expenses single page 
 section: expenditure
 question:  Enter your expenses for each cateogry 
-
+continue button field: expenses_values
 subquestion: |
 
   ${ expenses[0].type.capitalize()}: [FIELD expenses[0].value] [FIELD expenses[0].period]
@@ -1492,6 +1843,7 @@ fields:
     datatype: currency
     default: 0
     inline width: 2em
+    help: | 
       
   - For: expenses[0].period
     datatype: number
@@ -1607,8 +1959,9 @@ fields:
     code: |
       period_list()
     default: 12
-back button: True     
-continue button field: expenses_values
+  - note: |
+     
+
 ---
 id: average cost of living
 code:  |
@@ -1640,8 +1993,9 @@ code: |
 ---
 id: expenses gathered order
 code: |
-  collect_expenses
-  expenses_values
+  if expenses.want_to_collect:
+    collect_expenses
+    expenses_values
   expenses.gathered = True
 ---
 
@@ -1768,15 +2122,9 @@ subquestion:  |
   You told us about ${len(debt)} debts. In total you have  ${currency(debt.total())} debt. 
 
 
-#  ####### Revisit and edit your data by clicking on the menu at sections accordingly.
-#review:
-#  - Update:
-#     - month_disposble_income
-#     - is_court_debt
-#     - is_homeowner
-#    button:  |
-#       Update to see most recent data by clicking on:
-back button: True
+  [Edit your answers](${ url_action('review_answers') })
+
+  
 continue button field: summary
 ---
 id: monthly disposable income calculation
@@ -1878,7 +2226,7 @@ subquestion: |
     **${Available_solutions[key]['title']}**
     
     ${Available_solutions[key]['blurb']}
-    
+
   % endfor
 
   **The following solutions are not ready for you:**[BR]
@@ -1893,7 +2241,6 @@ subquestion: |
 #     - is_court_debt
 #     - is_homeowner
 #    button:  |
-back button: True
 continue button field: user_saw_debt_solutions
 ---
 id: bankruptcy relevant description
@@ -1957,6 +2304,7 @@ terms:
 
   possession order: | 
     Possession orders is a court order that requires a tenant to leave the property by a given date.
+
   
 ---
 id: debt relief order not relevant description
@@ -2017,6 +2365,9 @@ code:  |
 code: |
   not_available_solution = debt_solutions.slice(lambda y: y.match_dict.any_true())
 ---
+id: 
+comment: |
+  This block loops through each debt solutions list of requirements
 code: |
   for req in debt_solutions[i]['requirements']:
    debt_solutions[i].match_dict[req] = debt_solutions[i]['requirements'][req]['formula']
@@ -2034,7 +2385,6 @@ code:  |
       Dro_debt_not.append(item.name)
     else:
       Dro_debt.append(item.name)
-  
  
 ---
 id: make pdf
@@ -2094,10 +2444,10 @@ subquestion: |
 
 attachment code: |
   [debt_brief,instructions_sheet]
+
 buttons:
   - Exit: exit
   - Restart: restart
-back button: True
 ---
 id: debt brief
 attachment:
@@ -2119,6 +2469,9 @@ attachment:
       - pdf
     docx template file: debt_instructions.docx
 ---
+########################## DEBT DICTIONARY ##########################
+comment: |
+	This is a simple dict (not DADict) that is used to order how a user can select a type of debt
 code: |
 	debt_dict = {
 		'Debt':
@@ -2132,15 +2485,13 @@ code: |
 			{
 			 'class_name': ConsumerDebt,
 			 'label':"Other bills",
-       'help': " Other bills includes: [BR] Water arrears, [BR] Energy bill arrears, [BR] catalogue spending, [BR] Private parking charges [BR] Other outstanding invoices or bills, or monthly bills",
 			 'more_specific_question':"What kind of bills?",
-				'more_specific':["Water arrears", "Energy bill arrears", "Catalogue spending", "Private parking charges", "Other outstanding bills, for example solicitors costs, invoices for building work and vets bills"]
+				'more_specific':["Water arrears", "Energy bill arrears", "Catalogue spending", "Private parking charges", "other outstanding bills, for example solicitors costs, invoices for building work and vets bills"]
 			},
 		'Tax':
 			{
 			 'class_name': TaxDebt,
 			 'label':"Taxes",
-       'help': "Taxes includes: [BR] Unpaid income tax [BR] National Insurance[BR] Value added tax (VAT) [BR] TV license [BR] Non-domestic rates [BR] Council tax [BR] Overpayment of benefits",
 			 'more_specific_question':"What kind of taxes?",
 				'more_specific':["Unpaid income tax, National Insurance or VAT", "TV license", "Non-domestic rates", "Council Tax", "Overpayment of benefits"]
 			},
@@ -2148,7 +2499,6 @@ code: |
 			{
 			 'class_name': OverpaymentOfBenefits,
 			 'label':"Overpayment of benefits",
-       'help': "Overpayments of tax credits can arise, for example, if someone does not tell HMRC about a change in her/his circumstances, if s/he gives it incorrect infomation, or if her/his income falls or rises by more than £2,500 in the current year compared with the previous tax year.",
 			 'more_specific_question':"What type of benefits were overpaid?",
 				'more_specific':["Universal credit advance", "Tax credit overpayments", "Social fund loan"]
 			},
@@ -2156,7 +2506,6 @@ code: |
 			{
 			 'class_name': PenaltiesDebt,
 			 'label':"Fines and penalties",
-       'help': "Fines and penalties includes: [BR] Shoplifting recovery [BR] Fines [BR] Parking tickets [BR] Traffi penalties",
 			 'more_specific_question':"What type of penalties?",
 				'more_specific':["Shoplifting recovery", "Fine", "unpaid parking tickets - these are called Penalty Charge Notices or Parking Charge Notices", "Traffic penalties"]
 			},
@@ -2164,7 +2513,6 @@ code: |
 			{
 			 'class_name': LiabilityDebt,
 			 'label':"Lawsuits against you",
-       'help': "Lawsuits against you includes: [BR] Shoplifting recover [BR] Clams against you for damage or personal injury",
 			 'more_specific_question':"What kind of lawsuit?",
 				'more_specific':["Shoplifting recovery", "Claims against you for damage or personal injury"]
 			},
@@ -2172,7 +2520,6 @@ code: |
 			{
 			 'class_name': LoansDebt,
 			 'label':"Other loans",
-       'help': "Other loans include:[BR] Loan from family member or friend [BR] store cards\Budget Account [BR] Charge Card [BR] Personal loan [BR] Hire purchase [BR] Bill of Sale [BR] Credit sale agreement [BR] Interest-free credit [BR] Pawnbroker [BR] Trading cheque or voucher",
 			 'more_specific_question':"What kind of loan?",
 				'more_specific':["Loan from family member or friend", "store cards\Budget Account", "Charge Card", "Personal loan", "Hire purchase", "Bill of Sale", "Credit sale agreement", "Interest-free credit", "Pawnbroker", "Trading cheque or voucher"]
 			},
@@ -2187,7 +2534,6 @@ code: |
 			{
 			 'class_name': CreditCardDebt,
 			 'label':"Credit card",
-       'help': "A credit card (eg, Mastercard, Visa) is a form of revolving credit (see here) and allows you to buy goods or services from a trader. The trader invoices the credit card company and you receives a monthly account showing all transactions made during that period. A minimum monthly repayment is required – often covering at least interest, fees and charges plus 1 per cent of the capital outstanding.",
 				'more_specific':[]
 			},
 		'Rent arrears':
@@ -2201,7 +2547,6 @@ code: |
 			{
 			 'class_name': BankOverdraft,
 			 'label':"Bank overdraft",
-       'help': "The bank allows a customer with a current account to overdraw on the account up to a certain amount. Repayment of the overdraft is made as money is paid into the account.",
 				'more_specific':[]
 			},
 		'Water arrears':
@@ -2215,7 +2560,6 @@ code: |
 			{
 			 'class_name': InformalLoan,
 			 'label':"Loan from family member or friend",
-       'help': "Money that a friend or family loans you for personal or buisness use",
 				'more_specific':[]
 			},
 		'Social fund loan':
@@ -2254,7 +2598,6 @@ code: |
 			{
 			 'class_name': TVLicenseDebt,
 			 'label':"TV license",
-       'help': "A TV licnese is required to use a television",
 				'more_specific':[]
 			},
 		'Child maintenance/child support agency debts':
@@ -2269,7 +2612,6 @@ code: |
 			{
 			 'class_name': Fine,
 			 'label':"Fine",
-       'help': "Fines are the most common form of punishment imposed by the magistrates’ or Crown Court for criminal offences.",
 				'more_specific':[]
 			},
 		'Catalogue spending':
@@ -2283,7 +2625,6 @@ code: |
 			{
 			 'class_name': StudentLoans,
 			 'label':"Student Loans",
-       'help': "Loans is used to pay for a student's education",
 				'more_specific':[]
 			},
 		'Personal loan':
@@ -2297,7 +2638,6 @@ code: |
 			{
 			 'class_name': PenaltyChargeDebt,
 			 'label':"Parking tickets",
-       'help': "Many private landowners, including retail parks and supermarkets, allow customer parking on their land subject to terms and conditions, and impose charges on motorists who contravene these terms and condition",
 				'more_specific':[]
 			},
 		'Hire purchase':
@@ -2318,7 +2658,6 @@ code: |
 			{
 			 'class_name': PaydayLoan,
 			 'label':"Payday loans",
-       'help': "These are small (generally between £50 and £800) loans intended to cover short-term financial difficulties such as an unexpected bill or an emergency. They are repayable in full on your next payday.",
 				'more_specific':[]
 			},
 		'store cards\Budget Account':
@@ -2328,17 +2667,16 @@ code: |
 			 'help':"A budget account is a type of revolving credit (see here) provided by shops. The client can spend up to an agreed credit limit and makes regular repayments.",
 				'more_specific':[]
 			},
-		'Other outstanding bills, for example solicitors costs, invoices for building work and vets bills':
+		'other outstanding bills, for example solicitors costs, invoices for building work and vets bills':
 			{
 			 'class_name': NonRegularBill,
-			 'label':"Other outstanding bills, for example solicitor's costs, invoices for building work and vets bills",
+			 'label':"other outstanding bills, for example solicitor's costs, invoices for building work and vets bills",
 				'more_specific':[]
 			},
 		'Bill of Sale':
 			{
 			 'class_name': BillOfSale,
 			 'label':"Bill of Sale",
-       'help': "A bill of sale is a way of raising money by offering an item of personal property (commonly, a car) as security for a loan. The essential feature of a bill of sale is that the goods remain in your possession and use  but ownership is transferred to the creditor, so they can be repossessed and sold if the debt is not repaid.",
 				'more_specific':[]
 			},
 		'Charge Card':
@@ -2366,14 +2704,13 @@ code: |
 			{
 			 'class_name': Maintenance,
 			 'label':"Spousal maintenance",
-			 'help':"Court or county court orders that require ex-spouse to make maintenance payments to the other partner for her/himself and/or any children.",
+			 'help':"Before April 1993, either the magistrates’ court or county court made orders to require a parent or ex-spouse to make maintenance payments to the other partner for her/himself and/or any children. From April 1993, child maintenance payment powers passed to the Child Support Agency (the predecessor of the Child Maintenance Service – see here). The only new court orders made after this date are for applications not covered by the child support scheme (eg, for additional maintenance) and for spousal maintenance. ",
 				'more_specific':[]
 			},
 		'Mortgage':
 			{
 			 'class_name': MortgageDebt,
 			 'label':"Mortgage",
-       'help':"The term ’mortgage’ is used to describe a loan to buy a house or flat. If repayments are not maintained, the lender can recover the money lent by repossessing the property and selling it",
 				'more_specific':[]
 			},
 		'National insurance contributions':
@@ -2387,7 +2724,6 @@ code: |
 			{
 			 'class_name': NonDomesticRates,
 			 'label':"Non-domestic rates",
-       'help': "Non-domestic rates (business rates) are charged on most commercial property by local authorities. They are based on a national valuation and fixed amounts are charged across England and Wales in proportion to this.",
 				'more_specific':[]
 			},
 		'Pawnbroker':
@@ -2436,17 +2772,16 @@ code: |
 			{
 			 'class_name': CouncilTax,
 			 'label':"Council Tax",
-       'help': "Council tax is a tax administered by local authorities, comprising two equal elements – a ’property’ element and a ’people’ element.",
 				'more_specific':[]
 			},
 		'Shoplifting recovery':
 			{
 			 'class_name': ShopliftingRecovery,
 			 'label':"Shoplifting recovery",
-			 'help':"Many people have been threatened with county court action by civil recovery agents for the recovery of losses allegedly incurred by retailers following allegations either of theft by employees or  shoplifting  by customers, in many cases involving goods of relatively low value." ,
+			 'help':"Over the past few years, many people have been threatened with county court action by civil recovery agents for the recovery of losses allegedly incurred by retailers following allegations either of theft by employees or shoplifting by customers, in many cases involving goods of relatively low value. Although in some cases the person has been charged and prosecuted for a criminal offence, in many cases there has been no police involvement and, in most shoplifting cases, the goods have been recovered undamaged and able to be resold by the retailer.",
 				'more_specific':[]
 			},
-		}
+		}		
 ---
 code: | 
   debt_solutions['Bankruptcy']['details'] = bankruptcy_information
@@ -2455,6 +2790,10 @@ code: |
   debt_solutions['Debt Relief Order']['details'] = debt_relief_order 
 ---
 id: Debt Solutions 
+########################## DEBT SOLUTIONS DICTIONARY ##########################
+comment: |
+	This dictionary of debt solutions can be created with Airtable.
+  
 variable name: debt_solutions
 use objects: True
 data from code:
