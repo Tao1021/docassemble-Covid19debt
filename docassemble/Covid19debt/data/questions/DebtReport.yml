@@ -11,7 +11,9 @@ metadata:
 ---
 default screen parts:
   pre: |
+    <b>WARNING: For demonstration only. Do not enter personal information. Do not Sign in. Do not Sign Up.</b>
     % if get_config('debug'):
+    <br/>
     `id: ${ user_info().question_id }`  
     % endif
 ---
