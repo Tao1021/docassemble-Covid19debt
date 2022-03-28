@@ -811,7 +811,7 @@ fields:
 ---
 if: number_of_emergency_choices > 1
 generic object: Debt
-question: Are you at risk of any of the following relating to ${ x.name }? 
+question: Are you at risk of any of the following relating to ${ x.name.lower() }? 
 subquestion: |
   Check all that apply
   
@@ -1188,7 +1188,7 @@ continue button field: user_saw_standard_bs
 id: mental health breathing space description
 section: mentalh_bs
 question:  |
-  Mental health Breathing space 
+  Mental health breathing space 
 subquestion:  |
   ${ mentalh_bs }
 back button: True
