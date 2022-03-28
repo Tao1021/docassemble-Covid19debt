@@ -1110,6 +1110,7 @@ question: Is there money in the account that the bank can take to pay the debt?
 fields:
   - : x.money_in_account
     datatype: yesnoradio
+back button: True
 ---
 id: debt summary  
 section: debt_info
@@ -1829,7 +1830,8 @@ fields:
       - Disagree
     help:  |
       Some debt solution will deal with your creditors for you.
-  
+continue button field: preferencees_questions
+back button: True
 ---
 id: preferences translation to statements
 code:  |
@@ -1902,7 +1904,7 @@ event: Bankruptcy
 question:  |
   About Bankruptcy  
 subquestion:  |
-  ${ bankruptcy }
+  ${ bankruptcy_information }
 continue button field: user_saw_intro
 ---
 id: debt relief order relevant description
@@ -1911,7 +1913,7 @@ event: Debt Relief Order
 question:  |
   Debt Relief Order
 subquestion:  |
-  ${ debt_relief_order }
+  ${ debt_relief_order  }
 continue button field: user_saw_intro
 ---
 id: administration order relevant description
@@ -2089,11 +2091,17 @@ decoration: file-download
 event: letter_and_end
 allow downloading: True
 question: |
-  Your document is ready
+  Below is your document with your instructions for next steps and and information about debt solutions. 
 subquestion: | 
-
+  
+  Click the below image to open your document [BR]
+  [BR]
+  ${ pdf_concatenate([instructions_sheet, debt_brief, debt_solutions_sheet])}
+  
+  Click "Back" if you need to make any changes.  
+  Click "Send to court" to deliver it.
 attachment code: |
-  [debt_brief,instructions_sheet]
+  [instructions_sheet, debt_brief, debt_solutions_sheet]
 buttons:
   - Exit: exit
   - Restart: restart
@@ -2118,6 +2126,16 @@ attachment:
       - docx
       - pdf
     docx template file: debt_instructions.docx
+---
+id: solutions docx
+attachment: 
+  - name: Potential Debt Solutions
+    filename: Potential Debt Solutions
+    variable name: debt_solutions_sheet
+    valid formats:
+      - docx
+      - pdf
+    docx template file: debt_solutions.docx
 ---
 code: |
 	debt_dict = {
@@ -2448,11 +2466,12 @@ code: |
 			},
 		}
 ---
+mandatory: True
 code: | 
-  debt_solutions['Bankruptcy']['details'] = bankruptcy_information
-  debt_solutions['Administration Order']['details'] = administration_order
-  debt_solutions['Individual Voluntary Agreement']['details'] = individual_voluntary_agreement
-  debt_solutions['Debt Relief Order']['details'] = debt_relief_order 
+  Available_solutions['Bankruptcy']['details'] = bankruptcy_information
+  Available_solutions['Administration Order']['details'] = administration_order
+  Available_solutions['Individual Voluntary Agreement']['details'] = individual_voluntary_agreement
+  Available_solutions['Debt Relief Order']['details'] = debt_relief_order
 ---
 id: Debt Solutions 
 variable name: debt_solutions
@@ -2463,8 +2482,6 @@ data from code:
       "Bankruptcy" 
     blurb: | 
       "Bankruptcy is a form of insolvency and is normally only suitable if you can’t pay back your debts in a reasonable time. When you go bankrupt almost all of your debts are written off. Deciding to go bankrupt is a big step that involves fees and can impact different areas of your life, such as your job or home."
-    details: | 
-      "bankruptcy_information.md" 
     cost: 680
     credit rating: |
       "Strongly Affected"
@@ -2501,8 +2518,6 @@ data from code:
       "Debt Relief Order"
     blurb: | 
       "You do not have to make payments towards most types of debt included in your debt relief order and your creditors can’t force you to pay off the debts. A debt relief order usually lasts a year unless your situation improves. When the debt relief order ends, most of your debts will be written off. " 
-    details: |
-      "debt_relief_order.md"
     cost: 90
     credit rating: |
       "affected"
@@ -2558,8 +2573,6 @@ data from code:
       "Administration Order"
     blurb: | 
       "An administration order is a formal, legal debt solution which means it's approved by the court and your creditors have to stick to it. It requires two or more debts, yout debts no more than 5000 pounds in total, and a court judgement, if you don’t have a county court judgment or high court judgment, you need to wait for one of your creditors to take court action against you. As soon as judgment is entered you can apply for an administration order." 
-    details: | 
-      " informajga;gj" 
     cost: .1
     credit rating: |
       "affected"
