@@ -85,9 +85,12 @@ code: |
   #user_provided_personal_info
   user.house_status 
   if user.house_status == 'Renting': 
-    if user.renting_status == 'Joint tenants': 
-      user.house_status_rentshare
-  if user.house_status == 'Home owner': 
+    user.renting_status 
+    if share_housing == True: 
+      if renting_household == True: 
+        joint_tenancy_explained
+  if user.house_status == 'Homeowner':
+    mortgage_questions
     if user.homeowner_status == 'Joint Mortgage':
       user.house_status_mortshare
   if user.house_status == 'Living with family':
@@ -165,8 +168,8 @@ content file: standard_bs.md
 template: mentalh_bs
 content file: mentalh_bs.md
 ---
-template: bankruptcy
-content file: bankruptcy.md
+template: bankruptcy_information
+content file: bankruptcy_information.md
 ---
 template: debt_relief_order
 content file: debt_relief_order.md
@@ -253,7 +256,7 @@ subquestion: |
   ${ bs_solutions_signpost } 
 continue button field: signpost_bs_solutions 
 ---
-id: debt signpost 
+id: personal finance signpost 
 section: finance_info
 #decoration: 
 question: |  
@@ -266,14 +269,15 @@ continue button field: finance_signpost
 ---
 id: priority debt code
 code: |
-  priority_debts = debt.filter(priority=True)
-  priority_debts.gathered = True   
+  priority_debts = [debt_item for debt_item in debt if debt_item.urgency == "" and debt_item.priority]
 ---
 id: nonpriority debt code
 code: |
-  nonpriority_debts = debt.filter(priority=False)
-  nonpriority_debts.gathered = True  
-    
+  nonpriority_debts = [debt_item for debt_item in debt if debt_item.urgency == "" and not debt_item.priority]
+---
+id: emergency debt code 
+code: | 
+  emergency_debts = [debt_item for debt_item in debt if not debt_item.urgency == ""]  
 ---
 id: personal information block
 section: personal_info
@@ -335,6 +339,7 @@ fields:
       states_list(country_code="gb")
   - Postal Code: user.address.zip
     required: False
+back button: True
 continue button field: user_contact_information_homeless 
 ---
 id: user work status 
@@ -344,7 +349,7 @@ question: |
 subquestion: | 
   Check all that apply. 
 fields: 
-  - Employment status: user.work
+  - Work status: user.work
     datatype: checkboxes
     choices:
       - Full time 
@@ -448,12 +453,14 @@ fields:
       help: | 
         information 
 ---
-id: renting follow up 2 
+id:  follow up 2 
 section: personal_info 
 question: | 
-  Are you joint tenants 
-yesno: Joint tenants
-continue button field: renting_household
+  Are you joint tenants?
+subquestion: | 
+    If you have a joint tenancy, you are liable for the rent both jointly and individually. This means that one or all of you can be held responsible for the whole rent. 
+yesno: renting_household
+back button: True
 ---
 id: follow up to joint tenants  
 section: personal_info
@@ -464,11 +471,12 @@ subquestion: |
   
   If you have a joint tenancy, you are liable for the rent both jointly and individually. This means that one or all of you can be held responsible for the whole rent. 
 fields: 
-  - Joint tenancy explaination: user.house_status_rentshare
+  - Joint tenancy explaination: joint_tenancy_explained
     required: False
     datatype: area
     hint: |
       E.g., Sharing with family, friends
+back button: True
 --- 
 id: mortgage follow up 
 section: personal_info
@@ -487,6 +495,8 @@ fields:
     - Joint Mortgage: Joint Mortgage 
       help: | 
         Information 
+back button: True
+continue button field: mortgage_questions
 ---
 id: follow up shared mortgage
 section: personal_information 
@@ -834,7 +844,7 @@ fields:
 ---
 if: number_of_emergency_choices > 1
 generic object: Debt
-question: Are you at risk of any of the following relating to ${ x.name }? 
+question: Are you at risk of any of the following relating to ${ x.name.lower() }? 
 subquestion: |
   Check all that apply
   
@@ -949,7 +959,7 @@ code: |
 ################## URGENCY VARIABLES #######################
 id: gets to .urgency for RentDebt
 generic object: RentDebt
-question: Has a possession order been granted against you?
+question: Has a {possession order} been granted against you?
 fields:
   - : x.possession_order
     datatype: yesnoradio
@@ -1123,7 +1133,7 @@ fields:
     datatype: yesnoradio
 ---
 generic object: Debt
-question: More information about ${ x.name }
+question: More information about ${ x.name.lower() }
 fields:
   - Has the business continued trading?: x.continue_trading
     datatype: yesnoradio
@@ -1536,7 +1546,7 @@ continue button field: user_saw_standard_bs
 id: mental health breathing space description
 section: mentalh_bs
 question:  |
-  Mental health Breathing space 
+  Mental health breathing space 
 subquestion:  |
   ${ mentalh_bs }
 continue button field: user_saw_mentalh_bs
@@ -2204,20 +2214,27 @@ event: debt_solutionss
 question: | 
   You might consider the following solutions with a debt advisor
 subquestion: |
-  **Debt Management Plan** [detail](${ url_action("Debt Management Plan") })
+  Don't worry about writing it all down. We will include this information for you to save for your records. 
+  
+  **The following solutions might be ready for you:**
+  
+  **Debt Management Plan**
   
   A debt management plan (DMP) helps you to manage your debts and pay them off at a more affordable rate by making reduced monthly payments. 
-  % for key in Available_solutions.keys():
   
-    **${key}** [Learn more about ${key} here](${ url_action(key) })                           
+  % for key in Available_solutions.keys():
+    **${Available_solutions[key]['title']}**
+    
+    ${Available_solutions[key]['blurb']}
+
   % endfor
 
-# The following solutions are not ready for you:
+  **The following solutions are not ready for you:**[BR]
+  % for key in not_available_solution.keys():
+  ${not_available_solution[key]['title']}
+    
+  % endfor
   
-#  % for item in not_available_solution:
-#  
-#		**${item}** [detail](${ url_action("not "+item) }),
-#  % endfor
 #review:
 #  - Re-evaluate:
 #     - month_disposble_income
@@ -2281,6 +2298,13 @@ terms:
     
   disposable income: | 
     Disposable income is the amount of money you have left to spend from your income after meeting your expenses for your needs 
+
+  formal insolvency procedure: | 
+    Someone is said to be ‘insolvent’ if they are unable to pay their debts as they fall due. There are four ways in which you can reach a formal arrangement with your creditors to resolve your financial problems. 
+
+  possession order: | 
+    Possession orders is a court order that requires a tenant to leave the property by a given date.
+
   
 ---
 id: debt relief order not relevant description
@@ -2413,12 +2437,14 @@ id: final document
 section: conclusions
 decoration: file-download
 event: letter_and_end
+allow downloading: True
 question: |
   Your document is ready
 subquestion: | 
-  Please print and save for your for your records. 
- 
-   ${ debt_brief }
+
+attachment code: |
+  [debt_brief,instructions_sheet]
+
 buttons:
   - Exit: exit
   - Restart: restart
@@ -2433,12 +2459,19 @@ attachment:
       - pdf
     docx template file: debt_report.docx
 ---
-
+id: instructions docx
+attachment:
+  - name: Next Step Instructions
+    filename: Next Steps 
+    variable name: instructions_sheet
+    valid formats:
+      - docx
+      - pdf
+    docx template file: debt_instructions.docx
+---
 ########################## DEBT DICTIONARY ##########################
 comment: |
 	This is a simple dict (not DADict) that is used to order how a user can select a type of debt
-	
-	
 code: |
 	debt_dict = {
 		'Debt':
@@ -2750,15 +2783,27 @@ code: |
 			},
 		}		
 ---
+code: | 
+  debt_solutions['Bankruptcy']['details'] = bankruptcy_information
+  debt_solutions['Administration Order']['details'] = administration_order
+  debt_solutions['Individual Voluntary Agreement']['details'] = individual_voluntary_agreement
+  debt_solutions['Debt Relief Order']['details'] = debt_relief_order 
+---
+id: Debt Solutions 
 ########################## DEBT SOLUTIONS DICTIONARY ##########################
 comment: |
 	This dictionary of debt solutions can be created with Airtable.
-	
-	
+  
 variable name: debt_solutions
 use objects: True
 data from code:
   Bankruptcy:
+    title: | 
+      "Bankruptcy" 
+    blurb: | 
+      "Bankruptcy is a form of insolvency and is normally only suitable if you can’t pay back your debts in a reasonable time. When you go bankrupt almost all of your debts are written off. Deciding to go bankrupt is a big step that involves fees and can impact different areas of your life, such as your job or home."
+    details: | 
+      "bankruptcy_information.md" 
     cost: 680
     credit rating: |
       "Strongly Affected"
@@ -2791,6 +2836,12 @@ data from code:
 #	  		sample_reason: |
 #	  			'"you currently have assets worth "+currency(assets.total())+" which is more than what is required:  "+ currency(formula_value)'
   Debt Relief Order:
+    title: | 
+      "Debt Relief Order"
+    blurb: | 
+      "You do not have to make payments towards most types of debt included in your debt relief order and your creditors can’t force you to pay off the debts. A debt relief order usually lasts a year unless your situation improves. When the debt relief order ends, most of your debts will be written off. " 
+    details: |
+      "debt_relief_order.md"
     cost: 90
     credit rating: |
       "affected"
@@ -2842,6 +2893,12 @@ data from code:
 #    		sample_reason: |
 #    			'"Your debt amount " + currency(debt.total()) + " exceeded maximum allowance "+ currency(formula_value )'
   Administration Order:
+    title: | 
+      "Administration Order"
+    blurb: | 
+      "An administration order is a formal, legal debt solution which means it's approved by the court and your creditors have to stick to it. It requires two or more debts, yout debts no more than 5000 pounds in total, and a court judgement, if you don’t have a county court judgment or high court judgment, you need to wait for one of your creditors to take court action against you. As soon as judgment is entered you can apply for an administration order." 
+    details: | 
+      " informajga;gj" 
     cost: .1
     credit rating: |
       "affected"
@@ -2891,6 +2948,10 @@ data from code:
     		reason: |
     		  "An Administration Order is not applicable unless the debt is related to a court case."
   Individual Voluntary Agreement:
+    title: | 
+      "Individual Voluntary Agreement" 
+    blurb: | 
+      " An individual voluntary arrangement (IVA) is a formal and legally binding agreement between you and your creditors to pay back your debts over a period of time. This means it’s approved by the court and your creditors have to stick to it." 
     cost: 4000
     credit rating: |
       "affected"
