@@ -1,4 +1,4 @@
-##### A debt management plan (DMP) helps you to manage your debts and pay them off at a more affordable rate by making reduced monthly payments. 
+A debt management plan helps you to manage your debts and pay them off at a more affordable rate by making reduced monthly payments. 
 
 ** Is a debt management plan right for you?**
 

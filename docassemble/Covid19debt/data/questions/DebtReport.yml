@@ -2087,24 +2087,13 @@ id: final document
 section: conclusions
 decoration: file-download
 event: letter_and_end
+allow downloading: True
 question: |
   Your document is ready
 subquestion: | 
-  Print and save for your for your records. 
- 
-   ${ debt_brief }
-   
-   ${ instructions_sheet }
-attachment:
-  - name: Personal Debt Advisor
-    filename: Debt Brief 
-    variable name: debt_brief
-    valid formats:
-      - docx
-      - pdf
-    docx template file: debt_report.docx
-   
-   
+
+attachment code: |
+  [debt_brief,instructions_sheet]
 buttons:
   - Exit: exit
   - Restart: restart
@@ -2459,6 +2448,12 @@ code: |
 			},
 		}
 ---
+code: | 
+  debt_solutions['Bankruptcy']['details'] = bankruptcy_information
+  debt_solutions['Administration Order']['details'] = administration_order
+  debt_solutions['Individual Voluntary Agreement']['details'] = individual_voluntary_agreement
+  debt_solutions['Debt Relief Order']['details'] = debt_relief_order 
+---
 id: Debt Solutions 
 variable name: debt_solutions
 use objects: True
@@ -2564,7 +2559,7 @@ data from code:
     blurb: | 
       "An administration order is a formal, legal debt solution which means it's approved by the court and your creditors have to stick to it. It requires two or more debts, yout debts no more than 5000 pounds in total, and a court judgement, if you don’t have a county court judgment or high court judgment, you need to wait for one of your creditors to take court action against you. As soon as judgment is entered you can apply for an administration order." 
     details: | 
-      "administration_order.md"
+      " informajga;gj" 
     cost: .1
     credit rating: |
       "affected"
@@ -2617,9 +2612,7 @@ data from code:
     title: | 
       "Individual Voluntary Agreement" 
     blurb: | 
-      " An individual voluntary arrangement (IVA) is a formal and legally binding agreement between you and your creditors to pay back your debts over a period of time. This means it’s approved by the court and your creditors have to stick to it. [BR][BR] An IVA can be flexible to suit your needs but it can be expensive. An IVA must be set up by a qualified person, called an insolvency practitioner. This will be a lawyer or an accountant.The insolvency practitioner will charge fees for the IVA. These can often be high and are based on the amount you pay back through the IVA. " 
-    details: |
-      "individual_voluntary_agreement.md"
+      " An individual voluntary arrangement (IVA) is a formal and legally binding agreement between you and your creditors to pay back your debts over a period of time. This means it’s approved by the court and your creditors have to stick to it." 
     cost: 4000
     credit rating: |
       "affected"
